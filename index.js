@@ -137,6 +137,23 @@ app.get('/debug-correos', function(req, res) {
     .catch(function(e) { res.json({ ok: false, error: e.message }); });
 });
 
+// ── ENDPOINT TEMPORAL: probar query exacta de busqueda ── eliminar despues ──
+app.get('/debug-query', function(req, res) {
+  var gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+  var plataforma = req.query.plataforma || 'disney';
+  var query = '';
+  if (plataforma === 'netflix') {
+    query = 'from:account.netflix.com subject:"Tu código de acceso temporal" newer_than:1d';
+  } else if (plataforma === 'disney') {
+    query = 'from:mail2.disneyplus.com subject:"Tu código de acceso único para Disney+" newer_than:1d';
+  }
+  gmail.users.messages.list({ userId: 'me', q: query, maxResults: 10 })
+    .then(function(listRes) {
+      res.json({ ok: true, query: query, total: (listRes.data.messages || []).length, ids: listRes.data.messages || [] });
+    })
+    .catch(function(e) { res.json({ ok: false, query: query, error: e.message }); });
+});
+
 app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 app.get('/{*splat}', function(req, res) {
   res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
