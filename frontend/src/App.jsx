@@ -10,6 +10,7 @@ const WA_DISPLAY = "3223071283";
 const LOGIN_USER = "dgm2026";
 const LOGIN_PASS = "Dgm1010";
 const LOGO_URL = "/images/logo.png";
+const PAGO_NUMERO = "3052308374";
 const RULETA_CODE = "DMJUN2026";
 
 const formatPrice = p => `$${p.toLocaleString("es-CO")}`;
@@ -52,6 +53,9 @@ const IMG = {
 
 // ─── DATOS ────────────────────────────────────────────────────────────────────
 const PANTALLAS = [
+  { id:"net1-p", name:"Netflix 1 Mes", price:16000, img:"/images/netflix1mes.png", color:"#E50914", desc:"1 pantalla · HD", features:["Series y películas","Calidad HD","Soporte incluido"] },
+  { id:"sp1-p", name:"Spotify 1 Mes", price:12000, img:IMG.spotify, color:"#1DB954", desc:"Premium sin anuncios", features:["Sin anuncios","Descarga offline","Calidad máxima"] },
+  { id:"yt1-p", name:"YouTube 1 Mes", price:12000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
   { id:"hbo", name:"HBO Max", price:11000, img:IMG.hbo, color:"#8B5CF6", desc:"Series exclusivas · HD", features:["Series exclusivas HBO","Estrenos de cine","Calidad HD"] },
   { id:"prime", name:"Prime Video", price:11000, img:IMG.prime, color:"#00A8E1", desc:"Originales Amazon · HD", features:["Originales Amazon","Calidad HD","Soporte incluido"] },
   { id:"dis1", name:"Disney+ Estándar", price:11000, img:IMG.disneyStd, color:"#0063e5", desc:"Marvel, Star Wars, Pixar", features:["Marvel, Star Wars, Pixar","Calidad HD","Sin ESPN"] },
@@ -94,15 +98,15 @@ const COMBOS = [
   { id:"cx4", name:"Combo x4 Apps", price:30000, img:IMG.combo4, color:"#E50914", desc:"Netflix + 3 plataformas" },
   { id:"cx5", name:"Combo x5 Apps", price:32000, img:IMG.combo5, color:"#E50914", desc:"Netflix + 4 plataformas" },
   { id:"vip", name:"Combo VIP 9 Apps", price:45000, img:IMG.comboVip, color:"#a855f7", badge:"VIP 💎", desc:"9 plataformas premium" },
-  { id:"office1", name:"Office 1 Mes", price:20000, img:IMG.office, color:"#D83B01", desc:"Word, Excel, PowerPoint" },
 ];
 
 const FAV_COMBOS = [
   { id:"fav1", name:"Netflix + Prime Video", price:22000, img:IMG.favNetPrime, color:"#FF9900", stars:1, desc:"Combo Favorito" },
   { id:"fav2", name:"Netflix + Jellyfin/IPTV", price:25000, img:IMG.favNetJelly, color:"#9B59B6", stars:2, desc:"Solo Smart TV" },
-  { id:"fav3", name:"Netflix + YouTube Premium", price:25000, img:IMG.favNetYt, color:"#FF0000", stars:3, desc:"Combo Favorito" },
-  { id:"fav4", name:"Netflix + Disney+ Premium", price:25000, img:IMG.favNetDisney, color:"#0063e5", stars:4, desc:"Con ESPN incluido" },
-  { id:"fav5", name:"Netflix + WIN+", price:35000, img:IMG.favNetWin, color:"#FF6B00", stars:5, desc:"Solo Smart TV" },
+  { id:"fav3", name:"Netflix + YouTube Premium", price:28000, img:IMG.favNetYt, color:"#FF0000", stars:3, desc:"Combo Favorito" },
+  { id:"fav4", name:"Netflix + Disney+ Premium", price:28000, img:IMG.favNetDisney, color:"#0063e5", stars:4, desc:"Con ESPN incluido" },
+  { id:"fav5", name:"Netflix + WIN+", price:38000, img:IMG.favNetWin, color:"#FF6B00", stars:5, desc:"Solo Smart TV" },
+  { id:"office1", name:"Office 1 Mes", price:20000, img:IMG.office, color:"#D83B01", stars:5, desc:"Word, Excel, PowerPoint" },
 ];
 
 // Ruleta items
@@ -196,7 +200,7 @@ const BOT_RULES = [
     reply:`🎰 El código de la ruleta de este mes es: DMJUN2026\nVálido solo para suscriptores del Club Digital Market.` },
 
   { kw:["pago","pagar","nequi","daviplata","llaves","transferencia"],
-    reply:`💳 MÉTODOS DE PAGO:\nNequi, Daviplata o Llaves al número ${WA_DISPLAY}.\n\nUna vez realices el pago, envíanos el comprobante por WhatsApp y activamos tu cuenta en máximo 5 minutos.` },
+    reply:`💳 MÉTODOS DE PAGO:\nNequi, Daviplata o Llaves (Cualquier Banco) al número ${PAGO_NUMERO}.\n\nUna vez realices el pago, envíanos el comprobante por WhatsApp y activamos tu cuenta en máximo 5 minutos.` },
 
   { kw:["no puedo entrar","no entra","no funciona","error","contraseña","clave"],
     reply:`🆘 Si no puedes entrar:\n1. Verifica que el correo y la contraseña no tengan espacios.\n2. Revisa mayúsculas/minúsculas.\n3. Si persiste, escríbenos al WhatsApp y lo resolvemos enseguida.` },
@@ -317,6 +321,8 @@ const getCSS = (dark) => `
   @keyframes glowGreen { 0%,100%{box-shadow:0 2px 10px rgba(37,211,102,0.2)} 50%{box-shadow:0 2px 18px rgba(37,211,102,0.5)} }
   .glow-purple { animation:glowPurple 2.6s ease-in-out infinite; }
   .glow-green { animation:glowGreen 2.6s ease-in-out infinite; }
+  @keyframes glowBlue { 0%,100%{box-shadow:0 2px 10px rgba(59,130,246,0.2)} 50%{box-shadow:0 2px 18px rgba(59,130,246,0.5)} }
+  .glow-blue { animation:glowBlue 2.6s ease-in-out infinite; }
   .menu-item { transition:background 0.15s ease, padding-left 0.15s ease; }
   .menu-item:hover { background:rgba(124,58,237,0.1); padding-left:24px !important; }
   .login-field { transition:border-color 0.18s ease, box-shadow 0.18s ease; }
@@ -324,6 +330,8 @@ const getCSS = (dark) => `
   .login-submit { transition:transform 0.15s ease, box-shadow 0.15s ease; }
   .login-submit:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(124,58,237,0.4); }
   .login-submit:active { transform:translateY(0) scale(0.98); }
+  .payment-row { transition:background 0.15s ease; }
+  .payment-row:hover { background:rgba(124,58,237,0.08); }
 `;
 
 // ─── COMPONENTES BASE ─────────────────────────────────────────────────────────
@@ -359,8 +367,12 @@ function PromoCarrusel({ dark }) {
   const t = getTheme(dark);
   const [active, setActive] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const dragRef = useRef({ startX:0, dragging:false });
+  const resumeTimer = useRef(null);
 
   useEffect(() => {
+    if (paused) return;
     const interval = setInterval(() => {
       setVisible(false);
       setTimeout(() => {
@@ -369,19 +381,47 @@ function PromoCarrusel({ dark }) {
       }, 350);
     }, 9000);
     return () => clearInterval(interval);
-  }, []);
+  }, [paused]);
 
-  const goTo = (i) => {
-    if (i===active) return;
+  const goTo = (i, wrap=true) => {
+    let idx = i;
+    if (wrap) idx = ((i % PROMOS.length) + PROMOS.length) % PROMOS.length;
+    if (idx===active) return;
     setVisible(false);
-    setTimeout(() => { setActive(i); setVisible(true); }, 350);
+    setTimeout(() => { setActive(idx); setVisible(true); }, 250);
+  };
+
+  const pauseTemporarily = () => {
+    setPaused(true);
+    clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(() => setPaused(false), 12000);
+  };
+
+  const onDown = (x) => { dragRef.current = { startX:x, dragging:true }; setPaused(true); clearTimeout(resumeTimer.current); };
+  const onMove = () => {};
+  const onUp = (x) => {
+    if (!dragRef.current.dragging) return;
+    const diff = x - dragRef.current.startX;
+    dragRef.current.dragging = false;
+    if (Math.abs(diff) > 40) {
+      if (diff < 0) goTo(active+1); else goTo(active-1);
+    }
+    pauseTemporarily();
   };
 
   const p = PROMOS[active];
   return (
     <div style={{ padding:"0 16px" }}>
-      <div style={{ maxWidth:520, margin:"0 auto" }}>
-        <div style={{ background:dark?p.bgDark:p.bgLight, border:`1px solid ${p.color}33`, borderRadius:16, padding:"18px 20px", minHeight:150, opacity:visible?1:0, transform:visible?"translateY(0) scale(1)":"translateY(8px) scale(0.985)", transition:"opacity 0.35s ease, transform 0.35s ease, background 0.4s ease" }}>
+      <div style={{ maxWidth:480 }}>
+        <div
+          onMouseDown={e=>onDown(e.clientX)}
+          onMouseMove={onMove}
+          onMouseUp={e=>onUp(e.clientX)}
+          onMouseLeave={()=>{ if(dragRef.current.dragging){ dragRef.current.dragging=false; pauseTemporarily(); } }}
+          onTouchStart={e=>onDown(e.touches[0].clientX)}
+          onTouchEnd={e=>onUp(e.changedTouches[0].clientX)}
+          style={{ background:dark?p.bgDark:p.bgLight, border:`1px solid ${p.color}33`, borderRadius:16, padding:"18px 20px", minHeight:150, opacity:visible?1:0, transform:visible?"translateY(0) scale(1)":"translateY(8px) scale(0.985)", transition:"opacity 0.35s ease, transform 0.35s ease, background 0.4s ease", cursor:"grab", userSelect:"none", touchAction:"pan-y" }}
+        >
           <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
             <span style={{ fontSize:20 }}>{p.emoji}</span>
             <span style={{ color:p.color, fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:0.8 }}>{p.tag}</span>
@@ -395,10 +435,14 @@ function PromoCarrusel({ dark }) {
             ))}
           </div>
         </div>
-        <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:10 }}>
-          {PROMOS.map((_,i)=>(
-            <button key={i} onClick={()=>goTo(i)} aria-label={`Promo ${i+1}`} style={{ width:i===active?22:8, height:8, borderRadius:4, border:"none", cursor:"pointer", background:i===active?PROMOS[active].color:t.border, transition:"all 0.3s ease", padding:0 }} />
-          ))}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, marginTop:10 }}>
+          <button onClick={()=>{ goTo(active-1); pauseTemporarily(); }} aria-label="Anterior" style={{ background:"transparent", border:"none", color:t.muted, fontSize:16, cursor:"pointer", padding:4, lineHeight:1 }}>‹</button>
+          <div style={{ display:"flex", justifyContent:"center", gap:6 }}>
+            {PROMOS.map((_,i)=>(
+              <button key={i} onClick={()=>{ goTo(i); pauseTemporarily(); }} aria-label={`Promo ${i+1}`} style={{ width:i===active?22:8, height:8, borderRadius:4, border:"none", cursor:"pointer", background:i===active?PROMOS[active].color:t.border, transition:"all 0.3s ease", padding:0 }} />
+            ))}
+          </div>
+          <button onClick={()=>{ goTo(active+1); pauseTemporarily(); }} aria-label="Siguiente" style={{ background:"transparent", border:"none", color:t.muted, fontSize:16, cursor:"pointer", padding:4, lineHeight:1 }}>›</button>
         </div>
       </div>
     </div>
@@ -689,28 +733,28 @@ function Login({ onLogin, onBack, dark }) {
   const t = getTheme(dark);
   const handle = () => { if(u===LOGIN_USER && p===LOGIN_PASS) onLogin(); else setErr("Usuario o contraseña incorrectos"); };
   return (
-    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit',system-ui,sans-serif", boxSizing:"border-box" }}>
-      <div style={{ width:"100%", maxWidth:380, animation:"fadeUp 0.3s ease" }}>
-        <div style={{ marginBottom:20 }}><BackButton onClick={onBack} dark={dark} /></div>
-        <div style={{ textAlign:"center", marginBottom:28 }}>
-          <div style={{ fontSize:48, marginBottom:12 }}>🔐</div>
-          <h2 style={{ fontWeight:800, fontSize:22, marginBottom:4, color:t.text }}>Validador de Códigos</h2>
-          <p style={{ color:t.muted, fontSize:13, marginBottom:8 }}>Acceso restringido — Digital Market</p>
-          <p style={{ color:t.muted, fontSize:12 }}>¿No sabes el usuario? <a onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Necesito acceso al validador de códigos")}`, "_blank")} style={{ color:"#7c3aed", cursor:"pointer", textDecoration:"underline" }}>Contacta soporte</a></p>
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit',system-ui,sans-serif", boxSizing:"border-box", position:"relative" }}>
+      <div style={{ position:"fixed", top:20, left:20, zIndex:10 }}><BackButton onClick={onBack} dark={dark} /></div>
+      <div style={{ width:"100%", maxWidth:460, animation:"fadeUp 0.3s ease" }}>
+        <div style={{ textAlign:"center", marginBottom:32 }}>
+          <div style={{ fontSize:60, marginBottom:14 }}>🔐</div>
+          <h2 style={{ fontWeight:800, fontSize:28, marginBottom:8, color:t.text }}>Validador de Códigos</h2>
+          <p style={{ color:t.muted, fontSize:14, marginBottom:10 }}>Acceso restringido — Digital Market</p>
+          <p style={{ color:t.muted, fontSize:13 }}>¿No sabes el usuario? <a onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Necesito acceso al validador de códigos")}`, "_blank")} style={{ color:"#7c3aed", cursor:"pointer", textDecoration:"underline" }}>Contacta soporte</a></p>
         </div>
-        <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:18, padding:28, boxShadow:dark?"0 8px 32px rgba(0,0,0,0.35)":"0 8px 32px rgba(0,0,0,0.08)" }}>
-          <label style={{ display:"block", fontSize:11, fontWeight:700, color:t.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Usuario</label>
-          <div className="login-field" style={{ display:"flex", alignItems:"center", gap:8, width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 14px", marginBottom:16, boxSizing:"border-box" }}>
-            <span style={{ fontSize:15, opacity:0.6, flexShrink:0 }}>👤</span>
-            <input value={u} onChange={e=>setU(e.target.value)} placeholder="Ingresa tu usuario" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:14, fontFamily:"inherit" }} />
+        <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:20, padding:36, boxShadow:dark?"0 8px 32px rgba(0,0,0,0.35)":"0 8px 32px rgba(0,0,0,0.08)" }}>
+          <label style={{ display:"block", fontSize:12, fontWeight:700, color:t.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Usuario</label>
+          <div className="login-field" style={{ display:"flex", alignItems:"center", gap:10, width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:12, padding:"15px 16px", marginBottom:20, boxSizing:"border-box" }}>
+            <span style={{ fontSize:18, opacity:0.6, flexShrink:0 }}>👤</span>
+            <input value={u} onChange={e=>setU(e.target.value)} placeholder="Ingresa tu usuario" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:15, fontFamily:"inherit" }} />
           </div>
-          <label style={{ display:"block", fontSize:11, fontWeight:700, color:t.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Contraseña</label>
-          <div className="login-field" style={{ display:"flex", alignItems:"center", gap:8, width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 14px", marginBottom:18, boxSizing:"border-box" }}>
-            <span style={{ fontSize:15, opacity:0.6, flexShrink:0 }}>🔑</span>
-            <input value={p} onChange={e=>setP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()} type="password" placeholder="Ingresa tu contraseña" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:14, fontFamily:"inherit" }} />
+          <label style={{ display:"block", fontSize:12, fontWeight:700, color:t.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:8 }}>Contraseña</label>
+          <div className="login-field" style={{ display:"flex", alignItems:"center", gap:10, width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:12, padding:"15px 16px", marginBottom:22, boxSizing:"border-box" }}>
+            <span style={{ fontSize:18, opacity:0.6, flexShrink:0 }}>🔑</span>
+            <input value={p} onChange={e=>setP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()} type="password" placeholder="Ingresa tu contraseña" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:15, fontFamily:"inherit" }} />
           </div>
-          {err && <p style={{ color:"#ef4444", fontSize:12, marginBottom:12, textAlign:"center", animation:"fadeUp 0.25s ease" }}>⚠️ {err}</p>}
-          <button onClick={handle} className="login-submit" style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>Ingresar</button>
+          {err && <p style={{ color:"#ef4444", fontSize:13, marginBottom:14, textAlign:"center", animation:"fadeUp 0.25s ease" }}>⚠️ {err}</p>}
+          <button onClick={handle} className="login-submit" style={{ width:"100%", padding:16, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"inherit" }}>Ingresar</button>
         </div>
       </div>
     </div>
@@ -846,7 +890,11 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar:\n\n${lista}\n\nTotal: ${formatPrice(total)}\n\nPor favor confirmar 🙏`)}`, "_blank");
   };
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", display:"flex", flexDirection:"column" }}>
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, position:"relative", overflow:"hidden" }}>
+      {/* Decoraciones de fondo */}
+      <div style={{ position:"absolute", top:-120, right:-120, width:320, height:320, borderRadius:"50%", background:"radial-gradient(circle, rgba(124,58,237,0.18), transparent 70%)", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", bottom:-100, left:-100, width:300, height:300, borderRadius:"50%", background:"radial-gradient(circle, rgba(37,211,102,0.12), transparent 70%)", pointerEvents:"none" }} />
+      <div style={{ maxWidth:960, margin:"0 auto", display:"flex", flexDirection:"column", minHeight:"100vh", position:"relative" }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ flex:1 }}><div style={{ fontWeight:800, fontSize:18 }}>🛒 Mi Carrito</div><div style={{ color:t.muted, fontSize:12 }}>{items.length} producto{items.length!==1?"s":""}</div></div>
@@ -882,11 +930,12 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
           </div>
           <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:16, marginTop:10 }}>
             <p style={{ color:t.muted, fontSize:12, marginBottom:14, fontWeight:600, textTransform:"uppercase", letterSpacing:1 }}>💳 Medios de pago</p>
-            {[{icon:"🤍",name:"Nequi"},{icon:"❤️",name:"Daviplata"},{icon:"🔑",name:"Llaves"}].map((p,i)=>(
-              <div key={i} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:i<2?10:0 }}>
+            {[{icon:"🤍",name:"Nequi"},{icon:"❤️",name:"Daviplata"},{icon:"🔑",name:"Llaves (Cualquier Banco)"}].map((p,i)=>(
+              <div key={i} className="payment-row" onClick={()=>navigator.clipboard?.writeText(PAGO_NUMERO)} style={{ display:"flex", alignItems:"center", gap:10, marginBottom:i<2?10:0, cursor:"pointer", borderRadius:10, padding:"6px 8px" }}>
                 <span style={{ fontSize:18 }}>{p.icon}</span>
                 <span style={{ color:t.muted, fontSize:13 }}>{p.name}:</span>
-                <span style={{ color:t.text, fontWeight:700, fontSize:15 }}>{WA_DISPLAY}</span>
+                <span style={{ color:t.text, fontWeight:700, fontSize:15 }}>{PAGO_NUMERO}</span>
+                <span style={{ marginLeft:"auto", fontSize:11, color:t.muted }}>📋</span>
               </div>
             ))}
           </div>
@@ -899,6 +948,7 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -918,10 +968,10 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
   }, [open, render]);
   if (!render) return null;
   const items = [
-    {icon:"📺",label:"Pantallas",key:"pantallas"},
-    {icon:"🗓️",label:"Meses",key:"meses"},
-    {icon:"🔥",label:"Combos",key:"combos"},
     {icon:"⭐",label:"Favoritos",key:"favoritos"},
+    {icon:"📺",label:"Pantallas",key:"pantallas"},
+    {icon:"🔥",label:"Combos",key:"combos"},
+    {icon:"🗓️",label:"Meses",key:"meses"},
     {icon:"👥",label:"Seguidores",key:"seguidores"},
     {icon:"🔐",label:"Validar Código",key:"validar"},
     {icon:"🛒",label:"Carrito",key:"cart",badge:cartCount},
@@ -1151,7 +1201,7 @@ function Chat({ onBack, dark }) {
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState("home");
-  const [activeTab, setActiveTab] = useState("pantallas");
+  const [activeTab, setActiveTab] = useState("favoritos");
   const [detail, setDetail] = useState(null);
   const [cart, setCart] = useState([]);
   const [menuOpen, setMenuOpen] = useState(true);
@@ -1245,9 +1295,9 @@ export default function App() {
           <span style={{ fontSize:20 }}>👑</span>
           <div style={{ textAlign:"left" }}><div style={{ color:"#FFD700", fontWeight:700, fontSize:12 }}>Club Digital Market</div><div style={{ color:"#c9a227", fontSize:10 }}>$10.000/mes · Beneficios exclusivos</div></div>
         </button>
-        <button onClick={()=>setShowRuleta(true)} className="quick-access" style={{ flex:1, background:"linear-gradient(135deg,#1a0f00,#2a1800)", border:"1px solid #F59E0B44", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
-          <span style={{ fontSize:20 }}>🎰</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#F59E0B", fontWeight:700, fontSize:12 }}>Ruleta de Premios</div><div style={{ color:"#c9a227", fontSize:10 }}>Gira y gana</div></div>
+        <button onClick={()=>setScreen("soporte")} className="quick-access glow-blue" style={{ flex:1, background:"linear-gradient(135deg,#0a1a2a,#0d2538)", border:"1px solid #3b82f655", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+          <span style={{ fontSize:20 }}>🆘</span>
+          <div style={{ textAlign:"left" }}><div style={{ color:"#60a5fa", fontWeight:700, fontSize:12 }}>Soporte</div><div style={{ color:"#93c5fd", fontSize:10 }}>Ayuda y errores comunes</div></div>
         </button>
       </div>
 
@@ -1260,7 +1310,7 @@ export default function App() {
 
       {/* TABS */}
       <div style={{ display:"flex", padding:"14px 16px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
-        {[["pantallas","📺 Pantallas"],["meses","🗓️ Meses"],["combos","🔥 Combos"],["favoritos","⭐ Favoritos"]].map(([k,l])=>(
+        {[["favoritos","⭐ Favoritos"],["pantallas","📺 Pantallas"],["combos","🔥 Combos"],["meses","🗓️ Meses"]].map(([k,l])=>(
           <button key={k} onClick={()=>setActiveTab(k)} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"11px 18px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{l}</button>
         ))}
       </div>
