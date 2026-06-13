@@ -141,6 +141,7 @@ app.get('/debug-correos', function(req, res) {
 app.get('/debug-query', function(req, res) {
   var gmail = google.gmail({ version: 'v1', auth: oauth2Client });
   var plataforma = req.query.plataforma || 'disney';
+  var emailBuscado = (req.query.email || '').toLowerCase();
   var query = '';
   if (plataforma === 'netflix') {
     query = 'from:account.netflix.com subject:"Tu código de acceso temporal" newer_than:1d';
@@ -149,7 +150,29 @@ app.get('/debug-query', function(req, res) {
   }
   gmail.users.messages.list({ userId: 'me', q: query, maxResults: 10 })
     .then(function(listRes) {
-      res.json({ ok: true, query: query, total: (listRes.data.messages || []).length, ids: listRes.data.messages || [] });
+      var mensajes = listRes.data.messages || [];
+      if (mensajes.length === 0) return res.json({ ok: true, query: query, total: 0, mensajes: [] });
+      var promesas = mensajes.map(function(m) {
+        return gmail.users.messages.get({ userId: 'me', id: m.id, format: 'full' });
+      });
+      Promise.all(promesas).then(function(msgs) {
+        var resumen = msgs.map(function(msg) {
+          var headers = msg.data.payload.headers || [];
+          var obj = {};
+          headers.forEach(function(h) { obj[h.name] = h.value; });
+          var texto = extraerTexto(msg.data.payload);
+          var paraLower = (obj.To || '').toLowerCase();
+          var textoLower = texto.toLowerCase();
+          return {
+            from: obj.From, to: obj.To, subject: obj.Subject, date: obj.Date,
+            internalDate: msg.data.internalDate,
+            coincideEnTo: emailBuscado ? paraLower.indexOf(emailBuscado) >= 0 : null,
+            coincideEnTexto: emailBuscado ? textoLower.indexOf(emailBuscado) >= 0 : null,
+            textoPreview: texto.slice(0, 300)
+          };
+        });
+        res.json({ ok: true, query: query, emailBuscado: emailBuscado, total: resumen.length, mensajes: resumen });
+      }).catch(function(e) { res.json({ ok: false, error: e.message }); });
     })
     .catch(function(e) { res.json({ ok: false, query: query, error: e.message }); });
 });
