@@ -367,7 +367,7 @@ function PromoCarrusel({ dark }) {
         setActive(a => (a+1) % PROMOS.length);
         setVisible(true);
       }, 350);
-    }, 5000);
+    }, 9000);
     return () => clearInterval(interval);
   }, []);
 
@@ -380,24 +380,26 @@ function PromoCarrusel({ dark }) {
   const p = PROMOS[active];
   return (
     <div style={{ padding:"0 16px" }}>
-      <div style={{ background:dark?p.bgDark:p.bgLight, border:`1px solid ${p.color}33`, borderRadius:16, padding:"18px 20px", minHeight:150, opacity:visible?1:0, transform:visible?"translateY(0) scale(1)":"translateY(8px) scale(0.985)", transition:"opacity 0.35s ease, transform 0.35s ease, background 0.4s ease" }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
-          <span style={{ fontSize:20 }}>{p.emoji}</span>
-          <span style={{ color:p.color, fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:0.8 }}>{p.tag}</span>
-          {p.price && <span style={{ marginLeft:"auto", color:p.color, fontWeight:900, fontSize:18 }}>{p.price}</span>}
+      <div style={{ maxWidth:520, margin:"0 auto" }}>
+        <div style={{ background:dark?p.bgDark:p.bgLight, border:`1px solid ${p.color}33`, borderRadius:16, padding:"18px 20px", minHeight:150, opacity:visible?1:0, transform:visible?"translateY(0) scale(1)":"translateY(8px) scale(0.985)", transition:"opacity 0.35s ease, transform 0.35s ease, background 0.4s ease" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+            <span style={{ fontSize:20 }}>{p.emoji}</span>
+            <span style={{ color:p.color, fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:0.8 }}>{p.tag}</span>
+            {p.price && <span style={{ marginLeft:"auto", color:p.color, fontWeight:900, fontSize:18 }}>{p.price}</span>}
+          </div>
+          <p style={{ color:t.text, fontSize:16, fontWeight:800, lineHeight:1.3, marginBottom:6 }}>{p.title}</p>
+          <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.5, marginBottom:10 }}>{p.desc}</p>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+            {p.items.map((it,i)=>(
+              <span key={i} style={{ background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", border:`1px solid ${p.color}33`, color:t.text, fontSize:11.5, fontWeight:600, padding:"4px 10px", borderRadius:20 }}>{it}</span>
+            ))}
+          </div>
         </div>
-        <p style={{ color:t.text, fontSize:16, fontWeight:800, lineHeight:1.3, marginBottom:6 }}>{p.title}</p>
-        <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.5, marginBottom:10 }}>{p.desc}</p>
-        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
-          {p.items.map((it,i)=>(
-            <span key={i} style={{ background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", border:`1px solid ${p.color}33`, color:t.text, fontSize:11.5, fontWeight:600, padding:"4px 10px", borderRadius:20 }}>{it}</span>
+        <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:10 }}>
+          {PROMOS.map((_,i)=>(
+            <button key={i} onClick={()=>goTo(i)} aria-label={`Promo ${i+1}`} style={{ width:i===active?22:8, height:8, borderRadius:4, border:"none", cursor:"pointer", background:i===active?PROMOS[active].color:t.border, transition:"all 0.3s ease", padding:0 }} />
           ))}
         </div>
-      </div>
-      <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:10 }}>
-        {PROMOS.map((_,i)=>(
-          <button key={i} onClick={()=>goTo(i)} aria-label={`Promo ${i+1}`} style={{ width:i===active?22:8, height:8, borderRadius:4, border:"none", cursor:"pointer", background:i===active?PROMOS[active].color:t.border, transition:"all 0.3s ease", padding:0 }} />
-        ))}
       </div>
     </div>
   );
@@ -1249,11 +1251,11 @@ export default function App() {
         </button>
       </div>
 
-      {/* CARRUSEL DE PROMOCIONES */}
-      <div style={{ marginTop:14 }}><PromoCarrusel dark={dark} /></div>
-
       {/* CARRUSEL ESTRENOS */}
-      <div style={{ marginTop:12 }}><Carrusel dark={dark} /></div>
+      <div style={{ marginTop:14 }}><Carrusel dark={dark} /></div>
+
+      {/* CARRUSEL DE PROMOCIONES */}
+      <div style={{ marginTop:12 }}><PromoCarrusel dark={dark} /></div>
 
 
       {/* TABS */}
