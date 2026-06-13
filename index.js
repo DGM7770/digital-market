@@ -114,6 +114,29 @@ app.post('/buscar-correo', function(req, res) {
   });
 });
 
+// ── ENDPOINT TEMPORAL DE DIAGNOSTICO ── eliminar despues de revisar ──
+app.get('/debug-correos', function(req, res) {
+  var gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+  gmail.users.messages.list({ userId: 'me', q: 'newer_than:1d', maxResults: 15 })
+    .then(function(listRes) {
+      var mensajes = listRes.data.messages || [];
+      if (mensajes.length === 0) return res.json({ ok: true, total: 0, mensajes: [] });
+      var promesas = mensajes.map(function(m) {
+        return gmail.users.messages.get({ userId: 'me', id: m.id, format: 'metadata', metadataHeaders: ['From','To','Subject','Date'] });
+      });
+      Promise.all(promesas).then(function(msgs) {
+        var resumen = msgs.map(function(msg) {
+          var headers = msg.data.payload.headers || [];
+          var obj = {};
+          headers.forEach(function(h) { obj[h.name] = h.value; });
+          return { from: obj.From, to: obj.To, subject: obj.Subject, date: obj.Date };
+        });
+        res.json({ ok: true, total: resumen.length, mensajes: resumen });
+      }).catch(function(e) { res.json({ ok: false, error: e.message }); });
+    })
+    .catch(function(e) { res.json({ ok: false, error: e.message }); });
+});
+
 app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 app.get('/{*splat}', function(req, res) {
   res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
