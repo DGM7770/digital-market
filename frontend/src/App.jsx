@@ -242,12 +242,12 @@ function getBotReply(text) {
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 const getTheme = (dark) => ({
-  bg: dark ? "#080d14" : "#f0f4f8",
-  surface: dark ? "#0e1520" : "#ffffff",
-  card: dark ? "#111b27" : "#ffffff",
-  border: dark ? "#1a2535" : "#e2e8f0",
-  text: dark ? "#e8eef5" : "#1a202c",
-  muted: dark ? "#4a6080" : "#718096",
+  bg: dark ? "#0d141f" : "#f0f4f8",
+  surface: dark ? "#141d2c" : "#ffffff",
+  card: dark ? "#182433" : "#ffffff",
+  border: dark ? "#26334a" : "#e2e8f0",
+  text: dark ? "#eef2f7" : "#1a202c",
+  muted: dark ? "#8497b8" : "#718096",
 });
 
 const getCSS = (dark) => `
@@ -261,7 +261,9 @@ const getCSS = (dark) => `
   @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
   @keyframes menuSlide { from{transform:translateX(-100%)} to{transform:translateX(0)} }
+  @keyframes menuSlideOut { from{transform:translateX(0)} to{transform:translateX(-100%)} }
   @keyframes overlayIn { from{opacity:0} to{opacity:1} }
+  @keyframes overlayOut { from{opacity:1} to{opacity:0} }
   @keyframes modalIn { from{opacity:0;transform:scale(0.92) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
   @keyframes spin { to{transform:rotate(360deg)} }
   @keyframes scroll { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
@@ -279,14 +281,16 @@ const getCSS = (dark) => `
   .tab-active { background:#7c3aed !important; color:#fff !important; font-weight:700 !important; }
   .tab-btn { transition:transform 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; }
   .tab-btn:active { transform:scale(0.95); }
-  .tab-active { transform:scale(1.05); box-shadow:0 4px 14px rgba(124,58,237,0.35); }
+  @keyframes tabGlow { 0%,100%{box-shadow:0 4px 14px rgba(124,58,237,0.35)} 50%{box-shadow:0 4px 22px rgba(124,58,237,0.65)} }
+  .tab-active { transform:scale(1.05); animation:tabGlow 2.2s ease-in-out infinite; }
   .cart-bounce { animation:cartBounce 0.4s ease; }
   .product-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
   @media (min-width:640px) { .product-grid { grid-template-columns:repeat(3,1fr); gap:14px; } }
   @media (min-width:1024px) { .product-grid { grid-template-columns:repeat(4,1fr); gap:18px; } }
   @media (min-width:1400px) { .product-grid { grid-template-columns:repeat(5,1fr); gap:20px; } }
-  .back-btn { display:inline-flex; align-items:center; gap:8px; transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; }
-  .back-btn:hover { transform:translateX(-4px) scale(1.04); }
+  @keyframes backGlow { 0%,100%{box-shadow:0 2px 8px rgba(124,58,237,0.15), 0 0 0 0 rgba(124,58,237,0.0)} 50%{box-shadow:0 2px 14px rgba(124,58,237,0.35), 0 0 0 4px rgba(124,58,237,0.08)} }
+  .back-btn { display:inline-flex; align-items:center; gap:8px; transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; animation:backGlow 2.6s ease-in-out infinite; cursor:pointer; }
+  .back-btn:hover { transform:translateX(-4px) scale(1.04); animation:none; box-shadow:0 4px 16px rgba(124,58,237,0.45); }
   .back-btn:active { transform:translateX(-2px) scale(0.97); }
   .back-btn-arrow { transition:transform 0.18s ease; }
   .back-btn:hover .back-btn-arrow { transform:translateX(-3px); }
@@ -309,8 +313,17 @@ const getCSS = (dark) => `
   .quick-access { transition:transform 0.18s ease, box-shadow 0.18s ease; }
   .quick-access:hover { transform:translateY(-3px); box-shadow:0 6px 16px rgba(0,0,0,0.15); }
   .quick-access:active { transform:translateY(-1px) scale(0.98); }
+  @keyframes glowPurple { 0%,100%{box-shadow:0 2px 10px rgba(124,58,237,0.25)} 50%{box-shadow:0 2px 18px rgba(124,58,237,0.55)} }
+  @keyframes glowGreen { 0%,100%{box-shadow:0 2px 10px rgba(37,211,102,0.2)} 50%{box-shadow:0 2px 18px rgba(37,211,102,0.5)} }
+  .glow-purple { animation:glowPurple 2.6s ease-in-out infinite; }
+  .glow-green { animation:glowGreen 2.6s ease-in-out infinite; }
   .menu-item { transition:background 0.15s ease, padding-left 0.15s ease; }
   .menu-item:hover { background:rgba(124,58,237,0.1); padding-left:24px !important; }
+  .login-field { transition:border-color 0.18s ease, box-shadow 0.18s ease; }
+  .login-field:focus-within { border-color:#7c3aed !important; box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
+  .login-submit { transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  .login-submit:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(124,58,237,0.4); }
+  .login-submit:active { transform:translateY(0) scale(0.98); }
 `;
 
 // ─── COMPONENTES BASE ─────────────────────────────────────────────────────────
@@ -336,27 +349,54 @@ function Img({ src, alt, size=44, style={} }) {
 // ─── CARRUSEL PELICULAS ───────────────────────────────────────────────────────
 // ─── CARRUSEL DE PROMOCIONES ──────────────────────────────────────────────────
 const PROMOS = [
-  { emoji:"🎁", tag:"Promo Netflix activa", title:"Lleva 2 Pantallas, 2 o 3 Meses", desc:"y recibe 1 app GRATIS 🥳: Disney+, HBO, Plex, ViX+, Crunchyroll, Paramount+ o IPTV", color:"#E50914", bgDark:"linear-gradient(135deg,#2a0000,#1f0000)", bgLight:"linear-gradient(135deg,#fff1f1,#ffe4e4)" },
-  { emoji:"🔥", tag:"Lo más vendido", title:"Combo VIP 9 Plataformas", desc:"Netflix, HBO, Prime, ViX+, Crunchyroll, IPTV, Paramount+, Plex y Jellyfin por solo $45.000", color:"#a855f7", bgDark:"linear-gradient(135deg,#1f0a2a,#150620)", bgLight:"linear-gradient(135deg,#f6eeff,#ece0ff)" },
-  { emoji:"👑", tag:"Club Digital Market", title:"Únete por $10.000/mes", desc:"Giros de ruleta, descuentos exclusivos y ofertas anticipadas para miembros", color:"#FFD700", bgDark:"linear-gradient(135deg,#2a2000,#1f1700)", bgLight:"linear-gradient(135deg,#fffbe6,#fff3c4)" },
-  { emoji:"🎰", tag:"Ruleta de premios", title:"Gira y gana cada mes", desc:"Suscriptores del Club pueden girar la ruleta y ganar descuentos o productos gratis", color:"#F59E0B", bgDark:"linear-gradient(135deg,#2a1800,#1f1100)", bgLight:"linear-gradient(135deg,#fff4e6,#ffe4c4)" },
+  { emoji:"🎁", tag:"Promo Netflix activa", title:"Lleva 2 Pantallas, 2 o 3 Meses", desc:"y recibe 1 app GRATIS 🥳 a tu elección entre estas plataformas:", items:["Disney+","HBO Max","Plex","ViX+","Crunchyroll","Paramount+","IPTV"], color:"#E50914", bgDark:"linear-gradient(135deg,#2a0000,#1f0000)", bgLight:"linear-gradient(135deg,#fff1f1,#ffe4e4)" },
+  { emoji:"🔥", tag:"Lo más vendido", title:"Combo VIP — 9 Plataformas", desc:"El combo más completo de la tienda, ideal si quieres todo en un solo pago:", items:["Netflix","HBO Max","Prime Video","ViX+","Crunchyroll","IPTV","Paramount+","Plex","Jellyfin"], price:"$45.000", color:"#a855f7", bgDark:"linear-gradient(135deg,#1f0a2a,#150620)", bgLight:"linear-gradient(135deg,#f6eeff,#ece0ff)" },
+  { emoji:"👑", tag:"Club Digital Market", title:"Únete por $10.000 al mes", desc:"Beneficios exclusivos para miembros del club:", items:["1 giro de ruleta cada mes","Descuentos exclusivos","Ofertas anticipadas","Notificaciones por WhatsApp"], color:"#FFD700", bgDark:"linear-gradient(135deg,#2a2000,#1f1700)", bgLight:"linear-gradient(135deg,#fffbe6,#fff3c4)" },
+  { emoji:"🎰", tag:"Ruleta de premios", title:"Gira y gana cada mes", desc:"Disponible para suscriptores del Club Digital Market:", items:["Descuentos en combos","Meses gratis","Plataformas de regalo","Premios sorpresa"], color:"#F59E0B", bgDark:"linear-gradient(135deg,#2a1800,#1f1100)", bgLight:"linear-gradient(135deg,#fff4e6,#ffe4c4)" },
 ];
 
 function PromoCarrusel({ dark }) {
   const t = getTheme(dark);
-  const all = [...PROMOS, ...PROMOS];
+  const [active, setActive] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setActive(a => (a+1) % PROMOS.length);
+        setVisible(true);
+      }, 350);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const goTo = (i) => {
+    if (i===active) return;
+    setVisible(false);
+    setTimeout(() => { setActive(i); setVisible(true); }, 350);
+  };
+
+  const p = PROMOS[active];
   return (
-    <div style={{ overflow:"hidden", padding:"2px 0 4px" }}>
-      <div style={{ display:"flex", gap:12, animation:"scroll 70s linear infinite", width:"max-content", paddingLeft:16, paddingRight:16 }}>
-        {all.map((p,i) => (
-          <div key={i} style={{ width:280, flexShrink:0, background:dark?p.bgDark:p.bgLight, border:`1px solid ${p.color}33`, borderRadius:14, padding:"14px 16px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-              <span style={{ fontSize:18 }}>{p.emoji}</span>
-              <span style={{ color:p.color, fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:0.5 }}>{p.tag}</span>
-            </div>
-            <p style={{ color:t.text, fontSize:13, fontWeight:700, lineHeight:1.4, marginBottom:4 }}>{p.title}</p>
-            <p style={{ color:t.muted, fontSize:11.5, lineHeight:1.5 }}>{p.desc}</p>
-          </div>
+    <div style={{ padding:"0 16px" }}>
+      <div style={{ background:dark?p.bgDark:p.bgLight, border:`1px solid ${p.color}33`, borderRadius:16, padding:"18px 20px", minHeight:150, opacity:visible?1:0, transform:visible?"translateY(0) scale(1)":"translateY(8px) scale(0.985)", transition:"opacity 0.35s ease, transform 0.35s ease, background 0.4s ease" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+          <span style={{ fontSize:20 }}>{p.emoji}</span>
+          <span style={{ color:p.color, fontWeight:700, fontSize:12, textTransform:"uppercase", letterSpacing:0.8 }}>{p.tag}</span>
+          {p.price && <span style={{ marginLeft:"auto", color:p.color, fontWeight:900, fontSize:18 }}>{p.price}</span>}
+        </div>
+        <p style={{ color:t.text, fontSize:16, fontWeight:800, lineHeight:1.3, marginBottom:6 }}>{p.title}</p>
+        <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.5, marginBottom:10 }}>{p.desc}</p>
+        <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          {p.items.map((it,i)=>(
+            <span key={i} style={{ background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", border:`1px solid ${p.color}33`, color:t.text, fontSize:11.5, fontWeight:600, padding:"4px 10px", borderRadius:20 }}>{it}</span>
+          ))}
+        </div>
+      </div>
+      <div style={{ display:"flex", justifyContent:"center", gap:6, marginTop:10 }}>
+        {PROMOS.map((_,i)=>(
+          <button key={i} onClick={()=>goTo(i)} aria-label={`Promo ${i+1}`} style={{ width:i===active?22:8, height:8, borderRadius:4, border:"none", cursor:"pointer", background:i===active?PROMOS[active].color:t.border, transition:"all 0.3s ease", padding:0 }} />
         ))}
       </div>
     </div>
@@ -647,8 +687,8 @@ function Login({ onLogin, onBack, dark }) {
   const t = getTheme(dark);
   const handle = () => { if(u===LOGIN_USER && p===LOGIN_PASS) onLogin(); else setErr("Usuario o contraseña incorrectos"); };
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit',system-ui,sans-serif" }}>
-      <div style={{ width:"100%", maxWidth:340, animation:"fadeUp 0.3s ease" }}>
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit',system-ui,sans-serif", boxSizing:"border-box" }}>
+      <div style={{ width:"100%", maxWidth:380, animation:"fadeUp 0.3s ease" }}>
         <div style={{ marginBottom:20 }}><BackButton onClick={onBack} dark={dark} /></div>
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <div style={{ fontSize:48, marginBottom:12 }}>🔐</div>
@@ -656,11 +696,19 @@ function Login({ onLogin, onBack, dark }) {
           <p style={{ color:t.muted, fontSize:13, marginBottom:8 }}>Acceso restringido — Digital Market</p>
           <p style={{ color:t.muted, fontSize:12 }}>¿No sabes el usuario? <a onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Necesito acceso al validador de códigos")}`, "_blank")} style={{ color:"#7c3aed", cursor:"pointer", textDecoration:"underline" }}>Contacta soporte</a></p>
         </div>
-        <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:24 }}>
-          <input value={u} onChange={e=>setU(e.target.value)} placeholder="Usuario" style={{ width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 14px", color:t.text, fontSize:14, fontFamily:"inherit", marginBottom:10 }} />
-          <input value={p} onChange={e=>setP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()} type="password" placeholder="Contraseña" style={{ width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 14px", color:t.text, fontSize:14, fontFamily:"inherit", marginBottom:14 }} />
-          {err && <p style={{ color:"#ef4444", fontSize:12, marginBottom:10, textAlign:"center" }}>{err}</p>}
-          <button onClick={handle} style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>Ingresar</button>
+        <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:18, padding:28, boxShadow:dark?"0 8px 32px rgba(0,0,0,0.35)":"0 8px 32px rgba(0,0,0,0.08)" }}>
+          <label style={{ display:"block", fontSize:11, fontWeight:700, color:t.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Usuario</label>
+          <div className="login-field" style={{ display:"flex", alignItems:"center", gap:8, width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 14px", marginBottom:16, boxSizing:"border-box" }}>
+            <span style={{ fontSize:15, opacity:0.6, flexShrink:0 }}>👤</span>
+            <input value={u} onChange={e=>setU(e.target.value)} placeholder="Ingresa tu usuario" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:14, fontFamily:"inherit" }} />
+          </div>
+          <label style={{ display:"block", fontSize:11, fontWeight:700, color:t.muted, textTransform:"uppercase", letterSpacing:1, marginBottom:6 }}>Contraseña</label>
+          <div className="login-field" style={{ display:"flex", alignItems:"center", gap:8, width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:10, padding:"12px 14px", marginBottom:18, boxSizing:"border-box" }}>
+            <span style={{ fontSize:15, opacity:0.6, flexShrink:0 }}>🔑</span>
+            <input value={p} onChange={e=>setP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()} type="password" placeholder="Ingresa tu contraseña" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:14, fontFamily:"inherit" }} />
+          </div>
+          {err && <p style={{ color:"#ef4444", fontSize:12, marginBottom:12, textAlign:"center", animation:"fadeUp 0.25s ease" }}>⚠️ {err}</p>}
+          <button onClick={handle} className="login-submit" style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>Ingresar</button>
         </div>
       </div>
     </div>
@@ -692,7 +740,7 @@ function ValidarCodigo({ onBack, dark }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:700, margin:"0 auto", paddingBottom:40 }}>
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ width:40, height:40, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🔐</div>
@@ -796,7 +844,7 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar:\n\n${lista}\n\nTotal: ${formatPrice(total)}\n\nPor favor confirmar 🙏`)}`, "_blank");
   };
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:700, margin:"0 auto", display:"flex", flexDirection:"column" }}>
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", display:"flex", flexDirection:"column" }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ flex:1 }}><div style={{ fontWeight:800, fontSize:18 }}>🛒 Mi Carrito</div><div style={{ color:t.muted, fontSize:12 }}>{items.length} producto{items.length!==1?"s":""}</div></div>
@@ -856,7 +904,17 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
 // ─── MENU LATERAL ─────────────────────────────────────────────────────────────
 function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
   const t = getTheme(dark);
-  if (!open) return null;
+  const [render, setRender] = useState(open);
+  const [closing, setClosing] = useState(false);
+  useEffect(() => {
+    if (open) { setRender(true); setClosing(false); }
+    else if (render) {
+      setClosing(true);
+      const timer = setTimeout(() => setRender(false), 250);
+      return () => clearTimeout(timer);
+    }
+  }, [open, render]);
+  if (!render) return null;
   const items = [
     {icon:"📺",label:"Pantallas",key:"pantallas"},
     {icon:"🗓️",label:"Meses",key:"meses"},
@@ -871,19 +929,20 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
   ];
   return (
     <>
-      <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, animation:"overlayIn 0.2s ease" }} />
-      <div style={{ position:"fixed", top:0, left:0, bottom:0, width:270, background:t.surface, borderRight:`1px solid ${t.border}`, zIndex:201, display:"flex", flexDirection:"column", animation:"menuSlide 0.25s ease" }}>
-        <div style={{ padding:"22px 18px 16px", borderBottom:`1px solid ${t.border}` }}>
+      <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, animation:closing?"overlayOut 0.25s ease forwards":"overlayIn 0.2s ease" }} />
+      <div style={{ position:"fixed", top:0, left:0, bottom:0, width:270, background:t.surface, borderRight:`1px solid ${t.border}`, zIndex:201, display:"flex", flexDirection:"column", animation:closing?"menuSlideOut 0.25s ease forwards":"menuSlide 0.25s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.25)" }}>
+        <div style={{ padding:"24px 18px 18px", borderBottom:`1px solid ${t.border}`, background:dark?"linear-gradient(135deg,#150a25,#0e1520)":"linear-gradient(135deg,#f3edff,#ffffff)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <div style={{ width:44, height:44, borderRadius:"50%", overflow:"hidden", background:"#1a2535", flexShrink:0 }}>
-              <img src={LOGO_URL} alt="Logo" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{ e.target.style.display="none"; }} />
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:54, height:54, objectFit:"contain", flexShrink:0, filter:"drop-shadow(0 3px 10px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
+            <div>
+              <div style={{ fontWeight:900, fontSize:17, letterSpacing:0.3, color:t.text }}>Digital <span style={{ background:"linear-gradient(90deg,#7c3aed,#a78bfa)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Market</span></div>
+              <div style={{ fontSize:11, color:"#25d366", fontWeight:600, display:"flex", alignItems:"center", gap:5, marginTop:2 }}><span style={{ width:6, height:6, background:"#25d366", borderRadius:"50%", display:"inline-block", animation:"blink 1.6s ease infinite" }}/> En línea</div>
             </div>
-            <div><div style={{ fontWeight:800, fontSize:15, color:t.text }}>Digital Market</div><div style={{ fontSize:11, color:"#25d366" }}>● En línea</div></div>
           </div>
         </div>
         <div style={{ flex:1, overflowY:"auto", padding:"10px 0" }}>
-          {items.map(item=>(
-            <button key={item.key} onClick={()=>{ onNav(item.key); onClose(); }} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"13px 18px", background:"transparent", border:"none", color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit", position:"relative", textAlign:"left" }}>
+          {items.map((item,i)=>(
+            <button key={item.key} onClick={()=>{ onNav(item.key); onClose(); }} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"13px 18px", background:"transparent", border:"none", color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit", position:"relative", textAlign:"left", animation:`fadeUp 0.35s ease backwards`, animationDelay:`${i*0.04}s` }}>
               <span style={{ fontSize:20 }}>{item.icon}</span><span>{item.label}</span>
               {item.badge>0 && <div style={{ position:"absolute", right:18, background:"#E50914", color:"#fff", borderRadius:"50%", width:20, height:20, fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{item.badge}</div>}
             </button>
@@ -904,7 +963,7 @@ function Detail({ item, onBack, onAddCart, dark }) {
   const accent = item.color||"#fff";
   const t = getTheme(dark);
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:700, margin:"0 auto", display:"flex", flexDirection:"column", animation:"slideIn 0.22s ease" }}>
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", display:"flex", flexDirection:"column", animation:"slideIn 0.22s ease" }}>
       <div style={{ padding:"16px", background:`linear-gradient(160deg,${accent}18 0%,${t.bg} 60%)`, borderBottom:`1px solid ${accent}22` }}>
         <div style={{ marginBottom:16 }}><BackButton onClick={onBack} dark={dark} /></div>
         <div style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
@@ -957,7 +1016,7 @@ function Soporte({ onBack, dark }) {
     {icon:"💬",title:"¿No encontraste tu error? Nuestro soporte responde.",content:"Escríbenos directamente por WhatsApp y te ayudamos de inmediato."},
   ];
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:700, margin:"0 auto", paddingBottom:40 }}>
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div><div style={{ fontWeight:800, fontSize:20 }}>🆘 Soporte</div><div style={{ color:t.muted, fontSize:12 }}>Errores comunes y soluciones rápidas</div></div>
@@ -990,7 +1049,7 @@ function Seguidores({ onBack, onAddCart, dark }) {
     {id:"tt1k",name:"TikTok 1.000 Seguidores",price:58000,img:IMG.tiktok,color:"#010101",red:"TikTok",features:["1.000 seguidores","Cuenta pública","Impulsa el algoritmo","Entrega rápida"]},
   ];
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:700, margin:"0 auto", paddingBottom:40 }}>
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div><div style={{ fontWeight:800, fontSize:18 }}>👥 Seguidores</div><div style={{ color:t.muted, fontSize:12 }}>Redes sociales · Crecimiento garantizado</div></div>
@@ -1055,7 +1114,7 @@ function Chat({ onBack, dark }) {
     }, delay);
   };
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:700, margin:"0 auto" }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto" }}>
       <div style={{ padding:"12px 16px", background:t.surface, borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:11 }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ width:40, height:40, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🤖</div>
@@ -1093,7 +1152,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("pantallas");
   const [detail, setDetail] = useState(null);
   const [cart, setCart] = useState([]);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(true);
   const [showVip, setShowVip] = useState(false);
   const [showRuleta, setShowRuleta] = useState(false);
   const [showClub, setShowClub] = useState(false);
@@ -1103,6 +1162,11 @@ export default function App() {
 
   useEffect(() => {
     const timer = setTimeout(() => setShowVip(true), 30000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMenuOpen(false), 3200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -1143,11 +1207,12 @@ export default function App() {
           <div style={{ width:14, height:2, background:t.muted, borderRadius:1 }} />
           <div style={{ width:18, height:2, background:t.text, borderRadius:1 }} />
         </button>
-        <div style={{ display:"flex", alignItems:"center", gap:8, flex:1, minWidth:0 }}>
-          <div style={{ width:34, height:34, borderRadius:"50%", overflow:"hidden", background:"#1a2535", flexShrink:0 }}>
-            <img src={LOGO_URL} alt="Logo" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{ e.target.style.display="none"; }} />
+        <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
+          <img src={LOGO_URL} alt="Digital Market" style={{ width:42, height:42, objectFit:"contain", flexShrink:0, filter:dark?"drop-shadow(0 2px 6px rgba(124,58,237,0.4))":"drop-shadow(0 2px 6px rgba(124,58,237,0.2))" }} onError={e=>{ e.target.style.display="none"; }} />
+          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.15, minWidth:0 }}>
+            <span style={{ fontWeight:900, fontSize:18, letterSpacing:0.3, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>Digital <span style={{ background:"linear-gradient(90deg,#7c3aed,#a78bfa)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Market</span></span>
+            <span style={{ fontSize:9, color:t.muted, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase" }}>Streaming Premium</span>
           </div>
-          <span style={{ fontWeight:900, fontSize:17, background:`linear-gradient(90deg,${t.text} 60%,${t.muted})`, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Digital Market</span>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
           <button onClick={()=>setDark(d=>!d)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>{dark?"☀️":"🌙"}</button>
@@ -1163,11 +1228,11 @@ export default function App() {
 
       {/* ACCESOS RÁPIDOS */}
       <div style={{ padding:"12px 16px 0", display:"flex", gap:8 }}>
-        <button onClick={()=>setScreen("validar")} className="quick-access" style={{ flex:1, background:t.card, border:`1px solid ${t.border}`, borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+        <button onClick={()=>setScreen("validar")} className="quick-access glow-purple" style={{ flex:1, background:"linear-gradient(135deg,#2a1a4a,#1e1235)", border:"1px solid #7c3aed55", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>🔐</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:t.text, fontWeight:700, fontSize:12 }}>Validar Código</div><div style={{ color:t.muted, fontSize:10 }}>Netflix & Disney+</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Validar Código</div><div style={{ color:"#c4b5fd", fontSize:10 }}>Netflix & Disney+</div></div>
         </button>
-        <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}`,"_blank")} className="quick-access" style={{ flex:1, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+        <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}`,"_blank")} className="quick-access glow-green" style={{ flex:1, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>💬</span>
           <div style={{ textAlign:"left" }}><div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>WhatsApp</div><div style={{ color:"#25d366", fontSize:10 }}>Soporte directo</div></div>
         </button>
