@@ -48,11 +48,11 @@ function buscarCodigo(plataforma, emailBuscado, callback) {
   
   var query = '';
   if (plataforma === 'netflix') {
-    query = 'from:account.netflix.com subject:"Tu código de acceso temporal" newer_than:15m';
+    query = 'from:account.netflix.com (subject:"código de acceso temporal" OR subject:"código de inicio de sesión") newer_than:15m';
   } else if (plataforma === 'disney') {
     query = 'from:mail2.disneyplus.com subject:"Tu código de acceso único para Disney+" newer_than:15m';
   } else {
-    query = '(from:account.netflix.com subject:"Tu código de acceso temporal" OR from:mail2.disneyplus.com subject:"Tu código de acceso único para Disney+") newer_than:15m';
+    query = '(from:account.netflix.com (subject:"código de acceso temporal" OR subject:"código de inicio de sesión") OR from:mail2.disneyplus.com subject:"Tu código de acceso único para Disney+") newer_than:15m';
   }
 
   gmail.users.messages.list({

@@ -412,7 +412,7 @@ function PromoCarrusel({ dark }) {
   const p = PROMOS[active];
   return (
     <div style={{ padding:"0 16px" }}>
-      <div style={{ maxWidth:480 }}>
+      <div>
         <div
           onMouseDown={e=>onDown(e.clientX)}
           onMouseMove={onMove}
@@ -786,7 +786,8 @@ function ValidarCodigo({ onBack, dark }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ width:40, height:40, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🔐</div>
@@ -859,17 +860,22 @@ function ValidarCodigo({ onBack, dark }) {
             {error && <div style={{ background:"#1a0f0f", border:"1px solid #3a1a1a", borderRadius:12, padding:16, textAlign:"center", marginBottom:10, animation:"fadeUp 0.2s ease" }}><div style={{ fontSize:32, marginBottom:8 }}>⏳</div><p style={{ color:"#fca5a5", fontSize:13, lineHeight:1.6, marginBottom:12 }}>{error}</p><button onClick={buscar} style={{ background:"#1e2a3a", border:"1px solid #2a3a4a", borderRadius:8, padding:"8px 16px", color:"#a78bfa", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>↻ Reintentar</button></div>}
             {result && (
               <div style={{ animation:"fadeUp 0.3s ease" }}>
-                <div style={{ background:"#fff", borderRadius:14, overflow:"hidden", boxShadow:"0 8px 32px rgba(0,0,0,0.5)" }}>
-                  <div style={{ background:"linear-gradient(135deg,#7c3aed,#a78bfa)", padding:"12px 16px", display:"flex", alignItems:"center", gap:8 }}>
+                <div style={{ background:t.card, borderRadius:14, overflow:"hidden", boxShadow:dark?"0 8px 32px rgba(0,0,0,0.5)":"0 8px 32px rgba(0,0,0,0.1)", border:`1px solid ${t.border}` }}>
+                  <div style={{ background:"linear-gradient(135deg,#7c3aed,#a78bfa)", padding:"10px 16px", display:"flex", alignItems:"center", gap:8 }}>
                     <div style={{ width:8, height:8, background:"#10b981", borderRadius:"50%" }} />
-                    <span style={{ fontSize:14, color:"rgba(255,255,255,0.95)", fontWeight:700 }}>✓ Código encontrado</span>
+                    <span style={{ fontSize:13, color:"rgba(255,255,255,0.95)", fontWeight:700 }}>✓ Código encontrado</span>
                   </div>
-                  <div style={{ padding:"14px 16px", display:"flex", gap:10 }}>
-                    <div style={{ width:38, height:38, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, fontWeight:700, flexShrink:0 }}>{result.de?.[0]?.toUpperCase()||"N"}</div>
-                    <div><div style={{ fontSize:11, color:"#999" }}>{result.de}</div><div style={{ fontSize:15, fontWeight:700, color:"#111" }}>{result.asunto}</div><div style={{ fontSize:11, color:"#bbb" }}>Recibido: {result.hora}</div></div>
+                  <div style={{ padding:"12px 16px", display:"flex", gap:10, borderBottom:`1px solid ${t.border}` }}>
+                    <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, flexShrink:0 }}>{result.de?.[0]?.toUpperCase()||"N"}</div>
+                    <div style={{ minWidth:0 }}>
+                      <div style={{ fontSize:11, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{result.de}</div>
+                      <div style={{ fontSize:13, fontWeight:700, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{result.asunto}</div>
+                      <div style={{ fontSize:11, color:t.muted }}>Recibido: {result.hora}</div>
+                    </div>
                   </div>
-                  <div style={{ height:1, background:"#f5f5f5" }} />
-                  <div style={{ padding:16, background:"#fff" }} dangerouslySetInnerHTML={{ __html:result.cuerpo }} />
+                  <div style={{ padding:"8px 12px", background:"#fff", maxHeight:420, overflowY:"auto", overflowX:"hidden" }}>
+                    <div style={{ transform:"scale(0.72)", transformOrigin:"top left", width:"138.9%", pointerEvents:"none" }} dangerouslySetInnerHTML={{ __html:result.cuerpo }} />
+                  </div>
                 </div>
                 <button onClick={buscar} style={{ width:"100%", marginTop:10, background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:11, color:"#a78bfa", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>↻ Actualizar</button>
               </div>
@@ -877,6 +883,7 @@ function ValidarCodigo({ onBack, dark }) {
           </>
         )}
       </div>
+    </div>
     </div>
   );
 }
@@ -1093,20 +1100,25 @@ function Soporte({ onBack, dark }) {
 }
 
 // ─── SEGUIDORES ───────────────────────────────────────────────────────────────
-function Seguidores({ onBack, onAddCart, dark }) {
+function Seguidores({ onBack, onAddCart, dark, inline=false }) {
   const t = getTheme(dark);
   const packs = [
     {id:"fb1k",name:"Facebook 1.000 Seguidores",price:38000,img:IMG.facebook,color:"#1877F2",red:"Facebook",features:["1.000 seguidores","Entrega en 24-72h","Sin contraseña","Garantía 30 días"]},
     {id:"ig1k",name:"Instagram 1.000 Seguidores",price:38000,img:IMG.instagram,color:"#E1306C",red:"Instagram",features:["1.000 seguidores","Perfil público","Entrega progresiva","Alta retención"]},
     {id:"tt1k",name:"TikTok 1.000 Seguidores",price:58000,img:IMG.tiktok,color:"#010101",red:"TikTok",features:["1.000 seguidores","Cuenta pública","Impulsa el algoritmo","Entrega rápida"]},
   ];
-  return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
-      <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
-        <BackButton onClick={onBack} dark={dark} label="" />
-        <div><div style={{ fontWeight:800, fontSize:18 }}>👥 Seguidores</div><div style={{ color:t.muted, fontSize:12 }}>Redes sociales · Crecimiento garantizado</div></div>
-      </div>
-      <div style={{ padding:16 }}>
+  const content = (
+    <div style={{ padding: inline ? "16px 0" : 16 }}>
+        {/* COMO FUNCIONA - VA PRIMERO */}
+        <div style={{ background:dark?"linear-gradient(135deg,#0d1f35,#0a1628)":"linear-gradient(135deg,#e8f4fd,#dceefb)", border:`1px solid ${dark?"#1e3a5f":"#90cdf4"}`, borderRadius:16, padding:18, marginBottom:20 }}>
+          <p style={{ color:dark?"#60a5fa":"#2b6cb0", fontSize:13, letterSpacing:"0.5px", textTransform:"uppercase", marginBottom:14, fontWeight:700 }}>📋 ¿Cómo funciona?</p>
+          {[["1","Elige la red social y agrégala al carrito."],["2","Finaliza tu compra por WhatsApp."],["3","Envíanos el comprobante y tu usuario de la cuenta."],["4","Entrega en 8-24 horas de forma orgánica y gradual."]].map(([n,d],i)=>(
+            <div key={i} style={{ display:"flex", gap:12, marginBottom:i<3?12:0, alignItems:"flex-start" }}>
+              <div style={{ width:26, height:26, borderRadius:8, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:12, flexShrink:0 }}>{n}</div>
+              <div style={{ color:t.text, fontSize:14, lineHeight:1.5, paddingTop:3 }}>{d}</div>
+            </div>
+          ))}
+        </div>
         {packs.map(pk=>(
           <div key={pk.id} style={{ background:t.card, border:`1px solid ${pk.color}33`, borderRadius:18, padding:20, marginBottom:16 }}>
             <div style={{ display:"flex", gap:16, alignItems:"flex-start", marginBottom:16 }}>
@@ -1132,16 +1144,16 @@ function Seguidores({ onBack, onAddCart, dark }) {
             </div>
           </div>
         ))}
-        <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:18 }}>
-          <p style={{ color:t.muted, fontSize:12, letterSpacing:"1px", textTransform:"uppercase", marginBottom:14, fontWeight:600 }}>📋 ¿Cómo funciona?</p>
-          {[["1","Elige la red social y agrégala al carrito."],["2","Finaliza tu compra por WhatsApp."],["3","Envíanos el comprobante y tu usuario de la cuenta."],["4","Entrega en 8-24 horas de forma orgánica y gradual."]].map(([n,d],i)=>(
-            <div key={i} style={{ display:"flex", gap:10, marginBottom:i<3?10:0 }}>
-              <div style={{ width:22, height:22, borderRadius:6, background:"#ffffff11", border:"1px solid #ffffff22", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:700, fontSize:11, flexShrink:0 }}>{n}</div>
-              <div style={{ color:t.muted, fontSize:13, lineHeight:1.5 }}>{d}</div>
-            </div>
-          ))}
-        </div>
       </div>
+  );
+  if (inline) return content;
+  return (
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
+      <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
+        <BackButton onClick={onBack} dark={dark} label="" />
+        <div><div style={{ fontWeight:800, fontSize:18 }}>👥 Seguidores</div><div style={{ color:t.muted, fontSize:12 }}>Redes sociales · Crecimiento garantizado</div></div>
+      </div>
+      {content}
     </div>
   );
 }
@@ -1231,7 +1243,7 @@ export default function App() {
 
   const navigate = (key) => {
     if (key==="wa") { window.open(`https://wa.me/${WA_NUMBER}`,"_blank"); return; }
-    if (["pantallas","combos","favoritos","meses"].includes(key)) { setScreen("home"); setActiveTab(key); return; }
+    if (["pantallas","combos","favoritos","meses","seguidores"].includes(key)) { setScreen("home"); setActiveTab(key); return; }
     setScreen(key);
   };
 
@@ -1301,19 +1313,18 @@ export default function App() {
         </button>
       </div>
 
+      {/* TABS */}
+      <div style={{ display:"flex", padding:"14px 16px 10px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
+        {[["favoritos","⭐ Favoritos"],["pantallas","📺 Pantallas"],["combos","🔥 Combos"],["meses","🗓️ Meses"],["seguidores","👥 Seguidores"]].map(([k,l])=>(
+          <button key={k} onClick={()=>navigate(k)} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"11px 18px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{l}</button>
+        ))}
+      </div>
+
       {/* CARRUSEL ESTRENOS */}
-      <div style={{ marginTop:14 }}><Carrusel dark={dark} /></div>
+      <div style={{ marginTop:8 }}><Carrusel dark={dark} /></div>
 
       {/* CARRUSEL DE PROMOCIONES */}
       <div style={{ marginTop:12 }}><PromoCarrusel dark={dark} /></div>
-
-
-      {/* TABS */}
-      <div style={{ display:"flex", padding:"14px 16px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
-        {[["favoritos","⭐ Favoritos"],["pantallas","📺 Pantallas"],["combos","🔥 Combos"],["meses","🗓️ Meses"]].map(([k,l])=>(
-          <button key={k} onClick={()=>setActiveTab(k)} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"11px 18px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{l}</button>
-        ))}
-      </div>
 
       {/* PANTALLAS */}
       {activeTab==="pantallas" && (
@@ -1414,6 +1425,12 @@ export default function App() {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {activeTab==="seguidores" && (
+        <div style={{ padding:"0 16px" }}>
+          <Seguidores onBack={()=>setActiveTab("favoritos")} onAddCart={addCart} dark={dark} inline={true} />
         </div>
       )}
 
