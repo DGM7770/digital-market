@@ -7,8 +7,6 @@ const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 const OTP_URL = ""; // mismo servidor: backend y frontend unidos
 const WA_NUMBER = "573223071283";
 const WA_DISPLAY = "3223071283";
-const LOGIN_USER = "dgm2026";
-const LOGIN_PASS = "Dgm1010";
 const LOGO_URL = "/images/logo.png";
 const PAGO_NUMERO = "3052308374";
 const RULETA_CODE = "DMJUN2026";
@@ -326,6 +324,13 @@ const getCSS = (dark) => `
   .menu-item { transition:background 0.15s ease, padding-left 0.15s ease; }
   .menu-item:hover { background:rgba(124,58,237,0.1); padding-left:24px !important; }
   div[style*="overflowX"]::-webkit-scrollbar { display:none; }
+  .tab-icon { font-size:16px; }
+  .tab-label { font-size:12px; }
+  @media (min-width:768px) {
+    .tab-btn { padding:11px 22px !important; min-width:100px !important; flex-direction:row !important; gap:6px !important; }
+    .tab-icon { font-size:18px; }
+    .tab-label { font-size:14px; }
+  }
   .login-field { transition:border-color 0.18s ease, box-shadow 0.18s ease; }
   .login-field:focus-within { border-color:#7c3aed !important; box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
   .login-submit { transition:transform 0.15s ease, box-shadow 0.15s ease; }
@@ -413,7 +418,7 @@ function PromoCarrusel({ dark }) {
   const p = PROMOS[active];
   return (
     <div style={{ padding:"0 16px" }}>
-      <div style={{ maxWidth:600, margin:"0 auto" }}>
+      <div>
         <div
           onMouseDown={e=>onDown(e.clientX)}
           onMouseMove={onMove}
@@ -494,64 +499,84 @@ function Carrusel({ dark }) {
   const [selectedMovie, setSelectedMovie] = useState(null);
   const scrollRef = useRef(null);
   const dragRef = useRef({ down:false, startX:0, scrollLeft:0, moved:false });
+  const autoRef = useRef(null);
   const t = getTheme(dark);
 
   useEffect(() => {
-    fetch(`${TMDB_BASE}/trending/movie/week?language=es-CO`, { headers:{ Authorization:`Bearer ${TMDB_TOKEN}` } })
-      .then(r=>r.json()).then(d=>setMovies((d.results||[]).filter(m=>m.poster_path).slice(0,16)))
-      .catch(()=>{});
+    const headers = { Authorization:`Bearer ${TMDB_TOKEN}` };
+    const lang = "language=es-CO";
+    Promise.all([
+      fetch(`${TMDB_BASE}/trending/all/week?${lang}`,{headers}).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/movie/top_rated?${lang}&page=1`,{headers}).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/tv/top_rated?${lang}&page=1`,{headers}).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/movie/popular?${lang}&page=2`,{headers}).then(r=>r.json()),
+      fetch(`${TMDB_BASE}/tv/popular?${lang}&page=1`,{headers}).then(r=>r.json()),
+    ]).then(results=>{
+      const all = results.flatMap(r=>r.results||[]).filter(m=>m.poster_path);
+      const seen=new Set(); const unique=all.filter(m=>{if(seen.has(m.id))return false;seen.add(m.id);return true;});
+      setMovies(unique.slice(0,80));
+    }).catch(()=>{});
   }, []);
 
-  if (!movies.length) return null;
+  useEffect(() => {
+    autoRef.current = setInterval(()=>{
+      if (scrollRef.current && !dragRef.current.down) {
+        scrollRef.current.scrollLeft += 0.8;
+        if (scrollRef.current.scrollLeft >= scrollRef.current.scrollWidth/2) scrollRef.current.scrollLeft=0;
+      }
+    }, 20);
+    return () => clearInterval(autoRef.current);
+  }, [movies]);
 
-  const onDown = (e) => {
-    const x = e.touches ? e.touches[0].pageX : e.pageX;
-    dragRef.current = { down:true, startX:x - (scrollRef.current?.offsetLeft||0), scrollLeft:scrollRef.current?.scrollLeft||0, moved:false };
+  if (!movies.length) return null;
+  const all = [...movies,...movies];
+
+  const startDrag = (x) => {
+    clearInterval(autoRef.current);
+    dragRef.current = { down:true, startX:x-(scrollRef.current?.offsetLeft||0), scrollLeft:scrollRef.current?.scrollLeft||0, moved:false };
   };
-  const onMove = (e) => {
+  const moveDrag = (x) => {
     if (!dragRef.current.down) return;
-    e.preventDefault();
-    const x = (e.touches ? e.touches[0].pageX : e.pageX) - (scrollRef.current?.offsetLeft||0);
-    const walk = (x - dragRef.current.startX) * 1.2;
-    if (Math.abs(walk) > 5) dragRef.current.moved = true;
-    if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - walk;
+    const walk = (x-(scrollRef.current?.offsetLeft||0)-dragRef.current.startX)*1.5;
+    if (Math.abs(walk)>5) dragRef.current.moved=true;
+    if (scrollRef.current) scrollRef.current.scrollLeft=dragRef.current.scrollLeft-walk;
   };
-  const onUp = (movie) => {
+  const endDrag = (movie) => {
     if (!dragRef.current.moved && movie) setSelectedMovie(movie);
-    dragRef.current.down = false;
-    dragRef.current.moved = false;
+    dragRef.current.down=false; dragRef.current.moved=false;
+    autoRef.current = setInterval(()=>{
+      if(scrollRef.current&&!dragRef.current.down){
+        scrollRef.current.scrollLeft+=0.8;
+        if(scrollRef.current.scrollLeft>=scrollRef.current.scrollWidth/2) scrollRef.current.scrollLeft=0;
+      }
+    },20);
   };
 
   return (
     <>
       {selectedMovie && <MovieModal movie={selectedMovie} dark={dark} onClose={()=>setSelectedMovie(null)} />}
-      <div style={{ padding:"16px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
-        <div style={{ padding:"0 16px", marginBottom:10, display:"flex", justifyContent:"space-between" }}>
-          <span style={{ color:t.muted, fontSize:12, letterSpacing:"1.5px", textTransform:"uppercase", fontWeight:600 }}>🎬 Estrenos del momento</span>
-          <span style={{ color:t.muted, fontSize:10 }}>🔍 Toca para ver info</span>
+      <div style={{ padding:"12px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
+        <div style={{ padding:"0 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <span style={{ color:t.muted, fontSize:12, letterSpacing:"1.5px", textTransform:"uppercase", fontWeight:600 }}>🎬 Estrenos y destacados</span>
+          <span style={{ color:t.muted, fontSize:10 }}>Toca para ver info</span>
         </div>
         <div
           ref={scrollRef}
-          onMouseDown={onDown}
-          onMouseMove={onMove}
-          onMouseUp={()=>onUp(null)}
-          onMouseLeave={()=>{ dragRef.current.down=false; dragRef.current.moved=false; }}
-          onTouchStart={onDown}
-          onTouchMove={onMove}
-          onTouchEnd={()=>onUp(null)}
-          style={{ display:"flex", gap:12, overflowX:"auto", paddingLeft:16, paddingRight:16, paddingBottom:4, scrollbarWidth:"none", msOverflowStyle:"none", cursor:"grab", userSelect:"none", WebkitOverflowScrolling:"touch" }}
+          onMouseDown={e=>startDrag(e.pageX)}
+          onMouseMove={e=>moveDrag(e.pageX)}
+          onMouseUp={()=>endDrag(null)}
+          onMouseLeave={()=>{dragRef.current.down=false;dragRef.current.moved=false;}}
+          onTouchStart={e=>startDrag(e.touches[0].pageX)}
+          onTouchMove={e=>moveDrag(e.touches[0].pageX)}
+          onTouchEnd={()=>endDrag(null)}
+          style={{ display:"flex", gap:8, overflowX:"auto", paddingLeft:16, paddingRight:16, paddingBottom:4, scrollbarWidth:"none", msOverflowStyle:"none", cursor:"grab", userSelect:"none", WebkitOverflowScrolling:"touch" }}
         >
-          {movies.map(m=>(
-            <div
-              key={m.id}
-              onMouseUp={()=>onUp(m)}
-              onTouchEnd={()=>onUp(m)}
-              style={{ flexShrink:0, width:110, cursor:"pointer" }}
-            >
-              <div className="card-hover" style={{ width:110, height:160, borderRadius:12, overflow:"hidden", background:"#1a2535", boxShadow:"0 4px 12px rgba(0,0,0,0.3)" }}>
-                <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title} style={{ width:"100%", height:"100%", objectFit:"cover", pointerEvents:"none" }} loading="lazy" />
+          {all.map((m,i)=>(
+            <div key={`${m.id}-${i}`} onMouseUp={()=>endDrag(m)} onTouchEnd={()=>endDrag(m)} style={{ flexShrink:0, width:95, cursor:"pointer" }}>
+              <div className="card-hover" style={{ width:95, height:140, borderRadius:10, overflow:"hidden", background:"#1a2535", boxShadow:"0 3px 10px rgba(0,0,0,0.3)" }}>
+                <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title||m.name} style={{ width:"100%", height:"100%", objectFit:"cover", pointerEvents:"none" }} loading="lazy" />
               </div>
-              <div style={{ marginTop:5, fontSize:10, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title}</div>
+              <div style={{ marginTop:4, fontSize:9, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title||m.name}</div>
             </div>
           ))}
         </div>
@@ -810,9 +835,19 @@ function VipModal({ onClose, onAdd, dark }) {
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 function Login({ onLogin, onBack, dark }) {
-  const [u, setU] = useState(""); const [p, setP] = useState(""); const [err, setErr] = useState("");
+  const [u, setU] = useState(""); const [p, setP] = useState(""); const [err, setErr] = useState(""); const [loading, setLoading] = useState(false);
   const t = getTheme(dark);
-  const handle = () => { if(u===LOGIN_USER && p===LOGIN_PASS) onLogin(); else setErr("Usuario o contraseña incorrectos"); };
+  const handle = async () => {
+    if (!u.trim()||!p.trim()) return;
+    setLoading(true); setErr("");
+    try {
+      const res = await fetch("/auth-validador", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({user:u.trim(),pass:p.trim()}) });
+      const data = await res.json();
+      if (data.ok) onLogin();
+      else setErr(data.mensaje||"Usuario o contraseña incorrectos");
+    } catch(e) { setErr("Error de conexión. Intenta de nuevo."); }
+    setLoading(false);
+  };
   return (
     <div style={{ minHeight:"100vh", width:"100%", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:24, fontFamily:"'Outfit',system-ui,sans-serif", boxSizing:"border-box", position:"relative" }}>
       <div style={{ position:"fixed", top:20, left:20, zIndex:10 }}><BackButton onClick={onBack} dark={dark} /></div>
@@ -835,7 +870,7 @@ function Login({ onLogin, onBack, dark }) {
             <input value={p} onChange={e=>setP(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()} type="password" placeholder="Ingresa tu contraseña" style={{ flex:1, width:"100%", minWidth:0, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:15, fontFamily:"inherit" }} />
           </div>
           {err && <p style={{ color:"#ef4444", fontSize:13, marginBottom:14, textAlign:"center", animation:"fadeUp 0.25s ease" }}>⚠️ {err}</p>}
-          <button onClick={handle} className="login-submit" style={{ width:"100%", padding:16, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"inherit" }}>Ingresar</button>
+          <button onClick={handle} className="login-submit" style={{ width:"100%", padding:16, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"inherit", opacity:loading?0.7:1 }}>{loading?"Verificando...":"Ingresar"}</button>
         </div>
       </div>
     </div>
@@ -1206,28 +1241,26 @@ function Seguidores({ onBack, onAddCart, dark, inline=false }) {
           ))}
         </div>
         {packs.map(pk=>(
-          <div key={pk.id} style={{ background:t.card, border:`1px solid ${pk.color}33`, borderRadius:18, marginBottom:16, overflow:"hidden" }}>
-            <div style={{ width:"100%", aspectRatio:"1/0.75", overflow:"hidden", borderRadius:"18px 18px 0 0" }}>
+          <div key={pk.id} style={{ background:t.card, border:`1px solid ${pk.color}33`, borderRadius:18, marginBottom:16, overflow:"hidden", display:"flex", gap:0 }}>
+            <div style={{ width:"45%", maxWidth:200, flexShrink:0, overflow:"hidden", borderRadius:"18px 0 0 18px" }}>
               <img src={pk.img} alt={pk.red} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} />
             </div>
-            <div style={{ padding:"16px 20px 20px" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-                <div>
-                  <div style={{ fontWeight:800, fontSize:18 }}>{pk.red}</div>
-                  <div style={{ color:t.muted, fontSize:13 }}>1.000 seguidores</div>
+            <div style={{ flex:1, padding:"16px 18px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+              <div>
+                <div style={{ fontWeight:800, fontSize:17, marginBottom:2 }}>{pk.red}</div>
+                <div style={{ color:t.muted, fontSize:13, marginBottom:8 }}>1.000 seguidores</div>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6, marginBottom:12 }}>
+                  {pk.features.map((f,i)=>(
+                    <div key={i} style={{ display:"flex", alignItems:"center", gap:5, fontSize:12, color:t.muted }}>
+                      <span style={{ color:pk.color, fontWeight:700 }}>✓</span>{f}
+                    </div>
+                  ))}
                 </div>
-                <div style={{ color:pk.color, fontWeight:900, fontSize:26 }}>{formatPrice(pk.price)}</div>
-              </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16 }}>
-                {pk.features.map((f,i)=>(
-                  <div key={i} style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, color:t.muted }}>
-                    <div style={{ width:16, height:16, borderRadius:5, background:`${pk.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, color:pk.color, flexShrink:0 }}>✓</div>{f}
-                  </div>
-                ))}
+                <div style={{ color:pk.color, fontWeight:900, fontSize:24, marginBottom:14 }}>{formatPrice(pk.price)}</div>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <button onClick={()=>onAddCart(pk)} style={{ flex:1, padding:13, background:`linear-gradient(135deg,${pk.color},${pk.color}99)`, border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>🛒 Agregar</button>
-                <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${pk.name} por ${formatPrice(pk.price)} 🙏`)}`,"_blank")} style={{ flex:1, padding:13, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>💬 WhatsApp</button>
+                <button onClick={()=>onAddCart(pk)} style={{ flex:1, padding:"11px 0", background:`linear-gradient(135deg,${pk.color},${pk.color}99)`, border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>🛒 Agregar</button>
+                <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${pk.name} por ${formatPrice(pk.price)} 🙏`)}`,"_blank")} style={{ flex:1, padding:"11px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 WhatsApp</button>
               </div>
             </div>
           </div>
@@ -1365,7 +1398,7 @@ export default function App() {
       <style>{getCSS(dark)}</style>
       <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
-          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <BackButton onClick={()=>{ setActiveTab("favoritos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>⭐</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Favoritos</span>
         </div>
@@ -1394,7 +1427,7 @@ export default function App() {
       <style>{getCSS(dark)}</style>
       <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
-          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <BackButton onClick={()=>{ setActiveTab("pantallas"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>📺</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Pantallas</span>
         </div>
@@ -1422,7 +1455,7 @@ export default function App() {
       <style>{getCSS(dark)}</style>
       <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
-          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <BackButton onClick={()=>{ setActiveTab("combos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>🔥</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Combos</span>
         </div>
@@ -1453,7 +1486,7 @@ export default function App() {
       <style>{getCSS(dark)}</style>
       <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
-          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <BackButton onClick={()=>{ setActiveTab("meses"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>🗓️</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Paquetes por Meses</span>
         </div>
@@ -1488,7 +1521,7 @@ export default function App() {
       <style>{getCSS(dark)}</style>
       <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
-          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <BackButton onClick={()=>{ setActiveTab("seguidores"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>👥</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Seguidores</span>
         </div>
@@ -1575,9 +1608,9 @@ export default function App() {
       {/* TABS */}
       <div style={{ display:"flex", padding:"14px 16px 10px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
         {[["favoritos","⭐","Favoritos"],["pantallas","📺","Pantallas"],["combos","🔥","Combos"],["meses","🗓️","Meses"],["seguidores","👥","Seguidores"]].map(([k,icon,label])=>(
-          <button key={k} onClick={()=>navigate(k)} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"9px 12px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:3, minWidth:56 }}>
-            <span style={{ fontSize:16 }}>{icon}</span>
-            <span>{label}</span>
+          <button key={k} onClick={()=>{ setActiveTab(k); navigate(k); }} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"9px 12px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:3, minWidth:56 }}>
+            <span className="tab-icon">{icon}</span>
+            <span className="tab-label">{label}</span>
           </button>
         ))}
       </div>

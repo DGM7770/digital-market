@@ -101,6 +101,20 @@ function buscarCodigo(plataforma, emailBuscado, callback) {
   });
 }
 
+// Credenciales del validador — seguras en el backend, no en el frontend
+var VALIDADOR_USER = process.env.VALIDADOR_USER || 'dgm2026';
+var VALIDADOR_PASS = process.env.VALIDADOR_PASS || 'Dgm1010';
+
+app.post('/auth-validador', function(req, res) {
+  var user = (req.body.user || '').trim();
+  var pass = (req.body.pass || '').trim();
+  if (user === VALIDADOR_USER && pass === VALIDADOR_PASS) {
+    res.json({ ok: true });
+  } else {
+    res.json({ ok: false, mensaje: 'Usuario o contraseña incorrectos' });
+  }
+});
+
 app.post('/buscar-correo', function(req, res) {
   var email = (req.body.email || '').trim();
   var plataforma = (req.body.plataforma || 'ambas').trim();
