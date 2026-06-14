@@ -325,6 +325,7 @@ const getCSS = (dark) => `
   .glow-blue { animation:glowBlue 2.6s ease-in-out infinite; }
   .menu-item { transition:background 0.15s ease, padding-left 0.15s ease; }
   .menu-item:hover { background:rgba(124,58,237,0.1); padding-left:24px !important; }
+  div[style*="overflowX"]::-webkit-scrollbar { display:none; }
   .login-field { transition:border-color 0.18s ease, box-shadow 0.18s ease; }
   .login-field:focus-within { border-color:#7c3aed !important; box-shadow:0 0 0 3px rgba(124,58,237,0.15); }
   .login-submit { transition:transform 0.15s ease, box-shadow 0.15s ease; }
@@ -412,7 +413,7 @@ function PromoCarrusel({ dark }) {
   const p = PROMOS[active];
   return (
     <div style={{ padding:"0 16px" }}>
-      <div>
+      <div style={{ maxWidth:600, margin:"0 auto" }}>
         <div
           onMouseDown={e=>onDown(e.clientX)}
           onMouseMove={onMove}
@@ -491,10 +492,8 @@ function MovieModal({ movie, dark, onClose }) {
 function Carrusel({ dark }) {
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
-  const [paused, setPaused] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const dragRef = useRef({ startX:0, dragging:false, lastOffset:0 });
-  const resumeTimer = useRef(null);
+  const scrollRef = useRef(null);
+  const dragRef = useRef({ down:false, startX:0, scrollLeft:0, moved:false });
   const t = getTheme(dark);
 
   useEffect(() => {
@@ -503,52 +502,58 @@ function Carrusel({ dark }) {
       .catch(()=>{});
   }, []);
 
-  const pauseTemporarily = () => {
-    setPaused(true);
-    clearTimeout(resumeTimer.current);
-    resumeTimer.current = setTimeout(()=>{ setPaused(false); setOffset(0); }, 8000);
-  };
-
-  const onDown = (x) => { dragRef.current = { startX:x, dragging:true, lastOffset:offset }; pauseTemporarily(); };
-  const onMove = (x) => { if (!dragRef.current.dragging) return; setOffset(dragRef.current.lastOffset + (x - dragRef.current.startX)); };
-  const onUp = (x) => {
-    if (!dragRef.current.dragging) return;
-    const diff = x - dragRef.current.startX;
-    dragRef.current.dragging = false;
-    if (Math.abs(diff) < 5) return; // click, no drag
-    pauseTemporarily();
-  };
-
   if (!movies.length) return null;
-  const all = [...movies, ...movies];
+
+  const onDown = (e) => {
+    const x = e.touches ? e.touches[0].pageX : e.pageX;
+    dragRef.current = { down:true, startX:x - (scrollRef.current?.offsetLeft||0), scrollLeft:scrollRef.current?.scrollLeft||0, moved:false };
+  };
+  const onMove = (e) => {
+    if (!dragRef.current.down) return;
+    e.preventDefault();
+    const x = (e.touches ? e.touches[0].pageX : e.pageX) - (scrollRef.current?.offsetLeft||0);
+    const walk = (x - dragRef.current.startX) * 1.2;
+    if (Math.abs(walk) > 5) dragRef.current.moved = true;
+    if (scrollRef.current) scrollRef.current.scrollLeft = dragRef.current.scrollLeft - walk;
+  };
+  const onUp = (movie) => {
+    if (!dragRef.current.moved && movie) setSelectedMovie(movie);
+    dragRef.current.down = false;
+    dragRef.current.moved = false;
+  };
+
   return (
     <>
       {selectedMovie && <MovieModal movie={selectedMovie} dark={dark} onClose={()=>setSelectedMovie(null)} />}
-      <div style={{ overflow:"hidden", padding:"16px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
+      <div style={{ padding:"16px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
         <div style={{ padding:"0 16px", marginBottom:10, display:"flex", justifyContent:"space-between" }}>
           <span style={{ color:t.muted, fontSize:12, letterSpacing:"1.5px", textTransform:"uppercase", fontWeight:600 }}>🎬 Estrenos del momento</span>
-          <span style={{ color:t.muted, fontSize:10 }}>Netflix · Disney+ · Prime · HBO</span>
+          <span style={{ color:t.muted, fontSize:10 }}>🔍 Toca para ver info</span>
         </div>
         <div
-          onMouseDown={e=>onDown(e.clientX)}
-          onMouseMove={e=>onMove(e.clientX)}
-          onMouseUp={e=>{ onUp(e.clientX); }}
-          onMouseLeave={()=>{ if(dragRef.current.dragging){ dragRef.current.dragging=false; pauseTemporarily(); } }}
-          onTouchStart={e=>onDown(e.touches[0].clientX)}
-          onTouchMove={e=>onMove(e.touches[0].clientX)}
-          onTouchEnd={e=>onUp(e.changedTouches[0].clientX)}
-          style={{ cursor:"grab", userSelect:"none", touchAction:"pan-y" }}
+          ref={scrollRef}
+          onMouseDown={onDown}
+          onMouseMove={onMove}
+          onMouseUp={()=>onUp(null)}
+          onMouseLeave={()=>{ dragRef.current.down=false; dragRef.current.moved=false; }}
+          onTouchStart={onDown}
+          onTouchMove={onMove}
+          onTouchEnd={()=>onUp(null)}
+          style={{ display:"flex", gap:12, overflowX:"auto", paddingLeft:16, paddingRight:16, paddingBottom:4, scrollbarWidth:"none", msOverflowStyle:"none", cursor:"grab", userSelect:"none", WebkitOverflowScrolling:"touch" }}
         >
-          <div style={{ display:"flex", gap:12, animation:paused?"none":"scroll 90s linear infinite", width:"max-content", paddingLeft:16, transform:paused?`translateX(${offset}px)`:"none", transition:paused?"none":"transform 0s" }}>
-            {all.map((m,i) => (
-              <div key={`${m.id}-${i}`} onClick={()=>{ if(Math.abs(offset-(dragRef.current?.lastOffset||0))<5) setSelectedMovie(m); }} style={{ width:110, flexShrink:0, cursor:"pointer" }}>
-                <div className="card-hover" style={{ width:110, height:160, borderRadius:12, overflow:"hidden", background:"#1a2535", boxShadow:"0 4px 12px rgba(0,0,0,0.3)" }}>
-                  <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
-                </div>
-                <div style={{ marginTop:5, fontSize:10, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title}</div>
+          {movies.map(m=>(
+            <div
+              key={m.id}
+              onMouseUp={()=>onUp(m)}
+              onTouchEnd={()=>onUp(m)}
+              style={{ flexShrink:0, width:110, cursor:"pointer" }}
+            >
+              <div className="card-hover" style={{ width:110, height:160, borderRadius:12, overflow:"hidden", background:"#1a2535", boxShadow:"0 4px 12px rgba(0,0,0,0.3)" }}>
+                <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title} style={{ width:"100%", height:"100%", objectFit:"cover", pointerEvents:"none" }} loading="lazy" />
               </div>
-            ))}
-          </div>
+              <div style={{ marginTop:5, fontSize:10, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title}</div>
+            </div>
+          ))}
         </div>
       </div>
     </>
@@ -918,9 +923,9 @@ function ValidarCodigo({ onBack, dark }) {
                   <div style={{ color:t.muted, fontSize:14, lineHeight:1.5, paddingTop:4 }}>{d}</div>
                 </div>
               ))}
-              <a href={platform==="netflix"?"https://www.netflix.com/password":"https://www.disneyplus.com"} target="_blank" rel="noreferrer" style={{ display:"block", marginTop:16, padding:"13px 0", background:platform==="netflix"?"#E50914":"#0063e5", borderRadius:12, color:"#fff", fontWeight:700, fontSize:15, textAlign:"center", textDecoration:"none" }}>
+              <button onClick={()=>window.open(platform==="netflix"?"https://www.netflix.com/password":"https://www.disneyplus.com","_blank")} style={{ display:"block", width:"100%", marginTop:16, padding:"13px 0", background:platform==="netflix"?"#E50914":"#0063e5", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:15, textAlign:"center", cursor:"pointer", fontFamily:"inherit" }}>
                 {platform==="netflix"?"🎬 Ir a Netflix":"✨ Ir a Disney+"}
-              </a>
+              </button>
             </div>
             <div style={{ background:"#1a0f0f", borderLeft:"3px solid #ef4444", borderRadius:10, padding:"10px 14px", marginBottom:14 }}>
               <p style={{ fontSize:12, color:"#fca5a5" }}>⚠️ Solo se muestran códigos de acceso temporal. Ningún otro correo es visible.</p>
@@ -1071,8 +1076,8 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
             <img src={LOGO_URL} alt="Digital Market" style={{ width:54, height:54, objectFit:"cover", borderRadius:"50%", flexShrink:0, border:"2px solid rgba(124,58,237,0.4)", filter:"drop-shadow(0 3px 10px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
             <div>
               <div style={{ fontWeight:900, fontSize:17, letterSpacing:0.3 }}>
-                <span style={{ color:"#3b82f6" }}>Digital </span>
-                <span style={{ color:"#ef4444" }}>Market</span>
+                <span style={{ color:"#ff6b35" }}>Digital </span>
+                <span style={{ color:"#a855f7" }}>Market</span>
               </div>
               <div style={{ fontSize:11, color:"#25d366", fontWeight:600, display:"flex", alignItems:"center", gap:5, marginTop:2 }}><span style={{ width:6, height:6, background:"#25d366", borderRadius:"50%", display:"inline-block", animation:"blink 1.6s ease infinite" }}/> En línea</div>
             </div>
@@ -1297,15 +1302,16 @@ function Chat({ onBack, dark }) {
 
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
 export default function App() {
-  const [screen, setScreen] = useState("home");
-  const [activeTab, setActiveTab] = useState("favoritos");
+  const [screen, setScreen] = useState(()=>{ try{ const s=localStorage.getItem("dm_screen"); return ["home","favoritos","pantallas","combos","meses","seguidores"].includes(s)?s:"home"; }catch(e){ return "home"; } });
+  const [activeTab, setActiveTab] = useState(()=>{ try{ return localStorage.getItem("dm_tab")||"favoritos"; }catch(e){ return "favoritos"; } });
+  const [dark, setDark] = useState(()=>{ try{ const d=localStorage.getItem("dm_dark"); return d===null?true:d==="true"; }catch(e){ return true; } });
   const [detail, setDetail] = useState(null);
   const [cart, setCart] = useState([]);
-  const [menuOpen, setMenuOpen] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [showVip, setShowVip] = useState(false);
   const [showRuleta, setShowRuleta] = useState(false);
   const [showClub, setShowClub] = useState(false);
-  const [dark, setDark] = useState(true);
   const [cartAnim, setCartAnim] = useState(false);
   const t = getTheme(dark);
 
@@ -1315,9 +1321,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => setMenuOpen(false), 3200);
+    const timer = setTimeout(() => setShowWelcome(false), 3000);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => { try{ localStorage.setItem("dm_screen", screen); }catch(e){} }, [screen]);
+  useEffect(() => { try{ localStorage.setItem("dm_tab", activeTab); }catch(e){} }, [activeTab]);
+  useEffect(() => { try{ localStorage.setItem("dm_dark", dark); }catch(e){} }, [dark]);
 
   const addCart = (item) => {
     setCart(p=>[...p,item]);
@@ -1328,22 +1338,183 @@ export default function App() {
 
   const navigate = (key) => {
     if (key==="wa") { window.open(`https://wa.me/${WA_NUMBER}`,"_blank"); return; }
-    if (["pantallas","combos","favoritos","meses","seguidores"].includes(key)) { setScreen("home"); setActiveTab(key); return; }
     setScreen(key);
   };
 
   if (screen==="validar") return <ValidarCodigo onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="cart") return <Carrito items={cart} onRemove={removeCart} onClear={()=>setCart([])} onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="soporte") return <Soporte onBack={()=>setScreen("home")} dark={dark} />;
-  if (screen==="seguidores") return <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} dark={dark} />;
   if (screen==="chat") return <Chat onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="detail"&&detail) return <Detail item={detail} onBack={()=>setScreen("home")} onAddCart={(it)=>{ addCart(it); setScreen("home"); }} dark={dark} />;
+
+  // ── PANTALLAS DE TABS ────────────────────────────────────────────────────────
+  const TabHeader = ({title, icon}) => (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:1400, margin:"0 auto" }}>
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
+          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>{icon}</span>
+          <span style={{ fontWeight:800, fontSize:18, color:t.text }}>{title}</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (screen==="favoritos") return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <style>{getCSS(dark)}</style>
+      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
+          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>⭐</span>
+          <span style={{ fontWeight:800, fontSize:18 }}>Favoritos</span>
+        </div>
+        <div style={{ padding:"16px 16px 0" }}>
+          <p style={{ color:t.muted, fontSize:13, marginBottom:16 }}>Los combos más populares entre nuestros clientes ⭐</p>
+          {FAV_COMBOS.map(c=>(
+            <div key={c.id} className="card-hover" onClick={()=>{ setDetail({...c,features:[c.desc,"Activación en minutos","Soporte incluido"]}); setScreen("detail"); }} style={{ background:t.card, border:`1px solid ${c.badge?c.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", marginBottom:12, display:"flex", gap:0 }}>
+              <div style={{ width:120, height:120, flexShrink:0, overflow:"hidden" }}><Img src={c.img} alt={c.name} size={120} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
+              <div style={{ flex:1, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>{c.name}</div>
+                  <div style={{ color:t.muted, fontSize:12, marginBottom:8 }}>{c.desc}</div>
+                  {"⭐".repeat(c.stars||1)}
+                </div>
+                <div style={{ color:c.color||"#7c3aed", fontWeight:900, fontSize:20 }}>{formatPrice(c.price)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (screen==="pantallas") return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <style>{getCSS(dark)}</style>
+      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
+          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>📺</span>
+          <span style={{ fontWeight:800, fontSize:18 }}>Pantallas</span>
+        </div>
+        <div style={{ padding:16 }}>
+          <div className="product-grid">
+            {PANTALLAS.map((item,i)=>(
+              <div key={item.id} className="card-hover" onClick={()=>{ setDetail(item); setScreen("detail"); }} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
+                {item.badge && <div style={{ position:"absolute", top:8, left:8, zIndex:1, background:item.color, borderRadius:6, padding:"2px 8px", fontSize:9, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
+                <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}><Img src={item.img} alt={item.name} size={200} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
+                <div style={{ padding:"10px 12px 14px" }}>
+                  <div style={{ fontWeight:700, fontSize:13, marginBottom:2 }}>{item.name}</div>
+                  <div style={{ color:t.muted, fontSize:11, marginBottom:6 }}>{item.desc}</div>
+                  <div style={{ color:item.color, fontWeight:800, fontSize:16 }}>{formatPrice(item.price)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (screen==="combos") return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <style>{getCSS(dark)}</style>
+      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
+          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>🔥</span>
+          <span style={{ fontWeight:800, fontSize:18 }}>Combos</span>
+        </div>
+        <div style={{ padding:16 }}>
+          <div style={{ background:"linear-gradient(135deg,#1f1200,#2a1800)", border:"1px solid #cccc0022", borderRadius:14, padding:"12px 16px", marginBottom:16 }}>
+            <p style={{ color:"#cccc00", fontSize:12, lineHeight:1.6 }}>💡 <strong style={{ color:"#ffff88" }}>Combos = más plataformas por menos.</strong> Las activamos en minutos.</p>
+          </div>
+          <div className="product-grid">
+            {COMBOS.map((c,i)=>(
+              <div key={c.id} className="card-hover" onClick={()=>{ setDetail({...c,features:[c.desc,"Activación en minutos","Soporte incluido"]}); setScreen("detail"); }} style={{ background:t.card, border:`1px solid ${c.badge?c.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
+                {c.badge && <div style={{ position:"absolute", top:8, left:8, zIndex:1, background:c.color, borderRadius:6, padding:"2px 8px", fontSize:9, fontWeight:700, color:"#fff" }}>{c.badge}</div>}
+                <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}><Img src={c.img} alt={c.name} size={200} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
+                <div style={{ padding:"10px 12px 14px" }}>
+                  <div style={{ fontWeight:700, fontSize:13, marginBottom:2 }}>{c.name}</div>
+                  <div style={{ color:t.muted, fontSize:11, marginBottom:6 }}>{c.desc}</div>
+                  <div style={{ color:c.color, fontWeight:800, fontSize:16 }}>{formatPrice(c.price)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (screen==="meses") return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <style>{getCSS(dark)}</style>
+      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
+          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>🗓️</span>
+          <span style={{ fontWeight:800, fontSize:18 }}>Paquetes por Meses</span>
+        </div>
+        <div style={{ padding:16 }}>
+          {Object.entries(MESES.reduce((acc,item)=>{ (acc[item.cat]=acc[item.cat]||[]).push(item); return acc; },{})).map(([cat,items])=>(
+            <div key={cat} style={{ marginBottom:24 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, paddingBottom:8, borderBottom:`1px solid ${t.border}` }}>
+                <span style={{ fontWeight:700, fontSize:15, color:items[0].color }}>{cat}</span>
+              </div>
+              <div className="product-grid">
+                {items.map((item,i)=>(
+                  <div key={item.id} className="card-hover" onClick={()=>{ setDetail(item); setScreen("detail"); }} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:14, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
+                    {item.badge && <div style={{ position:"absolute", top:8, right:8, zIndex:1, background:item.color, borderRadius:5, padding:"2px 6px", fontSize:8, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
+                    <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}><Img src={item.img} alt={item.name} size={200} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
+                    <div style={{ padding:"10px 12px 14px" }}>
+                      <div style={{ fontWeight:700, fontSize:13, marginBottom:2 }}>{item.name}</div>
+                      <div style={{ color:t.muted, fontSize:11, marginBottom:6 }}>{item.desc}</div>
+                      <div style={{ color:item.color, fontWeight:800, fontSize:16 }}>{formatPrice(item.price)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (screen==="seguidores") return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <style>{getCSS(dark)}</style>
+      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:80 }}>
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
+          <BackButton onClick={()=>setScreen("home")} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>👥</span>
+          <span style={{ fontWeight:800, fontSize:18 }}>Seguidores</span>
+        </div>
+        <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} dark={dark} />
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:1400, margin:"0 auto", paddingBottom:100 }}>
       <style>{getCSS(dark)}</style>
 
       {showVip && <VipModal onClose={()=>setShowVip(false)} onAdd={(it)=>{ addCart(it); setShowVip(false); }} dark={dark} />}
+      {showWelcome && (
+        <div onClick={()=>setShowWelcome(false)} style={{ position:"fixed", inset:0, zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.85)", animation:"overlayIn 0.4s ease" }}>
+          <div style={{ textAlign:"center", animation:"fadeUp 0.5s ease", padding:32 }}>
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:120, height:120, borderRadius:"50%", objectFit:"cover", border:"3px solid rgba(168,85,247,0.6)", marginBottom:20, filter:"drop-shadow(0 0 24px rgba(168,85,247,0.6))" }} />
+            <div style={{ fontSize:32, fontWeight:900, marginBottom:8 }}>
+              <span style={{ color:"#ff6b35" }}>Digital </span>
+              <span style={{ color:"#a855f7" }}>Market</span>
+            </div>
+            <p style={{ color:"rgba(255,255,255,0.7)", fontSize:15, marginBottom:6 }}>Streaming Premium 🚀</p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12 }}>Toca para continuar</p>
+          </div>
+        </div>
+      )}
       {showRuleta && <Ruleta dark={dark} onClose={()=>setShowRuleta(false)} />}
       {showClub && <ClubModal dark={dark} onClose={()=>setShowClub(false)} />}
 
@@ -1360,8 +1531,8 @@ export default function App() {
           <img src={LOGO_URL} alt="Digital Market" style={{ width:44, height:44, objectFit:"cover", borderRadius:"50%", flexShrink:0, border:"2px solid rgba(124,58,237,0.4)", filter:"drop-shadow(0 2px 6px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
           <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
             <span style={{ fontWeight:900, fontSize:18, letterSpacing:0.3, lineHeight:1.15 }}>
-              <span style={{ color:"#3b82f6" }}>Digital </span>
-              <span style={{ color:"#ef4444" }}>Market</span>
+              <span style={{ color:"#ff6b35" }}>Digital </span>
+              <span style={{ color:"#a855f7" }}>Market</span>
             </span>
             <span style={{ fontSize:9, color:t.muted, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}>Streaming Premium</span>
           </div>
@@ -1403,8 +1574,11 @@ export default function App() {
 
       {/* TABS */}
       <div style={{ display:"flex", padding:"14px 16px 10px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
-        {[["favoritos","⭐ Favoritos"],["pantallas","📺 Pantallas"],["combos","🔥 Combos"],["meses","🗓️ Meses"],["seguidores","👥 Seguidores"]].map(([k,l])=>(
-          <button key={k} onClick={()=>navigate(k)} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"11px 18px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>{l}</button>
+        {[["favoritos","⭐","Favoritos"],["pantallas","📺","Pantallas"],["combos","🔥","Combos"],["meses","🗓️","Meses"],["seguidores","👥","Seguidores"]].map(([k,icon,label])=>(
+          <button key={k} onClick={()=>navigate(k)} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"9px 12px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:3, minWidth:56 }}>
+            <span style={{ fontSize:16 }}>{icon}</span>
+            <span>{label}</span>
+          </button>
         ))}
       </div>
 
