@@ -449,33 +449,109 @@ function PromoCarrusel({ dark }) {
   );
 }
 
+function MovieModal({ movie, dark, onClose }) {
+  const [details, setDetails] = useState(null);
+  const t = getTheme(dark);
+  useEffect(() => {
+    fetch(`${TMDB_BASE}/movie/${movie.id}?language=es-CO`, { headers:{ Authorization:`Bearer ${TMDB_TOKEN}` } })
+      .then(r=>r.json()).then(d=>setDetails(d)).catch(()=>{});
+  }, [movie.id]);
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:500, display:"flex", alignItems:"flex-end", justifyContent:"center", animation:"overlayIn 0.2s ease" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:"20px 20px 0 0", width:"100%", maxWidth:540, maxHeight:"85vh", overflowY:"auto", animation:"fadeUp 0.3s ease", paddingBottom:32 }}>
+        <div style={{ position:"relative", width:"100%", height:200, overflow:"hidden", borderRadius:"20px 20px 0 0" }}>
+          {movie.backdrop_path
+            ? <img src={`https://image.tmdb.org/t/p/w780${movie.backdrop_path}`} alt={movie.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            : <div style={{ width:"100%", height:"100%", background:"linear-gradient(135deg,#1a2535,#0d141f)" }} />}
+          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.85))" }} />
+          <button onClick={onClose} style={{ position:"absolute", top:12, right:12, background:"rgba(0,0,0,0.6)", border:"none", borderRadius:"50%", width:32, height:32, color:"#fff", fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
+        </div>
+        <div style={{ padding:"16px 20px" }}>
+          <h2 style={{ color:t.text, fontSize:20, fontWeight:800, marginBottom:6 }}>{movie.title}</h2>
+          <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
+            {details?.release_date && <span style={{ background:t.card, border:`1px solid ${t.border}`, color:t.muted, fontSize:11, padding:"3px 10px", borderRadius:20 }}>📅 {details.release_date?.slice(0,4)}</span>}
+            {details?.runtime && <span style={{ background:t.card, border:`1px solid ${t.border}`, color:t.muted, fontSize:11, padding:"3px 10px", borderRadius:20 }}>⏱ {details.runtime} min</span>}
+            {details?.vote_average && <span style={{ background:t.card, border:`1px solid ${t.border}`, color:"#f59e0b", fontSize:11, padding:"3px 10px", borderRadius:20 }}>⭐ {details.vote_average?.toFixed(1)}</span>}
+          </div>
+          {details?.genres?.length > 0 && (
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 }}>
+              {details.genres.map(g=>(
+                <span key={g.id} style={{ background:"rgba(124,58,237,0.15)", border:"1px solid rgba(124,58,237,0.3)", color:"#a78bfa", fontSize:11, padding:"3px 10px", borderRadius:20 }}>{g.name}</span>
+              ))}
+            </div>
+          )}
+          <p style={{ color:t.muted, fontSize:13, lineHeight:1.7, marginBottom:16 }}>{movie.overview || "Sin descripción disponible."}</p>
+          <button onClick={()=>{ window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Vi "${movie.title}" en la app y quiero saber en qué plataforma está disponible 🎬`)}`,"_blank"); }} style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"'Outfit',system-ui,sans-serif" }}>💬 Preguntar disponibilidad por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Carrusel({ dark }) {
   const [movies, setMovies] = useState([]);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [paused, setPaused] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const dragRef = useRef({ startX:0, dragging:false, lastOffset:0 });
+  const resumeTimer = useRef(null);
   const t = getTheme(dark);
+
   useEffect(() => {
     fetch(`${TMDB_BASE}/trending/movie/week?language=es-CO`, { headers:{ Authorization:`Bearer ${TMDB_TOKEN}` } })
       .then(r=>r.json()).then(d=>setMovies((d.results||[]).filter(m=>m.poster_path).slice(0,16)))
       .catch(()=>{});
   }, []);
+
+  const pauseTemporarily = () => {
+    setPaused(true);
+    clearTimeout(resumeTimer.current);
+    resumeTimer.current = setTimeout(()=>{ setPaused(false); setOffset(0); }, 8000);
+  };
+
+  const onDown = (x) => { dragRef.current = { startX:x, dragging:true, lastOffset:offset }; pauseTemporarily(); };
+  const onMove = (x) => { if (!dragRef.current.dragging) return; setOffset(dragRef.current.lastOffset + (x - dragRef.current.startX)); };
+  const onUp = (x) => {
+    if (!dragRef.current.dragging) return;
+    const diff = x - dragRef.current.startX;
+    dragRef.current.dragging = false;
+    if (Math.abs(diff) < 5) return; // click, no drag
+    pauseTemporarily();
+  };
+
   if (!movies.length) return null;
   const all = [...movies, ...movies];
   return (
-    <div style={{ overflow:"hidden", padding:"16px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
-      <div style={{ padding:"0 16px", marginBottom:10, display:"flex", justifyContent:"space-between" }}>
-        <span style={{ color:t.muted, fontSize:12, letterSpacing:"1.5px", textTransform:"uppercase", fontWeight:600 }}>🎬 Estrenos del momento</span>
-        <span style={{ color:t.muted, fontSize:10 }}>Netflix · Disney+ · Prime · HBO</span>
-      </div>
-      <div style={{ display:"flex", gap:12, animation:"scroll 90s linear infinite", width:"max-content", paddingLeft:16 }}>
-        {all.map((m,i) => (
-          <div key={`${m.id}-${i}`} style={{ width:110, flexShrink:0 }}>
-            <div style={{ width:110, height:160, borderRadius:12, overflow:"hidden", background:"#1a2535", boxShadow:"0 4px 12px rgba(0,0,0,0.3)" }}>
-              <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
-            </div>
-            <div style={{ marginTop:5, fontSize:10, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title}</div>
+    <>
+      {selectedMovie && <MovieModal movie={selectedMovie} dark={dark} onClose={()=>setSelectedMovie(null)} />}
+      <div style={{ overflow:"hidden", padding:"16px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
+        <div style={{ padding:"0 16px", marginBottom:10, display:"flex", justifyContent:"space-between" }}>
+          <span style={{ color:t.muted, fontSize:12, letterSpacing:"1.5px", textTransform:"uppercase", fontWeight:600 }}>🎬 Estrenos del momento</span>
+          <span style={{ color:t.muted, fontSize:10 }}>Netflix · Disney+ · Prime · HBO</span>
+        </div>
+        <div
+          onMouseDown={e=>onDown(e.clientX)}
+          onMouseMove={e=>onMove(e.clientX)}
+          onMouseUp={e=>{ onUp(e.clientX); }}
+          onMouseLeave={()=>{ if(dragRef.current.dragging){ dragRef.current.dragging=false; pauseTemporarily(); } }}
+          onTouchStart={e=>onDown(e.touches[0].clientX)}
+          onTouchMove={e=>onMove(e.touches[0].clientX)}
+          onTouchEnd={e=>onUp(e.changedTouches[0].clientX)}
+          style={{ cursor:"grab", userSelect:"none", touchAction:"pan-y" }}
+        >
+          <div style={{ display:"flex", gap:12, animation:paused?"none":"scroll 90s linear infinite", width:"max-content", paddingLeft:16, transform:paused?`translateX(${offset}px)`:"none", transition:paused?"none":"transform 0s" }}>
+            {all.map((m,i) => (
+              <div key={`${m.id}-${i}`} onClick={()=>{ if(Math.abs(offset-(dragRef.current?.lastOffset||0))<5) setSelectedMovie(m); }} style={{ width:110, flexShrink:0, cursor:"pointer" }}>
+                <div className="card-hover" style={{ width:110, height:160, borderRadius:12, overflow:"hidden", background:"#1a2535", boxShadow:"0 4px 12px rgba(0,0,0,0.3)" }}>
+                  <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" />
+                </div>
+                <div style={{ marginTop:5, fontSize:10, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title}</div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -992,9 +1068,12 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
       <div style={{ position:"fixed", top:0, left:0, bottom:0, width:270, background:t.surface, borderRight:`1px solid ${t.border}`, zIndex:201, display:"flex", flexDirection:"column", animation:closing?"menuSlideOut 0.25s ease forwards":"menuSlide 0.25s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.25)" }}>
         <div style={{ padding:"24px 18px 18px", borderBottom:`1px solid ${t.border}`, background:dark?"linear-gradient(135deg,#150a25,#0e1520)":"linear-gradient(135deg,#f3edff,#ffffff)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <img src={LOGO_URL} alt="Digital Market" style={{ width:54, height:54, objectFit:"contain", flexShrink:0, filter:"drop-shadow(0 3px 10px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:54, height:54, objectFit:"cover", borderRadius:"50%", flexShrink:0, border:"2px solid rgba(124,58,237,0.4)", filter:"drop-shadow(0 3px 10px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
             <div>
-              <div style={{ fontWeight:900, fontSize:17, letterSpacing:0.3, color:t.text }}>Digital <span style={{ background:"linear-gradient(90deg,#7c3aed,#a78bfa)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Market</span></div>
+              <div style={{ fontWeight:900, fontSize:17, letterSpacing:0.3 }}>
+                <span style={{ color:"#3b82f6" }}>Digital </span>
+                <span style={{ color:"#ef4444" }}>Market</span>
+              </div>
               <div style={{ fontSize:11, color:"#25d366", fontWeight:600, display:"flex", alignItems:"center", gap:5, marginTop:2 }}><span style={{ width:6, height:6, background:"#25d366", borderRadius:"50%", display:"inline-block", animation:"blink 1.6s ease infinite" }}/> En línea</div>
             </div>
           </div>
@@ -1075,7 +1154,8 @@ function Soporte({ onBack, dark }) {
     {icon:"💬",title:"¿No encontraste tu error? Nuestro soporte responde.",content:"Escríbenos directamente por WhatsApp y te ayudamos de inmediato."},
   ];
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div><div style={{ fontWeight:800, fontSize:20 }}>🆘 Soporte</div><div style={{ color:t.muted, fontSize:12 }}>Errores comunes y soluciones rápidas</div></div>
@@ -1095,6 +1175,7 @@ function Soporte({ onBack, dark }) {
           💬 Escribir por WhatsApp
         </button>
       </div>
+      </div>
     </div>
   );
 }
@@ -1103,9 +1184,9 @@ function Soporte({ onBack, dark }) {
 function Seguidores({ onBack, onAddCart, dark, inline=false }) {
   const t = getTheme(dark);
   const packs = [
-    {id:"fb1k",name:"Facebook 1.000 Seguidores",price:38000,img:IMG.facebook,color:"#1877F2",red:"Facebook",features:["1.000 seguidores","Entrega en 24-72h","Sin contraseña","Garantía 30 días"]},
-    {id:"ig1k",name:"Instagram 1.000 Seguidores",price:38000,img:IMG.instagram,color:"#E1306C",red:"Instagram",features:["1.000 seguidores","Perfil público","Entrega progresiva","Alta retención"]},
-    {id:"tt1k",name:"TikTok 1.000 Seguidores",price:58000,img:IMG.tiktok,color:"#010101",red:"TikTok",features:["1.000 seguidores","Cuenta pública","Impulsa el algoritmo","Entrega rápida"]},
+    {id:"fb1k",name:"Facebook 1.000 Seguidores",price:38000,img:"/images/seg_facebook.png",color:"#1877F2",red:"Facebook",features:["1.000 seguidores","Entrega en 24-72h","Sin contraseña","Garantía 30 días"]},
+    {id:"ig1k",name:"Instagram 1.000 Seguidores",price:38000,img:"/images/seg_instagram.png",color:"#E1306C",red:"Instagram",features:["1.000 seguidores","Perfil público","Entrega progresiva","Alta retención"]},
+    {id:"tt1k",name:"TikTok 1.000 Seguidores",price:58000,img:"/images/seg_tiktok.png",color:"#010101",red:"TikTok",features:["1.000 seguidores","Cuenta pública","Impulsa el algoritmo","Entrega rápida"]},
   ];
   const content = (
     <div style={{ padding: inline ? "16px 0" : 16 }}>
@@ -1120,27 +1201,29 @@ function Seguidores({ onBack, onAddCart, dark, inline=false }) {
           ))}
         </div>
         {packs.map(pk=>(
-          <div key={pk.id} style={{ background:t.card, border:`1px solid ${pk.color}33`, borderRadius:18, padding:20, marginBottom:16 }}>
-            <div style={{ display:"flex", gap:16, alignItems:"flex-start", marginBottom:16 }}>
-              <div style={{ width:90, height:90, borderRadius:18, overflow:"hidden", background:"#fff", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", padding:10 }}>
-                <img src={pk.img} alt={pk.red} style={{ width:"100%", height:"100%", objectFit:"contain" }} onError={e=>e.target.style.display="none"} />
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontWeight:800, fontSize:20, marginBottom:2 }}>{pk.red}</div>
-                <div style={{ color:t.muted, fontSize:13 }}>1.000 seguidores</div>
-                <div style={{ color:pk.color, fontWeight:900, fontSize:28, marginTop:6 }}>{formatPrice(pk.price)}</div>
-              </div>
+          <div key={pk.id} style={{ background:t.card, border:`1px solid ${pk.color}33`, borderRadius:18, marginBottom:16, overflow:"hidden" }}>
+            <div style={{ width:"100%", aspectRatio:"1/0.75", overflow:"hidden", borderRadius:"18px 18px 0 0" }}>
+              <img src={pk.img} alt={pk.red} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} />
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16 }}>
-              {pk.features.map((f,i)=>(
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, color:t.muted }}>
-                  <div style={{ width:16, height:16, borderRadius:5, background:`${pk.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, color:pk.color, flexShrink:0 }}>✓</div>{f}
+            <div style={{ padding:"16px 20px 20px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <div>
+                  <div style={{ fontWeight:800, fontSize:18 }}>{pk.red}</div>
+                  <div style={{ color:t.muted, fontSize:13 }}>1.000 seguidores</div>
                 </div>
-              ))}
-            </div>
-            <div style={{ display:"flex", gap:8 }}>
-              <button onClick={()=>onAddCart(pk)} style={{ flex:1, padding:13, background:`linear-gradient(135deg,${pk.color},${pk.color}99)`, border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>🛒 Agregar</button>
-              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${pk.name} por ${formatPrice(pk.price)} 🙏`)}`,"_blank")} style={{ flex:1, padding:13, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>💬 WhatsApp</button>
+                <div style={{ color:pk.color, fontWeight:900, fontSize:26 }}>{formatPrice(pk.price)}</div>
+              </div>
+              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:16 }}>
+                {pk.features.map((f,i)=>(
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:6, fontSize:13, color:t.muted }}>
+                    <div style={{ width:16, height:16, borderRadius:5, background:`${pk.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, color:pk.color, flexShrink:0 }}>✓</div>{f}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display:"flex", gap:8 }}>
+                <button onClick={()=>onAddCart(pk)} style={{ flex:1, padding:13, background:`linear-gradient(135deg,${pk.color},${pk.color}99)`, border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>🛒 Agregar</button>
+                <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${pk.name} por ${formatPrice(pk.price)} 🙏`)}`,"_blank")} style={{ flex:1, padding:13, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>💬 WhatsApp</button>
+              </div>
             </div>
           </div>
         ))}
@@ -1178,7 +1261,8 @@ function Chat({ onBack, dark }) {
     }, delay);
   };
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto" }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:960, margin:"0 auto", width:"100%", display:"flex", flexDirection:"column", height:"100vh" }}>
       <div style={{ padding:"12px 16px", background:t.surface, borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:11 }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ width:40, height:40, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🤖</div>
@@ -1205,6 +1289,7 @@ function Chat({ onBack, dark }) {
           <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send(input);} }} placeholder="Escribe tu mensaje..." rows={1} style={{ flex:1, background:"transparent", border:"none", color:t.text, fontSize:14, resize:"none", fontFamily:"inherit", lineHeight:1.5, paddingTop:3 }}/>
           <button onClick={()=>send(input)} disabled={!input.trim()||loading} style={{ width:38, height:38, background:input.trim()&&!loading?"linear-gradient(135deg,#7c3aed,#6d28d9)":"#1a2535", border:"none", borderRadius:10, color:"#fff", fontSize:16, cursor:input.trim()?"pointer":"default", display:"flex", alignItems:"center", justifyContent:"center", transition:"background 0.18s" }}>→</button>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -1272,10 +1357,13 @@ export default function App() {
           <div style={{ width:18, height:2, background:t.text, borderRadius:1 }} />
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
-          <img src={LOGO_URL} alt="Digital Market" style={{ width:42, height:42, objectFit:"contain", flexShrink:0, filter:dark?"drop-shadow(0 2px 6px rgba(124,58,237,0.4))":"drop-shadow(0 2px 6px rgba(124,58,237,0.2))" }} onError={e=>{ e.target.style.display="none"; }} />
-          <div style={{ display:"flex", flexDirection:"column", lineHeight:1.15, minWidth:0 }}>
-            <span style={{ fontWeight:900, fontSize:18, letterSpacing:0.3, color:t.text, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>Digital <span style={{ background:"linear-gradient(90deg,#7c3aed,#a78bfa)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Market</span></span>
-            <span style={{ fontSize:9, color:t.muted, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase" }}>Streaming Premium</span>
+          <img src={LOGO_URL} alt="Digital Market" style={{ width:44, height:44, objectFit:"cover", borderRadius:"50%", flexShrink:0, border:"2px solid rgba(124,58,237,0.4)", filter:"drop-shadow(0 2px 6px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
+          <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
+            <span style={{ fontWeight:900, fontSize:18, letterSpacing:0.3, lineHeight:1.15 }}>
+              <span style={{ color:"#3b82f6" }}>Digital </span>
+              <span style={{ color:"#ef4444" }}>Market</span>
+            </span>
+            <span style={{ fontSize:9, color:t.muted, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}>Streaming Premium</span>
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
