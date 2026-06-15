@@ -53,20 +53,20 @@ const IMG = {
 const PANTALLAS = [
   { id:"net1-p", name:"Netflix 1 Mes", price:16000, img:"/images/netflix1mes.png", color:"#E50914", desc:"1 pantalla · HD", features:["Series y películas","Calidad HD","Soporte incluido"] },
   { id:"sp1-p", name:"Spotify 1 Mes", price:12000, img:IMG.spotify, color:"#1DB954", desc:"Premium sin anuncios", features:["Sin anuncios","Descarga offline","Calidad máxima"] },
-  { id:"yt1-p", name:"YouTube 1 Mes", price:12000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
+  { id:"yt1-p", name:"YouTube 1 Mes", price:16000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
   { id:"hbo", name:"HBO Max", price:11000, img:IMG.hbo, color:"#8B5CF6", desc:"Series exclusivas · HD", features:["Series exclusivas HBO","Estrenos de cine","Calidad HD"] },
   { id:"prime", name:"Prime Video", price:11000, img:IMG.prime, color:"#00A8E1", desc:"Originales Amazon · HD", features:["Originales Amazon","Calidad HD","Soporte incluido"] },
   { id:"dis1", name:"Disney+ Estándar", price:11000, img:IMG.disneyStd, color:"#0063e5", desc:"Marvel, Star Wars, Pixar", features:["Marvel, Star Wars, Pixar","Calidad HD","Sin ESPN"] },
   { id:"dis2", name:"Disney+ Premium ESPN", price:15000, img:IMG.disneyPrem, color:"#0063e5", badge:"ESPN", desc:"Con deportes ESPN", features:["Todo Disney+","ESPN en vivo","Calidad HD+"] },
-  { id:"paramount", name:"Paramount+", price:11000, img:IMG.paramount, color:"#0064FF", desc:"Series Paramount · HD", features:["Series Paramount","Películas exclusivas","Calidad HD"] },
+  { id:"paramount", name:"Paramount+", price:14000, img:IMG.paramount, color:"#0064FF", desc:"Series Paramount · HD", features:["Series Paramount","Películas exclusivas","Calidad HD"] },
   { id:"crunchy", name:"Crunchyroll", price:11000, img:IMG.crunchyroll, color:"#F47521", desc:"Anime sin límite", features:["Anime sin límite","Simulcast","Sin anuncios"] },
   { id:"vix", name:"ViX+", price:11000, img:IMG.vix, color:"#FF3B30", desc:"Contenido en español", features:["Contenido en español","Deportes","Novelas y series"] },
   { id:"plex", name:"Plex Premium", price:11000, img:IMG.plex, color:"#E5A00D", desc:"Sin anuncios · HD", features:["Películas y series","Sin anuncios","Calidad HD"] },
   { id:"jelly", name:"Jellyfin", price:14000, img:IMG.jellyfin, color:"#9B59B6", desc:"Catálogo enorme", features:["Catálogo enorme","Sin restricciones","Alta calidad"] },
   { id:"iptv", name:"IPTV Smarters", price:14000, img:IMG.iptv, color:"#27AE60", desc:"Solo Smart TV", features:["Canales en vivo","Deportes","Smart TV requerido"] },
   { id:"iptvfull", name:"IPTV 3 Pantallas", price:20000, img:IMG.iptv, color:"#27AE60", desc:"3 pantallas · Smart TV", features:["3 pantallas","Canales en vivo","Smart TV requerido"] },
-  { id:"win", name:"WIN+", price:25000, img:IMG.win, color:"#FF6B00", desc:"Fútbol · Solo Smart TV", features:["Deportes en vivo","Fútbol latinoamericano","Smart TV requerido"] },
-  { id:"directv", name:"DirecTV GO", price:45000, img:IMG.directv, color:"#00529B", desc:"Canales premium · HD", features:["Canales premium","Deportes en vivo","Calidad HD"] },
+  { id:"win", name:"WIN+", price:35000, img:IMG.win, color:"#FF6B00", desc:"Fútbol · Solo Smart TV", features:["Deportes en vivo","Fútbol latinoamericano","Smart TV requerido"] },
+  { id:"directv", name:"DirecTV GO", price:38000, img:IMG.directv, color:"#00529B", desc:"Canales premium · HD", features:["Canales premium","Deportes en vivo","Calidad HD"] },
   { id:"apple", name:"Apple TV+", price:20000, img:IMG.appletv, color:"#aaa", desc:"Originales Apple · 4K", features:["Originales Apple","Calidad 4K","Soporte incluido"] },
   { id:"canva", name:"Canva Pro", price:11000, img:IMG.canva, color:"#00C4CC", desc:"Diseño sin límites", features:["Diseños ilimitados","Recursos premium","Sin marca de agua"] },
   { id:"ps", name:"PlayStation Plus", price:38000, img:IMG.playstation, color:"#003087", desc:"Gaming · Online", features:["Juegos gratis mensuales","Multijugador online","Descuentos exclusivos"] },
@@ -83,9 +83,9 @@ const MESES = [
   { id:"sp3", cat:"Spotify", name:"Spotify 3 Meses", price:28000, img:"/images/spotify3meses.png", color:"#1DB954", desc:"3 meses", features:["3 meses","Descarga offline","Calidad máxima"] },
   { id:"sp4", cat:"Spotify", name:"Spotify 4 Meses", price:35000, img:IMG.spotify, color:"#1DB954", desc:"4 meses", features:["4 meses","Descarga offline","Calidad máxima"] },
   { id:"sp6", cat:"Spotify", name:"Spotify 6 Meses", price:55000, img:IMG.spotify, color:"#1DB954", badge:"SUPER", desc:"Mejor precio", features:["6 meses","Descarga offline","Mejor precio"] },
-  { id:"yt1", cat:"YouTube", name:"YouTube 1 Mes", price:12000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
-  { id:"yt2", cat:"YouTube", name:"YouTube 2 Meses", price:24000, img:IMG.youtube, color:"#FF0000", desc:"2 meses", features:["2 meses","YouTube Music","Descarga videos"] },
-  { id:"yt3", cat:"YouTube", name:"YouTube 3 Meses", price:36000, img:IMG.youtube, color:"#FF0000", badge:"🔥", desc:"3 meses", features:["3 meses","YouTube Music","Descarga videos"] },
+  { id:"yt1", cat:"YouTube", name:"YouTube 1 Mes", price:16000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
+  { id:"yt2", cat:"YouTube", name:"YouTube 2 Meses", price:32000, img:IMG.youtube, color:"#FF0000", desc:"2 meses", features:["2 meses","YouTube Music","Descarga videos"] },
+  { id:"yt3", cat:"YouTube", name:"YouTube 3 Meses", price:48000, img:IMG.youtube, color:"#FF0000", badge:"🔥", desc:"3 meses", features:["3 meses","YouTube Music","Descarga videos"] },
 ];
 
 const COMBOS = [
@@ -101,10 +101,13 @@ const COMBOS = [
 const FAV_COMBOS = [
   { id:"fav1", name:"Netflix + Prime Video", price:22000, img:IMG.favNetPrime, color:"#FF9900", stars:1, desc:"Combo Favorito" },
   { id:"fav2", name:"Netflix + Jellyfin/IPTV", price:25000, img:IMG.favNetJelly, color:"#9B59B6", stars:2, desc:"Solo Smart TV" },
-  { id:"fav3", name:"Netflix + YouTube Premium", price:28000, img:IMG.favNetYt, color:"#FF0000", stars:3, desc:"Combo Favorito" },
+  { id:"fav3", name:"Netflix + YouTube Premium", price:32000, img:IMG.favNetYt, color:"#FF0000", stars:3, desc:"Combo Favorito" },
   { id:"fav4", name:"Netflix + Disney+ Premium", price:28000, img:IMG.favNetDisney, color:"#0063e5", stars:4, desc:"Con ESPN incluido" },
-  { id:"fav5", name:"Netflix + WIN+", price:38000, img:IMG.favNetWin, color:"#FF6B00", stars:5, desc:"Solo Smart TV" },
+  { id:"fav5", name:"Netflix + WIN+", price:45000, img:IMG.favNetWin, color:"#FF6B00", stars:5, desc:"Solo Smart TV" },
   { id:"office1", name:"Office 1 Mes", price:20000, img:IMG.office, color:"#D83B01", stars:5, desc:"Word, Excel, PowerPoint" },
+  { id:"fav6", name:"Netflix 1 Mes", price:16000, img:"/images/netflix1mes.png", color:"#E50914", stars:5, desc:"1 pantalla · HD" },
+  { id:"fav7", name:"Disney+ Premium", price:16000, img:IMG.disneyPrem, color:"#0063e5", stars:4, desc:"Con ESPN incluido" },
+  { id:"fav8", name:"DirecTV GO", price:38000, img:IMG.directv, color:"#00529B", stars:4, desc:"Canales premium · HD" },
 ];
 
 // Ruleta items
@@ -327,7 +330,8 @@ const getCSS = (dark) => `
   .tab-icon { font-size:16px; }
   .tab-label { font-size:12px; }
   @media (min-width:768px) {
-    .tab-btn { padding:11px 22px !important; min-width:100px !important; flex-direction:row !important; gap:6px !important; }
+    .tab-bar { justify-content:stretch !important; }
+    .tab-btn { padding:13px 16px !important; min-width:0 !important; flex:1 !important; flex-direction:row !important; gap:8px !important; justify-content:center !important; }
     .tab-icon { font-size:18px; }
     .tab-label { font-size:14px; }
   }
@@ -1108,7 +1112,7 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
       <div style={{ position:"fixed", top:0, left:0, bottom:0, width:270, background:t.surface, borderRight:`1px solid ${t.border}`, zIndex:201, display:"flex", flexDirection:"column", animation:closing?"menuSlideOut 0.25s ease forwards":"menuSlide 0.25s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.25)" }}>
         <div style={{ padding:"24px 18px 18px", borderBottom:`1px solid ${t.border}`, background:dark?"linear-gradient(135deg,#150a25,#0e1520)":"linear-gradient(135deg,#f3edff,#ffffff)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <img src={LOGO_URL} alt="Digital Market" style={{ width:54, height:54, objectFit:"cover", borderRadius:"50%", flexShrink:0, border:"2px solid rgba(124,58,237,0.4)", filter:"drop-shadow(0 3px 10px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:60, height:60, objectFit:"contain", borderRadius:12, flexShrink:0, filter:"drop-shadow(0 3px 12px rgba(168,85,247,0.45))" }} onError={e=>{ e.target.style.display="none"; }} />
             <div>
               <div style={{ fontWeight:900, fontSize:17, letterSpacing:0.3 }}>
                 <span style={{ color:"#ff6b35" }}>Digital </span>
@@ -1223,10 +1227,16 @@ function Soporte({ onBack, dark }) {
 // ─── SEGUIDORES ───────────────────────────────────────────────────────────────
 function Seguidores({ onBack, onAddCart, dark, inline=false }) {
   const t = getTheme(dark);
+  const [added, setAdded] = useState({});
+  const handleAdd = (pk) => {
+    onAddCart(pk);
+    setAdded(a=>({...a,[pk.id]:true}));
+    setTimeout(()=>setAdded(a=>({...a,[pk.id]:false})),1500);
+  };
   const packs = [
     {id:"fb1k",name:"Facebook 1.000 Seguidores",price:38000,img:"/images/seg_facebook.png",color:"#1877F2",red:"Facebook",features:["1.000 seguidores","Entrega en 24-72h","Sin contraseña","Garantía 30 días"]},
     {id:"ig1k",name:"Instagram 1.000 Seguidores",price:38000,img:"/images/seg_instagram.png",color:"#E1306C",red:"Instagram",features:["1.000 seguidores","Perfil público","Entrega progresiva","Alta retención"]},
-    {id:"tt1k",name:"TikTok 1.000 Seguidores",price:58000,img:"/images/seg_tiktok.png",color:"#010101",red:"TikTok",features:["1.000 seguidores","Cuenta pública","Impulsa el algoritmo","Entrega rápida"]},
+    {id:"tt1k",name:"TikTok 1.000 Seguidores",price:58000,img:"/images/seg_tiktok.png",color:"#ee1d52",red:"TikTok",features:["1.000 seguidores","Cuenta pública","Impulsa el algoritmo","Entrega rápida"]},
   ];
   const content = (
     <div style={{ padding: inline ? "16px 0" : 16 }}>
@@ -1259,7 +1269,7 @@ function Seguidores({ onBack, onAddCart, dark, inline=false }) {
                 <div style={{ color:pk.color, fontWeight:900, fontSize:24, marginBottom:14 }}>{formatPrice(pk.price)}</div>
               </div>
               <div style={{ display:"flex", gap:8 }}>
-                <button onClick={()=>onAddCart(pk)} style={{ flex:1, padding:"11px 0", background:`linear-gradient(135deg,${pk.color},${pk.color}99)`, border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>🛒 Agregar</button>
+                <button onClick={()=>handleAdd(pk)} style={{ flex:1, padding:"11px 0", background:added[pk.id]?"linear-gradient(135deg,#10b981,#059669)":`linear-gradient(135deg,${pk.color},${pk.color}99)`, border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.3s ease", transform:added[pk.id]?"scale(0.97)":"scale(1)" }}>{added[pk.id]?"✓ Agregado":"🛒 Agregar"}</button>
                 <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${pk.name} por ${formatPrice(pk.price)} 🙏`)}`,"_blank")} style={{ flex:1, padding:"11px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 WhatsApp</button>
               </div>
             </div>
@@ -1270,10 +1280,6 @@ function Seguidores({ onBack, onAddCart, dark, inline=false }) {
   if (inline) return content;
   return (
     <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
-      <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface }}>
-        <BackButton onClick={onBack} dark={dark} label="" />
-        <div><div style={{ fontWeight:800, fontSize:18 }}>👥 Seguidores</div><div style={{ color:t.muted, fontSize:12 }}>Redes sociales · Crecimiento garantizado</div></div>
-      </div>
       {content}
     </div>
   );
@@ -1333,6 +1339,140 @@ function Chat({ onBack, dark }) {
   );
 }
 
+// ─── BUSCADOR AVANZADO ────────────────────────────────────────────────────────
+const ALL_ITEMS = [
+  ...PANTALLAS,
+  ...MESES,
+  ...COMBOS,
+  ...FAV_COMBOS,
+];
+
+const CATEGORIAS = ["Todas","Netflix","Spotify","YouTube","Disney+","HBO","Prime","Paramount","Crunchyroll","ViX","Plex","Jellyfin","IPTV","WIN+","DirecTV","Apple TV","Canva","PlayStation","Office","Combos","Seguidores"];
+
+function Buscador({ dark, onBack, onAddCart, onDetail }) {
+  const t = getTheme(dark);
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState("Todas");
+  const [maxPrice, setMaxPrice] = useState(100000);
+  const [sortBy, setSortBy] = useState("relevancia");
+
+  const results = ALL_ITEMS.filter(item=>{
+    const name = (item.name||"").toLowerCase();
+    const desc = (item.desc||"").toLowerCase();
+    const q = query.toLowerCase().trim();
+    const matchQ = !q || name.includes(q) || desc.includes(q);
+    const matchC = cat==="Todas" || name.includes(cat.toLowerCase()) || (item.cat||"").toLowerCase().includes(cat.toLowerCase());
+    const matchP = item.price <= maxPrice;
+    return matchQ && matchC && matchP;
+  }).sort((a,b)=>{
+    if (sortBy==="precio-asc") return a.price - b.price;
+    if (sortBy==="precio-desc") return b.price - a.price;
+    if (sortBy==="nombre") return a.name.localeCompare(b.name);
+    return 0;
+  });
+
+  // Deduplicar por id
+  const seen = new Set();
+  const unique = results.filter(i=>{ if(seen.has(i.id)) return false; seen.add(i.id); return true; });
+
+  return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:80 }}>
+        {/* Header */}
+        <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
+          <BackButton onClick={onBack} dark={dark} label="" />
+          <span style={{ fontSize:22 }}>🔍</span>
+          <span style={{ fontWeight:800, fontSize:18 }}>Buscar producto</span>
+        </div>
+
+        <div style={{ padding:16 }}>
+          {/* Campo de búsqueda */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:"12px 16px", marginBottom:14 }}>
+            <span style={{ fontSize:20, opacity:0.5 }}>🔍</span>
+            <input
+              autoFocus
+              value={query}
+              onChange={e=>setQuery(e.target.value)}
+              placeholder="¿Qué estás buscando? Ej: Netflix, combo, Disney..."
+              style={{ flex:1, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:15, fontFamily:"inherit" }}
+            />
+            {query && <button onClick={()=>setQuery("")} style={{ background:"none", border:"none", color:t.muted, fontSize:18, cursor:"pointer" }}>×</button>}
+          </div>
+
+          {/* Filtros */}
+          <div style={{ display:"flex", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+            {/* Ordenar */}
+            <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", color:t.text, fontSize:13, fontFamily:"inherit", cursor:"pointer", outline:"none" }}>
+              <option value="relevancia">Relevancia</option>
+              <option value="precio-asc">Menor precio</option>
+              <option value="precio-desc">Mayor precio</option>
+              <option value="nombre">A → Z</option>
+            </select>
+            {/* Precio máximo */}
+            <div style={{ display:"flex", alignItems:"center", gap:8, background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px" }}>
+              <span style={{ color:t.muted, fontSize:12 }}>Hasta:</span>
+              <span style={{ color:"#7c3aed", fontWeight:700, fontSize:13 }}>{formatPrice(maxPrice)}</span>
+            </div>
+          </div>
+
+          {/* Slider de precio */}
+          <div style={{ marginBottom:16, padding:"0 4px" }}>
+            <input type="range" min={5000} max={100000} step={1000} value={maxPrice} onChange={e=>setMaxPrice(+e.target.value)}
+              style={{ width:"100%", accentColor:"#7c3aed" }} />
+            <div style={{ display:"flex", justifyContent:"space-between", color:t.muted, fontSize:11, marginTop:2 }}>
+              <span>$5.000</span><span>$100.000</span>
+            </div>
+          </div>
+
+          {/* Categorías */}
+          <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:12, marginBottom:12, scrollbarWidth:"none" }}>
+            {CATEGORIAS.map(c=>(
+              <button key={c} onClick={()=>setCat(c)} style={{ flexShrink:0, padding:"7px 14px", background:cat===c?"#7c3aed":t.card, border:`1px solid ${cat===c?"#7c3aed":t.border}`, borderRadius:20, color:cat===c?"#fff":t.muted, fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s ease" }}>{c}</button>
+            ))}
+          </div>
+
+          {/* Resultados */}
+          <div style={{ color:t.muted, fontSize:12, marginBottom:12 }}>
+            {unique.length} resultado{unique.length!==1?"s":""} encontrado{unique.length!==1?"s":""}
+          </div>
+
+          {unique.length===0 ? (
+            <div style={{ textAlign:"center", padding:"40px 20px", color:t.muted }}>
+              <div style={{ fontSize:48, marginBottom:12 }}>🤷</div>
+              <div style={{ fontSize:16, fontWeight:600, marginBottom:8, color:t.text }}>Sin resultados</div>
+              <div style={{ fontSize:13 }}>Intenta con otra palabra o ajusta el precio</div>
+              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Estoy buscando "${query}" y no lo encontré en la página`)}`,"_blank")} style={{ marginTop:16, padding:"12px 24px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Preguntar por WhatsApp</button>
+            </div>
+          ) : (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {unique.map((item,i)=>(
+                <div key={`${item.id}-${i}`} style={{ background:t.card, border:`1px solid ${item.color?item.color+"33":t.border}`, borderRadius:14, overflow:"hidden", display:"flex", animation:"fadeUp 0.25s ease backwards", animationDelay:`${i*0.03}s` }}>
+                  <div style={{ width:90, height:90, flexShrink:0, overflow:"hidden" }}>
+                    <Img src={item.img} alt={item.name} size={90} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:0 }} />
+                  </div>
+                  <div style={{ flex:1, padding:"10px 14px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:14, marginBottom:2 }}>{item.name}</div>
+                      <div style={{ color:t.muted, fontSize:11, marginBottom:4 }}>{item.desc}</div>
+                    </div>
+                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                      <span style={{ color:item.color||"#7c3aed", fontWeight:900, fontSize:17 }}>{formatPrice(item.price)}</span>
+                      <div style={{ display:"flex", gap:6 }}>
+                        <button onClick={()=>onAddCart(item)} style={{ padding:"6px 12px", background:`linear-gradient(135deg,${item.color||"#7c3aed"},${item.color||"#7c3aed"}88)`, border:"none", borderRadius:8, color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>🛒</button>
+                        <button onClick={()=>onDetail(item)} style={{ padding:"6px 12px", background:t.surface, border:`1px solid ${t.border}`, borderRadius:8, color:t.text, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>Ver más</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState(()=>{ try{ const s=localStorage.getItem("dm_screen"); return ["home","favoritos","pantallas","combos","meses","seguidores"].includes(s)?s:"home"; }catch(e){ return "home"; } });
@@ -1374,6 +1514,7 @@ export default function App() {
     setScreen(key);
   };
 
+  if (screen==="search") return <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onDetail={(item)=>{ setDetail(item); setScreen("detail"); }} />;
   if (screen==="validar") return <ValidarCodigo onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="cart") return <Carrito items={cart} onRemove={removeCart} onClear={()=>setCart([])} onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="soporte") return <Soporte onBack={()=>setScreen("home")} dark={dark} />;
@@ -1396,24 +1537,29 @@ export default function App() {
   if (screen==="favoritos") return (
     <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <style>{getCSS(dark)}</style>
-      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
           <BackButton onClick={()=>{ setActiveTab("favoritos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>⭐</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Favoritos</span>
         </div>
-        <div style={{ padding:"16px 16px 0" }}>
+        <div style={{ padding:"16px" }}>
           <p style={{ color:t.muted, fontSize:13, marginBottom:16 }}>Los combos más populares entre nuestros clientes ⭐</p>
-          {FAV_COMBOS.map(c=>(
-            <div key={c.id} className="card-hover" onClick={()=>{ setDetail({...c,features:[c.desc,"Activación en minutos","Soporte incluido"]}); setScreen("detail"); }} style={{ background:t.card, border:`1px solid ${c.badge?c.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", marginBottom:12, display:"flex", gap:0 }}>
-              <div style={{ width:120, height:120, flexShrink:0, overflow:"hidden" }}><Img src={c.img} alt={c.name} size={120} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
+          {FAV_COMBOS.map((c,i)=>(
+            <div key={c.id} style={{ background:t.card, border:`1px solid ${c.color}33`, borderRadius:18, marginBottom:14, overflow:"hidden", display:"flex", animation:"fadeUp 0.3s ease backwards", animationDelay:`${i*0.04}s` }}>
+              <div style={{ width:"42%", maxWidth:180, flexShrink:0, overflow:"hidden", borderRadius:"18px 0 0 18px", minHeight:120 }}>
+                <Img src={c.img} alt={c.name} size={180} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} />
+              </div>
               <div style={{ flex:1, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                 <div>
-                  <div style={{ fontWeight:700, fontSize:15, marginBottom:4 }}>{c.name}</div>
-                  <div style={{ color:t.muted, fontSize:12, marginBottom:8 }}>{c.desc}</div>
-                  {"⭐".repeat(c.stars||1)}
+                  <div style={{ fontWeight:800, fontSize:15, marginBottom:3 }}>{c.name}</div>
+                  <div style={{ color:t.muted, fontSize:12, marginBottom:6 }}>{c.desc}</div>
+                  <div style={{ color:c.color||"#7c3aed", fontWeight:900, fontSize:20, marginBottom:10 }}>{formatPrice(c.price)}</div>
                 </div>
-                <div style={{ color:c.color||"#7c3aed", fontWeight:900, fontSize:20 }}>{formatPrice(c.price)}</div>
+                <div style={{ display:"flex", gap:7 }}>
+                  <button onClick={(e)=>{ e.stopPropagation(); addCart(c); }} style={{ flex:1, padding:"9px 0", background:`linear-gradient(135deg,${c.color||"#7c3aed"},${c.color||"#7c3aed"}99)`, border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>🛒 Agregar</button>
+                  <button onClick={(e)=>{ e.stopPropagation(); window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${c.name} por ${formatPrice(c.price)} 🙏`)}`,"_blank"); }} style={{ flex:1, padding:"9px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>💬 WhatsApp</button>
+                </div>
               </div>
             </div>
           ))}
@@ -1538,12 +1684,12 @@ export default function App() {
       {showWelcome && (
         <div onClick={()=>setShowWelcome(false)} style={{ position:"fixed", inset:0, zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.85)", animation:"overlayIn 0.4s ease" }}>
           <div style={{ textAlign:"center", animation:"fadeUp 0.5s ease", padding:32 }}>
-            <img src={LOGO_URL} alt="Digital Market" style={{ width:120, height:120, borderRadius:"50%", objectFit:"cover", border:"3px solid rgba(168,85,247,0.6)", marginBottom:20, filter:"drop-shadow(0 0 24px rgba(168,85,247,0.6))" }} />
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:160, height:160, objectFit:"contain", borderRadius:20, marginBottom:20, filter:"drop-shadow(0 0 32px rgba(168,85,247,0.7))" }} />
             <div style={{ fontSize:32, fontWeight:900, marginBottom:8 }}>
               <span style={{ color:"#ff6b35" }}>Digital </span>
               <span style={{ color:"#a855f7" }}>Market</span>
             </div>
-            <p style={{ color:"rgba(255,255,255,0.7)", fontSize:15, marginBottom:6 }}>Streaming Premium 🚀</p>
+            <p style={{ fontSize:16, marginBottom:6, fontWeight:700 }}><span style={{ color:"#60a5fa" }}>Streaming</span> <span style={{ color:"#f87171" }}>Premium</span> 🚀</p>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12 }}>Toca para continuar</p>
           </div>
         </div>
@@ -1561,16 +1707,17 @@ export default function App() {
           <div style={{ width:18, height:2, background:t.text, borderRadius:1 }} />
         </button>
         <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
-          <img src={LOGO_URL} alt="Digital Market" style={{ width:44, height:44, objectFit:"cover", borderRadius:"50%", flexShrink:0, border:"2px solid rgba(124,58,237,0.4)", filter:"drop-shadow(0 2px 6px rgba(124,58,237,0.35))" }} onError={e=>{ e.target.style.display="none"; }} />
+          <img src={LOGO_URL} alt="Digital Market" style={{ width:46, height:46, objectFit:"contain", borderRadius:10, flexShrink:0, filter:"drop-shadow(0 2px 8px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
           <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
             <span style={{ fontWeight:900, fontSize:18, letterSpacing:0.3, lineHeight:1.15 }}>
               <span style={{ color:"#ff6b35" }}>Digital </span>
               <span style={{ color:"#a855f7" }}>Market</span>
             </span>
-            <span style={{ fontSize:9, color:t.muted, fontWeight:600, letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}>Streaming Premium</span>
+            <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+          <button onClick={()=>setScreen("search")} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
           <button onClick={()=>setDark(d=>!d)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>{dark?"☀️":"🌙"}</button>
           <button onClick={()=>setScreen("cart")} className="hdr-btn" style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", cursor:"pointer", color:t.text, fontSize:18, animation:cartAnim?"cartBounce 0.4s ease":"none" }}>
             🛒{cart.length>0 && <div style={{ position:"absolute", top:-6, right:-6, background:"#E50914", color:"#fff", borderRadius:"50%", width:18, height:18, fontSize:9, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", animation:"fadeUp 0.3s ease" }}>{cart.length}</div>}
@@ -1606,7 +1753,7 @@ export default function App() {
       </div>
 
       {/* TABS */}
-      <div style={{ display:"flex", padding:"14px 16px 10px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
+      <div className="tab-bar" style={{ display:"flex", padding:"14px 16px 10px", gap:8, overflowX:"auto", position:"sticky", top:0, zIndex:20, background:t.bg, backdropFilter:"blur(8px)", boxShadow:dark?"0 4px 12px rgba(0,0,0,0.25)":"0 4px 12px rgba(0,0,0,0.05)" }}>
         {[["favoritos","⭐","Favoritos"],["pantallas","📺","Pantallas"],["combos","🔥","Combos"],["meses","🗓️","Meses"],["seguidores","👥","Seguidores"]].map(([k,icon,label])=>(
           <button key={k} onClick={()=>{ setActiveTab(k); navigate(k); }} className={`tab-btn ${activeTab===k?"tab-active":""}`} style={{ flexShrink:0, padding:"9px 12px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontWeight:600, cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:3, minWidth:56 }}>
             <span className="tab-icon">{icon}</span>
