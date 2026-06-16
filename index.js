@@ -129,9 +129,18 @@ app.post('/buscar-correo', function(req, res) {
 });
 
 app.post('/reporte-error', function(req, res) {
+  var correo = (req.body.correo || '').trim();
   var descripcion = (req.body.descripcion || '').trim();
   var imagen = req.body.imagen || ''; // data:image/png;base64,xxxx
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   if (!descripcion) return res.json({ ok: false, mensaje: 'Falta la descripción' });
+  if (!correo || !emailRegex.test(correo)) return res.json({ ok: false, mensaje: 'Correo inválido' });
+  if (descripcion.length > 2000) return res.json({ ok: false, mensaje: 'Descripción muy larga' });
+
+  // Sanitizar para evitar inyección de cabeceras en el correo (CRLF injection)
+  var correoSeguro = correo.replace(/[\r\n]/g, '').slice(0, 200);
+  var descripcionSegura = descripcion.replace(/[\r\n]+/g, '\n').slice(0, 2000);
 
   try {
     var gmail = google.gmail({ version: 'v1', auth: oauth2Client });
@@ -146,7 +155,10 @@ app.post('/reporte-error', function(req, res) {
     mensaje += 'Content-Type: multipart/mixed; boundary="' + boundary + '"\r\n\r\n';
     mensaje += '--' + boundary + '\r\n';
     mensaje += 'Content-Type: text/plain; charset="UTF-8"\r\n\r\n';
-    mensaje += 'Nuevo reporte de error recibido desde la web:\n\n' + descripcion + '\n\nFecha: ' + new Date().toLocaleString('es-CO') + '\r\n\r\n';
+    mensaje += 'Nuevo reporte de error recibido desde la web:\n\n';
+    mensaje += 'Correo de la cuenta: ' + correoSeguro + '\n\n';
+    mensaje += 'Descripción: ' + descripcionSegura + '\n\n';
+    mensaje += 'Fecha: ' + new Date().toLocaleString('es-CO') + '\r\n\r\n';
 
     if (match) {
       var mimeType = match[1];

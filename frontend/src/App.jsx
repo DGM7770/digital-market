@@ -1400,84 +1400,133 @@ function SoporteIA({ onBack, dark, onOpenValidador }) {
   );
 }
 
+function validarEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 function ReportarError({ onBack, dark, prefill="" }) {
   const t = getTheme(dark);
+  const [correo, setCorreo] = useState("");
   const [descripcion, setDescripcion] = useState(prefill);
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+  const [errorCorreo, setErrorCorreo] = useState("");
   const fileRef = useRef(null);
 
   const handleFile = (file) => {
     if (!file) return;
-    if (file.size > 15*1024*1024) { alert("La imagen supera el máximo de 15 MB"); return; }
+    if (file.size > 15*1024*1024) { alert("La imagen supera el máximo de 15 MB. Por favor elige una más liviana."); return; }
     setImage(file);
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target.result);
     reader.readAsDataURL(file);
   };
 
-  const enviar = async () => {
+  const validarYEnviar = async () => {
+    if (!correo.trim()) { setErrorCorreo("Escribe el correo de la cuenta para identificarla"); return; }
+    if (!validarEmail(correo)) { setErrorCorreo("Ese correo no parece válido, revísalo"); return; }
     if (!descripcion.trim()) { alert("Describe el fallo antes de enviar"); return; }
     if (!image) { alert("La imagen del error es obligatoria para que el administrador pueda revisar el caso"); return; }
+    setErrorCorreo("");
     setEnviando(true);
     try {
-      await fetch("/reporte-error", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ descripcion, imagen:imagePreview }) });
-    } catch(e) {}
-    setEnviando(false);
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`🚩 REPORTE DE ERROR\n\nDescripción: ${descripcion}\n\n(Voy a adjuntar la captura del error aquí mismo)`)}`,"_blank");
-    onBack();
+      const res = await fetch("/reporte-error", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ correo:correo.trim(), descripcion, imagen:imagePreview }) });
+      const data = await res.json();
+      setEnviando(false);
+      if (!data.ok) { alert(data.mensaje || "No se pudo enviar el reporte, intenta de nuevo"); return; }
+    } catch(e) { setEnviando(false); }
+    setEnviado(true);
   };
+
+  const mensajeWA = `🚩 REPORTE DE ERROR\n\nCorreo de la cuenta: ${correo}\n\nDescripción: ${descripcion}\n\n(Voy a adjuntar la captura del error aquí mismo)`;
+
+  if (enviado) {
+    return (
+      <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+        <div style={{ maxWidth:480, textAlign:"center", animation:"fadeUp 0.4s ease" }}>
+          <div style={{ fontSize:64, marginBottom:18 }}>✅</div>
+          <div style={{ fontWeight:800, fontSize:24, marginBottom:12 }}>¡Reporte registrado!</div>
+          <p style={{ color:t.muted, fontSize:16, lineHeight:1.7, marginBottom:28 }}>Tu reporte ya quedó guardado y será revisado pronto. Si quieres una respuesta más rápida, también puedes avisarnos por WhatsApp adjuntando la misma captura.</p>
+          <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(mensajeWA)}`,"_blank")} style={{ width:"100%", padding:17, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:14, color:"#fff", fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"inherit", marginBottom:12 }}>💬 También avisar por WhatsApp</button>
+          <button onClick={onBack} style={{ width:"100%", padding:15, background:t.card, border:`1px solid ${t.border}`, borderRadius:14, color:t.text, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>← Volver al inicio</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
-      <div style={{ maxWidth:600, margin:"0 auto", paddingBottom:60 }}>
-        <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
+      <div style={{ maxWidth:640, margin:"0 auto", paddingBottom:60 }}>
+        <div style={{ padding:"18px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
           <BackButton onClick={onBack} dark={dark} label="" />
-          <div style={{ width:40, height:40, background:"linear-gradient(135deg,#ef4444,#dc2626)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🚩</div>
-          <div><div style={{ fontWeight:800, fontSize:18 }}>Reportar un error</div><div style={{ color:t.muted, fontSize:11 }}>Lo revisaremos lo antes posible</div></div>
+          <div style={{ width:44, height:44, background:"linear-gradient(135deg,#ef4444,#dc2626)", borderRadius:13, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🚩</div>
+          <div><div style={{ fontWeight:800, fontSize:20 }}>Reportar un error</div><div style={{ color:t.muted, fontSize:12.5 }}>3 pasos rápidos — lo revisamos lo antes posible</div></div>
         </div>
 
-        <div style={{ padding:20 }}>
-          <label style={{ display:"block", fontWeight:700, fontSize:14, marginBottom:8 }}>Describe el fallo</label>
-          <p style={{ color:t.muted, fontSize:12, marginBottom:10, lineHeight:1.5 }}>Indica qué ocurre con la cuenta (error de acceso, perfil, contraseña, etc.). Ej. No puedo iniciar sesión; aparece «credenciales incorrectas»</p>
+        <div style={{ padding:22 }}>
+          {/* PASO 1: Correo */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ width:26, height:26, borderRadius:8, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:13, flexShrink:0 }}>1</div>
+            <label style={{ fontWeight:800, fontSize:16 }}>¿Cuál es el correo de la cuenta?</label>
+          </div>
+          <p style={{ color:t.muted, fontSize:13.5, marginBottom:10, lineHeight:1.6, paddingLeft:36 }}>Escribe el correo con el que entras a tu cuenta de streaming. Esto nos ayuda a identificar exactamente cuál es tu cuenta para revisarla rápido. Tu información es privada y solo la usamos para resolver tu caso.</p>
+          <input
+            value={correo}
+            onChange={e=>{ setCorreo(e.target.value); setErrorCorreo(""); }}
+            placeholder="tucorreo@gmail.com"
+            type="email"
+            style={{ width:"100%", background:t.card, border:`1.5px solid ${errorCorreo?"#ef4444":t.border}`, borderRadius:12, padding:"15px 16px", color:t.text, fontSize:16, fontFamily:"inherit", outline:"none", marginBottom:errorCorreo?6:24, boxSizing:"border-box" }}
+          />
+          {errorCorreo && <p style={{ color:"#ef4444", fontSize:13, marginBottom:24, fontWeight:600 }}>⚠️ {errorCorreo}</p>}
+
+          {/* PASO 2: Descripción */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ width:26, height:26, borderRadius:8, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:13, flexShrink:0 }}>2</div>
+            <label style={{ fontWeight:800, fontSize:16 }}>Describe el fallo</label>
+          </div>
+          <p style={{ color:t.muted, fontSize:13.5, marginBottom:10, lineHeight:1.6, paddingLeft:36 }}>Cuéntanos qué pasa exactamente con la cuenta (error de acceso, perfil, contraseña, etc). Ejemplo: "No puedo iniciar sesión, aparece credenciales incorrectas".</p>
           <textarea
             value={descripcion}
             onChange={e=>setDescripcion(e.target.value)}
             placeholder="Escribe aquí el detalle del problema..."
             rows={4}
-            style={{ width:"100%", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, padding:14, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", resize:"vertical", marginBottom:22, boxSizing:"border-box" }}
+            style={{ width:"100%", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:12, padding:16, color:t.text, fontSize:15.5, fontFamily:"inherit", outline:"none", resize:"vertical", marginBottom:26, boxSizing:"border-box", lineHeight:1.5 }}
           />
 
-          <label style={{ display:"block", fontWeight:700, fontSize:14, marginBottom:8 }}>Adjunta una captura</label>
+          {/* PASO 3: Imagen */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ width:26, height:26, borderRadius:8, background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:13, flexShrink:0 }}>3</div>
+            <label style={{ fontWeight:800, fontSize:16 }}>Adjunta una captura del error</label>
+          </div>
+          <p style={{ color:t.muted, fontSize:13.5, marginBottom:12, lineHeight:1.6, paddingLeft:36 }}>Toma una foto o captura de pantalla del mensaje de error tal como aparece en tu dispositivo.</p>
           <div
             onClick={()=>fileRef.current?.click()}
             onDragOver={e=>{e.preventDefault();setDragOver(true);}}
             onDragLeave={()=>setDragOver(false)}
             onDrop={e=>{e.preventDefault();setDragOver(false);handleFile(e.dataTransfer.files[0]);}}
-            style={{ border:`2px dashed ${dragOver?"#7c3aed":t.border}`, borderRadius:14, padding:imagePreview?12:28, textAlign:"center", cursor:"pointer", background:dragOver?"rgba(124,58,237,0.06)":t.card, transition:"all 0.2s ease", marginBottom:10 }}
+            style={{ border:`2.5px dashed ${dragOver?"#7c3aed":t.border}`, borderRadius:16, padding:imagePreview?14:32, textAlign:"center", cursor:"pointer", background:dragOver?"rgba(124,58,237,0.08)":t.card, transition:"all 0.2s ease", marginBottom:12 }}
           >
             <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png,.webp,.heic,.gif,.bmp" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])} />
             {imagePreview ? (
               <div>
-                <img src={imagePreview} alt="Captura" style={{ maxWidth:"100%", maxHeight:240, borderRadius:10, marginBottom:8 }} />
-                <p style={{ color:"#7c3aed", fontSize:12, fontWeight:600 }}>Toca para cambiar la imagen</p>
+                <img src={imagePreview} alt="Captura" style={{ maxWidth:"100%", maxHeight:260, borderRadius:12, marginBottom:10 }} />
+                <p style={{ color:"#a78bfa", fontSize:14, fontWeight:700 }}>✓ Imagen lista — toca para cambiarla</p>
               </div>
             ) : (
               <>
-                <div style={{ fontSize:36, marginBottom:8 }}>📤</div>
-                <p style={{ color:t.text, fontWeight:700, fontSize:14, marginBottom:4 }}>Subir captura</p>
-                <p style={{ color:t.muted, fontSize:12 }}>Arrastra una imagen o haz clic para elegir<br/>(JPG, PNG, WEBP, HEIC, GIF, BMP — máx. 15 MB)</p>
+                <div style={{ fontSize:42, marginBottom:10 }}>📤</div>
+                <p style={{ color:t.text, fontWeight:800, fontSize:17, marginBottom:6 }}>Subir captura</p>
+                <p style={{ color:t.muted, fontSize:13.5, lineHeight:1.6 }}>Arrastra una imagen o haz clic para elegirla<br/>(JPG, PNG, WEBP, HEIC, GIF, BMP — máx. 15 MB)</p>
               </>
             )}
           </div>
-          <p style={{ color:"#ef4444", fontSize:12, marginBottom:24, lineHeight:1.5 }}>⚠️ La imagen del error es obligatoria para que el administrador pueda revisar el caso</p>
+          <p style={{ color:"#ef4444", fontSize:13.5, marginBottom:28, lineHeight:1.6, fontWeight:600 }}>⚠️ La imagen del error es obligatoria para que el administrador pueda revisar el caso</p>
 
-          <div style={{ display:"flex", gap:10 }}>
-            <button onClick={enviar} disabled={enviando} style={{ flex:1, padding:15, background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:13, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", opacity:enviando?0.7:1 }}>{enviando?"Enviando...":"Enviar reporte"}</button>
-            <button onClick={onBack} style={{ flex:1, padding:15, background:t.card, border:`1px solid ${t.border}`, borderRadius:13, color:t.text, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>Cancelar</button>
-          </div>
+          <button onClick={validarYEnviar} disabled={enviando} style={{ width:"100%", padding:18, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:14, color:"#fff", fontWeight:800, fontSize:17, cursor:"pointer", fontFamily:"inherit", opacity:enviando?0.7:1, marginBottom:10 }}>{enviando?"Enviando...":"📧 Enviar reporte"}</button>
+          <button onClick={onBack} style={{ width:"100%", padding:15, background:"transparent", border:`1.5px solid ${t.border}`, borderRadius:14, color:t.muted, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>Cancelar</button>
         </div>
       </div>
     </div>
