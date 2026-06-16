@@ -7,7 +7,7 @@ var path = require('path');
 
 var app = express();
 app.use(cors({ origin: '*' }));
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 
 var oauth2Client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
@@ -126,6 +126,55 @@ app.post('/buscar-correo', function(req, res) {
       res.json({ ok: false, mensaje: 'No se encontró ningún código de acceso temporal para ese correo en los últimos 15 minutos. Espera 2-3 minutos y vuelve a intentar.' });
     }
   });
+});
+
+app.post('/reporte-error', function(req, res) {
+  var descripcion = (req.body.descripcion || '').trim();
+  var imagen = req.body.imagen || ''; // data:image/png;base64,xxxx
+  if (!descripcion) return res.json({ ok: false, mensaje: 'Falta la descripción' });
+
+  try {
+    var gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    var match = imagen.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    var boundary = 'reporte_boundary_' + Date.now();
+    var destinatario = process.env.GMAIL_USER || 'me';
+
+    var mensaje = '';
+    mensaje += 'To: ' + destinatario + '\r\n';
+    mensaje += 'Subject: =?utf-8?B?' + Buffer.from('🚩 Nuevo reporte de error - Digital Market').toString('base64') + '?=\r\n';
+    mensaje += 'MIME-Version: 1.0\r\n';
+    mensaje += 'Content-Type: multipart/mixed; boundary="' + boundary + '"\r\n\r\n';
+    mensaje += '--' + boundary + '\r\n';
+    mensaje += 'Content-Type: text/plain; charset="UTF-8"\r\n\r\n';
+    mensaje += 'Nuevo reporte de error recibido desde la web:\n\n' + descripcion + '\n\nFecha: ' + new Date().toLocaleString('es-CO') + '\r\n\r\n';
+
+    if (match) {
+      var mimeType = match[1];
+      var base64Data = match[2];
+      var ext = mimeType.split('/')[1] || 'jpg';
+      mensaje += '--' + boundary + '\r\n';
+      mensaje += 'Content-Type: ' + mimeType + '\r\n';
+      mensaje += 'Content-Transfer-Encoding: base64\r\n';
+      mensaje += 'Content-Disposition: attachment; filename="captura.' + ext + '"\r\n\r\n';
+      mensaje += base64Data + '\r\n\r\n';
+    }
+    mensaje += '--' + boundary + '--';
+
+    var encodedMessage = Buffer.from(mensaje).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    gmail.users.messages.send({
+      userId: 'me',
+      requestBody: { raw: encodedMessage }
+    }).then(function() {
+      res.json({ ok: true });
+    }).catch(function(e) {
+      console.error('Error enviando reporte:', e.message);
+      res.json({ ok: true }); // No bloquear al cliente aunque falle el correo interno
+    });
+  } catch (e) {
+    console.error('Error reporte-error:', e.message);
+    res.json({ ok: true });
+  }
 });
 
 app.use(express.static(path.join(__dirname, 'frontend', 'build')));

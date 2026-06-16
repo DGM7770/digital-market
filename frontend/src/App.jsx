@@ -329,6 +329,12 @@ const getCSS = (dark) => `
   div[style*="overflowX"]::-webkit-scrollbar { display:none; }
   .tab-icon { font-size:16px; }
   .tab-label { font-size:12px; }
+  .report-icon-only { display:inline; }
+  .report-text { display:none; }
+  @media (min-width:480px) {
+    .report-icon-only { display:none; }
+    .report-text { display:inline; }
+  }
   @media (min-width:768px) {
     .tab-bar { justify-content:stretch !important; }
     .tab-btn { padding:13px 16px !important; min-width:0 !important; flex:1 !important; flex-direction:row !important; gap:8px !important; justify-content:center !important; }
@@ -1182,6 +1188,302 @@ function Detail({ item, onBack, onAddCart, dark }) {
 }
 
 // ─── SOPORTE ──────────────────────────────────────────────────────────────────
+// ─── BASE DE CONOCIMIENTO DE ERRORES ──────────────────────────────────────────
+const ERRORES_COMUNES = [
+  {
+    id:"hogar",
+    icon:"🏠",
+    title:"Error de Hogar / \"Tu dispositivo no forma parte de este Hogar\"",
+    keywords:["hogar","dispositivo no pertenece","actualizar hogar","ubicacion principal","household"],
+    causa:"Netflix detecta que estás conectado desde una red WiFi diferente a la del titular y pide confirmar el Hogar.",
+    solucion:"1. Mantén la app abierta y NO la cierres.\n2. Te enviaremos un código de 4 dígitos al correo en minutos.\n3. Ingresa ese código donde Netflix te lo solicite.\n4. Listo, tu Hogar queda confirmado por 31 días.",
+    necesitaCodigo:true,
+    reportable:true
+  },
+  {
+    id:"password",
+    icon:"❌",
+    title:'Contraseña incorrecta',
+    keywords:["contraseña incorrecta","password","clave mal","no entra contraseña","credenciales incorrectas"],
+    causa:"La contraseña fue copiada con espacios extra, mayúsculas distintas, o fue cambiada por error.",
+    solucion:"1. Copia la contraseña que te enviamos exactamente como está (sin espacios al inicio o final).\n2. Verifica que no tenga activado el autocorrector del teclado.\n3. Si copiaste bien y sigue sin funcionar, es posible que la cuenta necesite restablecimiento — repórtalo abajo.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"bloqueada",
+    icon:"🔒",
+    title:'"Esta cuenta está temporalmente bloqueada"',
+    keywords:["bloqueada","cuenta bloqueada","suspendida","temporalmente bloqueada"],
+    causa:"Demasiados intentos fallidos de inicio de sesión activaron un bloqueo temporal de seguridad.",
+    solucion:"1. Espera 30 minutos sin intentar iniciar sesión.\n2. Vuelve a intentar con la contraseña exacta que te dimos.\n3. Si sigue bloqueada después de 30 min, repórtalo para que revisemos la cuenta.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"verificacion2",
+    icon:"📲",
+    title:'Código de verificación en dos pasos',
+    keywords:["verificacion en dos pasos","codigo de verificacion","2fa","doble verificacion"],
+    causa:"La plataforma quiere confirmar que eres tú quien intenta ingresar, por seguridad adicional.",
+    solucion:"1. El código llega al correo del titular de la cuenta, no al tuyo.\n2. Te lo enviamos en minutos desde el Validador de Códigos.\n3. Ingresa el código apenas te lo enviemos (vence en 15 minutos).",
+    necesitaCodigo:true,
+    reportable:true
+  },
+  {
+    id:"conexion",
+    icon:"🌐",
+    title:'"No se puede conectar" / Error de red',
+    keywords:["no se puede conectar","error de red","sin conexion","no carga","no carga la app"],
+    causa:"Problema de conexión a internet, no de la cuenta — puede ser tu WiFi, datos móviles o un servidor caído.",
+    solucion:"1. Verifica que tengas internet activo (abre otra app o página).\n2. Prueba cambiar de WiFi a datos móviles (o viceversa).\n3. Cierra la app completamente y vuelve a abrirla.\n4. Reinicia el router si usas WiFi.\n5. Si el problema persiste solo en esta plataforma, puede ser una falla temporal del servicio — intenta en 10-15 minutos.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"limite_pantallas",
+    icon:"🚫",
+    title:'"Has alcanzado el límite de pantallas" / Error 13',
+    keywords:["limite de pantallas","maximo de dispositivos","error 13","demasiados dispositivos","ya hay alguien viendo"],
+    causa:"Otro perfil de la cuenta está usando el máximo de pantallas simultáneas permitidas en ese momento.",
+    solucion:"1. Espera unos minutos y vuelve a intentar — es posible que otro usuario cierre su sesión.\n2. Evita ver contenido en varios dispositivos a la vez con el mismo perfil.\n3. Si el problema es constante (no solo ocasional), repórtalo para revisar la asignación de pantallas.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"removido",
+    icon:"🔄",
+    title:'"Tu cuenta fue removida" o dejó de funcionar antes de tiempo',
+    keywords:["cuenta removida","dejo de funcionar","se quito el acceso","ya no funciona","perdi el acceso"],
+    causa:"El acceso se interrumpió antes de la fecha de vencimiento de tu plan — puede ser un cambio de contraseña por el titular original o un ajuste de la plataforma.",
+    solucion:"Esto no debería pasar dentro del periodo que compraste. Si tu plan aún no vence, te repondremos el tiempo perdido sin costo adicional. Por favor reporta este error con una captura para que lo resolvamos hoy mismo.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"dispositivo_incompatible",
+    icon:"📱",
+    title:'"No compatible con tu dispositivo" (IPTV / WIN+)',
+    keywords:["no compatible","dispositivo no soportado","solo smart tv","no funciona en celular"],
+    causa:"Algunos servicios como IPTV y WIN+ son exclusivos para Smart TV y no funcionan en celular o computador.",
+    solucion:"1. Verifica que estés intentando acceder desde una Smart TV.\n2. Si no tienes Smart TV, contamos con apps de IPTV para celular — pregúntanos cuál te conviene.\n3. Revisa que tu Smart TV tenga la app instalada correctamente.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"perfil_eliminado",
+    icon:"👤",
+    title:'Mi perfil desapareció o no lo encuentro',
+    keywords:["perfil desaparecio","no encuentro mi perfil","borraron mi perfil","perfil eliminado"],
+    causa:"El titular de la cuenta pudo haber editado los perfiles, o la cuenta alcanzó el límite de perfiles permitidos.",
+    solucion:"NO crees un perfil nuevo ni edites los existentes — esto puede afectar a otros usuarios de la cuenta. Repórtalo de inmediato para que el administrador revise y restaure tu acceso.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+  {
+    id:"pago_pendiente",
+    icon:"💳",
+    title:'"Actualiza tu método de pago" o "cuenta suspendida por pago"',
+    keywords:["actualizar pago","metodo de pago","suspendida por pago","problema con el pago","actualiza tus datos de pago"],
+    causa:"La plataforma muestra este mensaje al titular de la cuenta original, no afecta directamente tu acceso comprado con nosotros — pero puede ser indicio de que el titular dejó de pagar.",
+    solucion:"Este mensaje normalmente NO debes tocarlo ni intentar pagar tú mismo. Repórtalo con una captura para verificar el estado real de la cuenta y darte una solución o reposición.",
+    necesitaCodigo:false,
+    reportable:true
+  },
+];
+
+function SoporteIA({ onBack, dark, onOpenValidador }) {
+  const t = getTheme(dark);
+  const [step, setStep] = useState("inicio"); // inicio | seleccion | diagnostico | reporte
+  const [selectedError, setSelectedError] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
+  const [resuelto, setResuelto] = useState(null);
+
+  const filtrados = ERRORES_COMUNES.filter(e=>{
+    if (!busqueda.trim()) return true;
+    const q = busqueda.toLowerCase();
+    return e.title.toLowerCase().includes(q) || e.keywords.some(k=>k.includes(q));
+  });
+
+  if (step==="reporte") return <ReportarError onBack={()=>setStep("diagnostico")} dark={dark} prefill={selectedError?selectedError.title:""} />;
+
+  return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:40 }}>
+        <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
+          <BackButton onClick={step==="diagnostico"?()=>{setStep("seleccion");setSelectedError(null);setResuelto(null);}:onBack} dark={dark} label="" />
+          <div style={{ width:40, height:40, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🛟</div>
+          <div><div style={{ fontWeight:800, fontSize:18 }}>Soporte Inteligente</div><div style={{ color:t.muted, fontSize:11 }}>Resolvemos tu problema en segundos</div></div>
+        </div>
+
+        <div style={{ padding:16 }}>
+          {step==="inicio" && (
+            <>
+              <div style={{ background:"linear-gradient(135deg,#0d1f35,#0a1628)", border:"1px solid #1e3a5f", borderRadius:16, padding:20, marginBottom:18, textAlign:"center" }}>
+                <div style={{ fontSize:40, marginBottom:8 }}>🤖</div>
+                <div style={{ fontWeight:800, fontSize:16, marginBottom:6 }}>¿Qué problema tienes?</div>
+                <p style={{ color:t.muted, fontSize:13, lineHeight:1.6 }}>Selecciona tu error o descríbelo y te mostramos la causa y la solución al instante — sin esperar respuesta por WhatsApp.</p>
+              </div>
+              <div style={{ display:"flex", alignItems:"center", gap:10, background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:"12px 16px", marginBottom:16 }}>
+                <span style={{ fontSize:18, opacity:0.5 }}>🔍</span>
+                <input value={busqueda} onChange={e=>setBusqueda(e.target.value)} placeholder="Describe tu error... Ej: contraseña incorrecta" style={{ flex:1, background:"transparent", border:"none", outline:"none", color:t.text, fontSize:14, fontFamily:"inherit" }} />
+              </div>
+              <p style={{ color:t.muted, fontSize:12, marginBottom:10, fontWeight:600, textTransform:"uppercase", letterSpacing:0.5 }}>Errores más comunes</p>
+              {filtrados.map(err=>(
+                <button key={err.id} onClick={()=>{ setSelectedError(err); setStep("diagnostico"); }} style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"14px 16px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, marginBottom:8, cursor:"pointer", textAlign:"left", fontFamily:"inherit" }}>
+                  <span style={{ fontSize:22, flexShrink:0 }}>{err.icon}</span>
+                  <span style={{ flex:1, color:t.text, fontSize:13.5, fontWeight:600 }}>{err.title}</span>
+                  <span style={{ color:t.muted, fontSize:14 }}>›</span>
+                </button>
+              ))}
+              {filtrados.length===0 && (
+                <div style={{ textAlign:"center", padding:"24px 0", color:t.muted, fontSize:13 }}>
+                  No encontramos ese error en nuestra base. <br/>
+                  <button onClick={()=>setStep("reporte")} style={{ marginTop:10, padding:"10px 20px", background:"#7c3aed", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Reportar este error</button>
+                </div>
+              )}
+            </>
+          )}
+
+          {step==="diagnostico" && selectedError && resuelto===null && (
+            <div style={{ animation:"fadeUp 0.3s ease" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
+                <span style={{ fontSize:28 }}>{selectedError.icon}</span>
+                <div style={{ fontWeight:800, fontSize:16 }}>{selectedError.title}</div>
+              </div>
+              <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:16, marginBottom:14 }}>
+                <p style={{ color:"#f59e0b", fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:8 }}>🔎 Causa probable</p>
+                <p style={{ color:t.text, fontSize:13.5, lineHeight:1.6 }}>{selectedError.causa}</p>
+              </div>
+              <div style={{ background:"linear-gradient(135deg,#0a1f15,#0d2818)", border:"1px solid #1a4530", borderRadius:14, padding:16, marginBottom:16 }}>
+                <p style={{ color:"#34d399", fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:8 }}>✅ Solución sugerida</p>
+                <p style={{ color:t.text, fontSize:13.5, lineHeight:1.7, whiteSpace:"pre-wrap" }}>{selectedError.solucion}</p>
+              </div>
+
+              {selectedError.necesitaCodigo && (
+                <button onClick={onOpenValidador} style={{ width:"100%", padding:15, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:13, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                  🔐 Abrir Validador de Códigos
+                </button>
+              )}
+
+              <p style={{ textAlign:"center", color:t.muted, fontSize:13, marginBottom:12 }}>¿Esto resolvió tu problema?</p>
+              <div style={{ display:"flex", gap:10 }}>
+                <button onClick={()=>setResuelto(true)} style={{ flex:1, padding:13, background:t.card, border:`1px solid #34d399`, borderRadius:12, color:"#34d399", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>👍 Sí, gracias</button>
+                <button onClick={()=>setResuelto(false)} style={{ flex:1, padding:13, background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.text, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>👎 Sigo con el problema</button>
+              </div>
+            </div>
+          )}
+
+          {step==="diagnostico" && resuelto===true && (
+            <div style={{ textAlign:"center", padding:"40px 20px", animation:"fadeUp 0.3s ease" }}>
+              <div style={{ fontSize:56, marginBottom:14 }}>🎉</div>
+              <div style={{ fontWeight:800, fontSize:18, marginBottom:8 }}>¡Genial!</div>
+              <p style={{ color:t.muted, fontSize:13, marginBottom:20 }}>Nos alegra haber resuelto tu problema sin esperas.</p>
+              <button onClick={()=>{ setStep("inicio"); setSelectedError(null); setResuelto(null); setBusqueda(""); }} style={{ padding:"12px 24px", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, color:t.text, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>← Volver al inicio</button>
+            </div>
+          )}
+
+          {step==="diagnostico" && resuelto===false && selectedError?.reportable && (
+            <div style={{ animation:"fadeUp 0.3s ease" }}>
+              <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:18, marginBottom:16, textAlign:"center" }}>
+                <div style={{ fontSize:36, marginBottom:8 }}>📋</div>
+                <p style={{ color:t.text, fontSize:14, fontWeight:700, marginBottom:6 }}>Vamos a reportarlo</p>
+                <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.6 }}>Adjunta una captura del error y nuestro equipo lo revisará directamente — esto es más rápido que escribir por WhatsApp.</p>
+              </div>
+              <button onClick={()=>setStep("reporte")} style={{ width:"100%", padding:15, background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:13, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", marginBottom:10 }}>🚩 Reportar este error</button>
+              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Tengo este problema: ${selectedError.title}`)}`,"_blank")} style={{ width:"100%", padding:13, background:"transparent", border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Prefiero escribir por WhatsApp</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReportarError({ onBack, dark, prefill="" }) {
+  const t = getTheme(dark);
+  const [descripcion, setDescripcion] = useState(prefill);
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const fileRef = useRef(null);
+
+  const handleFile = (file) => {
+    if (!file) return;
+    if (file.size > 15*1024*1024) { alert("La imagen supera el máximo de 15 MB"); return; }
+    setImage(file);
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const enviar = async () => {
+    if (!descripcion.trim()) { alert("Describe el fallo antes de enviar"); return; }
+    if (!image) { alert("La imagen del error es obligatoria para que el administrador pueda revisar el caso"); return; }
+    setEnviando(true);
+    try {
+      await fetch("/reporte-error", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ descripcion, imagen:imagePreview }) });
+    } catch(e) {}
+    setEnviando(false);
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`🚩 REPORTE DE ERROR\n\nDescripción: ${descripcion}\n\n(Voy a adjuntar la captura del error aquí mismo)`)}`,"_blank");
+    onBack();
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:600, margin:"0 auto", paddingBottom:60 }}>
+        <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
+          <BackButton onClick={onBack} dark={dark} label="" />
+          <div style={{ width:40, height:40, background:"linear-gradient(135deg,#ef4444,#dc2626)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🚩</div>
+          <div><div style={{ fontWeight:800, fontSize:18 }}>Reportar un error</div><div style={{ color:t.muted, fontSize:11 }}>Lo revisaremos lo antes posible</div></div>
+        </div>
+
+        <div style={{ padding:20 }}>
+          <label style={{ display:"block", fontWeight:700, fontSize:14, marginBottom:8 }}>Describe el fallo</label>
+          <p style={{ color:t.muted, fontSize:12, marginBottom:10, lineHeight:1.5 }}>Indica qué ocurre con la cuenta (error de acceso, perfil, contraseña, etc.). Ej. No puedo iniciar sesión; aparece «credenciales incorrectas»</p>
+          <textarea
+            value={descripcion}
+            onChange={e=>setDescripcion(e.target.value)}
+            placeholder="Escribe aquí el detalle del problema..."
+            rows={4}
+            style={{ width:"100%", background:t.card, border:`1px solid ${t.border}`, borderRadius:12, padding:14, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", resize:"vertical", marginBottom:22, boxSizing:"border-box" }}
+          />
+
+          <label style={{ display:"block", fontWeight:700, fontSize:14, marginBottom:8 }}>Adjunta una captura</label>
+          <div
+            onClick={()=>fileRef.current?.click()}
+            onDragOver={e=>{e.preventDefault();setDragOver(true);}}
+            onDragLeave={()=>setDragOver(false)}
+            onDrop={e=>{e.preventDefault();setDragOver(false);handleFile(e.dataTransfer.files[0]);}}
+            style={{ border:`2px dashed ${dragOver?"#7c3aed":t.border}`, borderRadius:14, padding:imagePreview?12:28, textAlign:"center", cursor:"pointer", background:dragOver?"rgba(124,58,237,0.06)":t.card, transition:"all 0.2s ease", marginBottom:10 }}
+          >
+            <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png,.webp,.heic,.gif,.bmp" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])} />
+            {imagePreview ? (
+              <div>
+                <img src={imagePreview} alt="Captura" style={{ maxWidth:"100%", maxHeight:240, borderRadius:10, marginBottom:8 }} />
+                <p style={{ color:"#7c3aed", fontSize:12, fontWeight:600 }}>Toca para cambiar la imagen</p>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize:36, marginBottom:8 }}>📤</div>
+                <p style={{ color:t.text, fontWeight:700, fontSize:14, marginBottom:4 }}>Subir captura</p>
+                <p style={{ color:t.muted, fontSize:12 }}>Arrastra una imagen o haz clic para elegir<br/>(JPG, PNG, WEBP, HEIC, GIF, BMP — máx. 15 MB)</p>
+              </>
+            )}
+          </div>
+          <p style={{ color:"#ef4444", fontSize:12, marginBottom:24, lineHeight:1.5 }}>⚠️ La imagen del error es obligatoria para que el administrador pueda revisar el caso</p>
+
+          <div style={{ display:"flex", gap:10 }}>
+            <button onClick={enviar} disabled={enviando} style={{ flex:1, padding:15, background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:13, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", opacity:enviando?0.7:1 }}>{enviando?"Enviando...":"Enviar reporte"}</button>
+            <button onClick={onBack} style={{ flex:1, padding:15, background:t.card, border:`1px solid ${t.border}`, borderRadius:13, color:t.text, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Soporte({ onBack, dark }) {
   const [open, setOpen] = useState(null);
   const t = getTheme(dark);
@@ -1517,7 +1819,8 @@ export default function App() {
   if (screen==="search") return <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onDetail={(item)=>{ setDetail(item); setScreen("detail"); }} />;
   if (screen==="validar") return <ValidarCodigo onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="cart") return <Carrito items={cart} onRemove={removeCart} onClear={()=>setCart([])} onBack={()=>setScreen("home")} dark={dark} />;
-  if (screen==="soporte") return <Soporte onBack={()=>setScreen("home")} dark={dark} />;
+  if (screen==="soporte") return <SoporteIA onBack={()=>setScreen("home")} dark={dark} onOpenValidador={()=>setScreen("validar")} />;
+  if (screen==="reportar") return <ReportarError onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="chat") return <Chat onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="detail"&&detail) return <Detail item={detail} onBack={()=>setScreen("home")} onAddCart={(it)=>{ addCart(it); setScreen("home"); }} dark={dark} />;
 
@@ -1717,6 +2020,7 @@ export default function App() {
           </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+          <button onClick={()=>setScreen("reportar")} className="hdr-btn report-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:8, padding:"7px 11px", cursor:"pointer", fontSize:11, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap" }}><span className="report-text">🚩 Reportar error</span><span className="report-icon-only">🚩</span></button>
           <button onClick={()=>setScreen("search")} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
           <button onClick={()=>setDark(d=>!d)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>{dark?"☀️":"🌙"}</button>
           <button onClick={()=>setScreen("cart")} className="hdr-btn" style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", cursor:"pointer", color:t.text, fontSize:18, animation:cartAnim?"cartBounce 0.4s ease":"none" }}>
