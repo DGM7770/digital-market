@@ -7,7 +7,8 @@ const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 const OTP_URL = ""; // mismo servidor: backend y frontend unidos
 const WA_NUMBER = "573223071283";
 const WA_DISPLAY = "3223071283";
-const LOGO_URL = "/images/logo.png";
+const LOGO_URL = "/images/logo-icon-only.png";
+const LOGO_FULL_URL = "/images/logo-transparent.png";
 const PAGO_NUMERO = "3052308374";
 const RULETA_CODE = "DMJUN2026";
 
@@ -330,6 +331,26 @@ const getCSS = (dark) => `
   .tab-icon { font-size:16px; }
   .tab-label { font-size:12px; }
   .report-icon-only { display:inline; }
+  @keyframes brandGradient { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  @keyframes welcomeZoom { 0%{opacity:0;transform:scale(0.85)} 100%{opacity:1;transform:scale(1)} }
+  .brand-animated {
+    background:linear-gradient(90deg,#ff6b35,#a855f7,#3b82f6,#a855f7,#ff6b35);
+    background-size:300% auto;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+    animation:brandGradient 6s ease infinite;
+  }
+  .menu-btn-text { display:none; }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:rgba(124,58,237,0.05); }
+  ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#7c3aed,#a855f7); border-radius:10px; }
+  ::-webkit-scrollbar-thumb:hover { background:linear-gradient(180deg,#8b4ff5,#b76bfc); }
+  html { scrollbar-color:#7c3aed rgba(124,58,237,0.05); scrollbar-width:thin; }
+  @media (min-width:480px) {
+    .menu-btn-text { display:inline; }
+  }
   .report-text { display:none; }
   @media (min-width:480px) {
     .report-icon-only { display:none; }
@@ -1118,12 +1139,9 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
       <div style={{ position:"fixed", top:0, left:0, bottom:0, width:270, background:t.surface, borderRight:`1px solid ${t.border}`, zIndex:201, display:"flex", flexDirection:"column", animation:closing?"menuSlideOut 0.25s ease forwards":"menuSlide 0.25s ease", boxShadow:"4px 0 24px rgba(0,0,0,0.25)" }}>
         <div style={{ padding:"24px 18px 18px", borderBottom:`1px solid ${t.border}`, background:dark?"linear-gradient(135deg,#150a25,#0e1520)":"linear-gradient(135deg,#f3edff,#ffffff)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-            <img src={LOGO_URL} alt="Digital Market" style={{ width:60, height:60, objectFit:"contain", borderRadius:12, flexShrink:0, filter:"drop-shadow(0 3px 12px rgba(168,85,247,0.45))" }} onError={e=>{ e.target.style.display="none"; }} />
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:64, height:"auto", objectFit:"contain", flexShrink:0, filter:"drop-shadow(0 3px 14px rgba(168,85,247,0.45))" }} onError={e=>{ e.target.style.display="none"; }} />
             <div>
-              <div style={{ fontWeight:900, fontSize:17, letterSpacing:0.3 }}>
-                <span style={{ color:"#ff6b35" }}>Digital </span>
-                <span style={{ color:"#a855f7" }}>Market</span>
-              </div>
+              <div className="brand-animated" style={{ fontWeight:900, fontSize:18, letterSpacing:0.3 }}>Digital Market</div>
               <div style={{ fontSize:11, color:"#25d366", fontWeight:600, display:"flex", alignItems:"center", gap:5, marginTop:2 }}><span style={{ width:6, height:6, background:"#25d366", borderRadius:"50%", display:"inline-block", animation:"blink 1.6s ease infinite" }}/> En línea</div>
             </div>
           </div>
@@ -1391,7 +1409,7 @@ function SoporteIA({ onBack, dark, onOpenValidador }) {
                 <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.6 }}>Adjunta una captura del error y nuestro equipo lo revisará directamente — esto es más rápido que escribir por WhatsApp.</p>
               </div>
               <button onClick={()=>setStep("reporte")} style={{ width:"100%", padding:15, background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:13, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", marginBottom:10 }}>🚩 Reportar este error</button>
-              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Tengo este problema: ${selectedError.title}`)}`,"_blank")} style={{ width:"100%", padding:13, background:"transparent", border:`1px solid ${t.border}`, borderRadius:12, color:t.muted, fontWeight:600, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Prefiero escribir por WhatsApp</button>
+              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Tengo este problema: ${selectedError.title}`)}`,"_blank")} style={{ width:"100%", padding:13, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Prefiero escribir por WhatsApp</button>
             </div>
           )}
         </div>
@@ -1887,9 +1905,9 @@ export default function App() {
   );
 
   if (screen==="favoritos") return (
-    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+    <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <style>{getCSS(dark)}</style>
-      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:80 }}>
+      <div style={{ maxWidth:1600, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
           <BackButton onClick={()=>{ setActiveTab("favoritos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>⭐</span>
@@ -1921,9 +1939,9 @@ export default function App() {
   );
 
   if (screen==="pantallas") return (
-    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+    <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <style>{getCSS(dark)}</style>
-      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+      <div style={{ maxWidth:1600, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
           <BackButton onClick={()=>{ setActiveTab("pantallas"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>📺</span>
@@ -1949,9 +1967,9 @@ export default function App() {
   );
 
   if (screen==="combos") return (
-    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+    <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <style>{getCSS(dark)}</style>
-      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+      <div style={{ maxWidth:1600, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
           <BackButton onClick={()=>{ setActiveTab("combos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>🔥</span>
@@ -1980,9 +1998,9 @@ export default function App() {
   );
 
   if (screen==="meses") return (
-    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+    <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <style>{getCSS(dark)}</style>
-      <div style={{ maxWidth:1400, margin:"0 auto", paddingBottom:80 }}>
+      <div style={{ maxWidth:1600, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
           <BackButton onClick={()=>{ setActiveTab("meses"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>🗓️</span>
@@ -2015,9 +2033,9 @@ export default function App() {
   );
 
   if (screen==="seguidores") return (
-    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+    <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <style>{getCSS(dark)}</style>
-      <div style={{ maxWidth:960, margin:"0 auto", paddingBottom:80 }}>
+      <div style={{ maxWidth:1100, margin:"0 auto", paddingBottom:80 }}>
         <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
           <BackButton onClick={()=>{ setActiveTab("seguidores"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>👥</span>
@@ -2029,20 +2047,22 @@ export default function App() {
   );
 
   return (
-    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, maxWidth:1400, margin:"0 auto", paddingBottom:100 }}>
+    <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text, paddingBottom:100 }}>
       <style>{getCSS(dark)}</style>
 
       {showVip && <VipModal onClose={()=>setShowVip(false)} onAdd={(it)=>{ addCart(it); setShowVip(false); }} dark={dark} />}
       {showWelcome && (
-        <div onClick={()=>setShowWelcome(false)} style={{ position:"fixed", inset:0, zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(0,0,0,0.85)", animation:"overlayIn 0.4s ease" }}>
-          <div style={{ textAlign:"center", animation:"fadeUp 0.5s ease", padding:32 }}>
-            <img src={LOGO_URL} alt="Digital Market" style={{ width:160, height:160, objectFit:"contain", borderRadius:20, marginBottom:20, filter:"drop-shadow(0 0 32px rgba(168,85,247,0.7))" }} />
-            <div style={{ fontSize:32, fontWeight:900, marginBottom:8 }}>
-              <span style={{ color:"#ff6b35" }}>Digital </span>
-              <span style={{ color:"#a855f7" }}>Market</span>
-            </div>
-            <p style={{ fontSize:16, marginBottom:6, fontWeight:700 }}><span style={{ color:"#60a5fa" }}>Streaming</span> <span style={{ color:"#f87171" }}>Premium</span> 🚀</p>
-            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12 }}>Toca para continuar</p>
+        <div onClick={()=>setShowWelcome(false)} style={{ position:"fixed", inset:0, zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", background:"radial-gradient(circle at 50% 40%, #1a0f2e 0%, #0a0512 70%, #000 100%)", animation:"overlayIn 0.5s ease", overflow:"hidden" }}>
+          {/* Partículas decorativas de fondo */}
+          <div style={{ position:"absolute", top:"15%", left:"10%", width:140, height:140, borderRadius:"50%", background:"radial-gradient(circle, rgba(255,107,53,0.25), transparent 70%)", animation:"floatBob 4s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", bottom:"18%", right:"12%", width:160, height:160, borderRadius:"50%", background:"radial-gradient(circle, rgba(168,85,247,0.25), transparent 70%)", animation:"floatBob 5s ease-in-out infinite" }} />
+          <div style={{ position:"absolute", top:"35%", right:"18%", width:90, height:90, borderRadius:"50%", background:"radial-gradient(circle, rgba(59,130,246,0.2), transparent 70%)", animation:"floatBob 3.5s ease-in-out infinite" }} />
+
+          <div style={{ textAlign:"center", animation:"welcomeZoom 0.7s cubic-bezier(0.16,1,0.3,1)", padding:32, position:"relative" }}>
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(280px, 70vw)", height:"auto", objectFit:"contain", marginBottom:8, filter:"drop-shadow(0 0 40px rgba(168,85,247,0.6)) drop-shadow(0 0 80px rgba(255,107,53,0.3))", animation:"floatBob 3s ease-in-out infinite" }} />
+            <div className="brand-animated" style={{ fontSize:"clamp(34px, 8vw, 48px)", fontWeight:900, marginBottom:10, letterSpacing:0.5 }}>Digital Market</div>
+            <p style={{ fontSize:17, marginBottom:8, fontWeight:700 }}><span style={{ color:"#60a5fa" }}>Streaming</span> <span style={{ color:"#f87171" }}>Premium</span> 🚀</p>
+            <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12.5, animation:"blink 2s ease infinite" }}>Toca para continuar</p>
           </div>
         </div>
       )}
@@ -2051,23 +2071,17 @@ export default function App() {
 
       <SideMenu open={menuOpen} onClose={()=>setMenuOpen(false)} onNav={navigate} cartCount={cart.length} dark={dark} onToggleTheme={()=>setDark(d=>!d)} />
 
-      {/* HEADER */}
-      <div style={{ padding:"12px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:10, position:"sticky", top:0, background:t.surface, zIndex:100, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.35)":"0 4px 16px rgba(0,0,0,0.06)" }}>
-        <button onClick={()=>setMenuOpen(true)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 10px", cursor:"pointer", display:"flex", flexDirection:"column", gap:3, flexShrink:0 }}>
-          <div style={{ width:18, height:2, background:t.text, borderRadius:1 }} />
-          <div style={{ width:14, height:2, background:t.muted, borderRadius:1 }} />
-          <div style={{ width:18, height:2, background:t.text, borderRadius:1 }} />
-        </button>
-        <div style={{ display:"flex", alignItems:"center", gap:10, flex:1, minWidth:0 }}>
-          <img src={LOGO_URL} alt="Digital Market" style={{ width:46, height:46, objectFit:"contain", borderRadius:10, flexShrink:0, filter:"drop-shadow(0 2px 8px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
-          <div style={{ display:"flex", flexDirection:"column", minWidth:0 }}>
-            <span style={{ fontWeight:900, fontSize:18, letterSpacing:0.3, lineHeight:1.15 }}>
-              <span style={{ color:"#ff6b35" }}>Digital </span>
-              <span style={{ color:"#a855f7" }}>Market</span>
-            </span>
-            <span style={{ fontSize:9, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", marginTop:4 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
+      {/* HEADER - fila superior con acciones */}
+      <div style={{ padding:"10px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:10, position:"sticky", top:0, background:t.surface, zIndex:100, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.35)":"0 4px 16px rgba(0,0,0,0.06)" }}>
+        <button onClick={()=>setMenuOpen(true)} className="hdr-btn menu-btn" style={{ background:"linear-gradient(135deg,#7c3aed,#5b21b6)", border:"none", borderRadius:12, padding:"10px 18px", cursor:"pointer", display:"flex", alignItems:"center", gap:9, flexShrink:0, boxShadow:"0 3px 12px rgba(124,58,237,0.4)" }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
+            <div style={{ width:18, height:2.2, background:"#fff", borderRadius:1 }} />
+            <div style={{ width:18, height:2.2, background:"#fff", borderRadius:1 }} />
+            <div style={{ width:18, height:2.2, background:"#fff", borderRadius:1 }} />
           </div>
-        </div>
+          <span className="menu-btn-text" style={{ color:"#fff", fontWeight:700, fontSize:13 }}>Menú</span>
+        </button>
+        <div style={{ flex:1 }} />
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
           <button onClick={()=>setScreen("soporte")} className="hdr-btn report-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:8, padding:"7px 11px", cursor:"pointer", fontSize:11, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap" }}><span className="report-text">🚩 Reportar error</span><span className="report-icon-only">🚩</span></button>
           <button onClick={()=>setScreen("search")} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
@@ -2075,12 +2089,20 @@ export default function App() {
           <button onClick={()=>setScreen("cart")} className="hdr-btn" style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", cursor:"pointer", color:t.text, fontSize:18, animation:cartAnim?"cartBounce 0.4s ease":"none" }}>
             🛒{cart.length>0 && <div style={{ position:"absolute", top:-6, right:-6, background:"#E50914", color:"#fff", borderRadius:"50%", width:18, height:18, fontSize:9, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", animation:"fadeUp 0.3s ease" }}>{cart.length}</div>}
           </button>
-          <div style={{ display:"flex", alignItems:"center", gap:5, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:16, padding:"5px 10px" }}>
+          <div className="online-badge" style={{ display:"flex", alignItems:"center", gap:5, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:16, padding:"5px 10px" }}>
             <div style={{ width:6, height:6, background:"#25d366", borderRadius:"50%", animation:"blink 1.6s ease infinite" }} />
             <span style={{ color:"#25d366", fontSize:10, fontWeight:600 }}>En línea</span>
           </div>
         </div>
       </div>
+
+      {/* LOGO Y NOMBRE CENTRADOS */}
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"18px 16px 14px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
+        <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(220px, 60vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
+        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(22px, 5vw, 32px)", letterSpacing:0.5, marginTop:6, textAlign:"center" }}>Digital Market</span>
+        <span style={{ fontSize:10.5, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginTop:6 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
+      </div>
+
 
       {/* ACCESOS RÁPIDOS */}
       <div style={{ padding:"12px 16px 0", display:"flex", gap:8 }}>
