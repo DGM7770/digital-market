@@ -345,6 +345,8 @@ const getCSS = (dark) => `
   .menu-btn-text { display:none; }
   .activacion-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(124,58,237,0.2); }
   .activacion-card:active { transform:scale(0.96); }
+  .web-offer-banner { transition:transform 0.2s ease, box-shadow 0.2s ease; }
+  .web-offer-banner:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(29,78,216,0.4); }
   ::-webkit-scrollbar { width:10px; height:10px; }
   ::-webkit-scrollbar-track { background:rgba(124,58,237,0.05); }
   ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#7c3aed,#a855f7); border-radius:10px; }
@@ -801,6 +803,102 @@ function Ruleta({ dark, onClose }) {
   );
 }
 
+// ─── OFERTA: CREAMOS TU PÁGINA WEB ────────────────────────────────────────────
+const WEB_PREGUNTAS = [
+  {
+    id:"tipo",
+    bot:"¡Hola! 👋 Soy el asistente de Digital Market. Vimos que te interesa tener tu propia página web. Para armarte la mejor propuesta, cuéntame: ¿qué tipo de negocio o proyecto tienes?",
+    options:["🛒 Tienda online", "📱 Servicio digital (como este)", "💼 Negocio local / presencial", "🎨 Portafolio personal", "Otro tipo de proyecto"]
+  },
+  {
+    id:"necesita",
+    bot:"Perfecto. Ahora dime, ¿qué te gustaría que tuviera tu página principalmente?",
+    options:["Mostrar y vender productos", "Que los clientes me escriban por WhatsApp fácil", "Un catálogo bonito y profesional", "Un sistema como el que ves en esta app"]
+  },
+  {
+    id:"urgencia",
+    bot:"Entendido ✅. ¿Para cuándo te gustaría tenerla lista?",
+    options:["Lo antes posible", "En 1-2 semanas está bien", "Todavía estoy explorando"]
+  },
+  {
+    id:"contacto",
+    bot:"¡Genial! Ya tengo lo que necesito para armarte una propuesta a tu medida. Para enviártela, ¿prefieres que te contactemos por WhatsApp o que dejes tu correo?",
+    options:["📱 Por WhatsApp", "📧 Prefiero correo"]
+  }
+];
+
+function WebOfferChat({ dark, onClose }) {
+  const t = getTheme(dark);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [messages, setMessages] = useState([{ role:"bot", text:WEB_PREGUNTAS[0].bot }]);
+  const [finished, setFinished] = useState(false);
+  const [contactInput, setContactInput] = useState("");
+  const bottomRef = useRef(null);
+
+  useEffect(()=>{ bottomRef.current?.scrollIntoView({ behavior:"smooth" }); },[messages]);
+
+  const selectOption = (opt) => {
+    const q = WEB_PREGUNTAS[step];
+    setAnswers(a=>({...a,[q.id]:opt}));
+    setMessages(m=>[...m, {role:"user", text:opt}]);
+    const next = step+1;
+    if (next < WEB_PREGUNTAS.length) {
+      setTimeout(()=>{
+        setMessages(m=>[...m, {role:"bot", text:WEB_PREGUNTAS[next].bot}]);
+        setStep(next);
+      }, 450);
+    } else {
+      setTimeout(()=>{
+        setMessages(m=>[...m, {role:"bot", text: opt.includes("WhatsApp") ? "Perfecto, déjame tu número o simplemente continúa al chat de WhatsApp 👇" : "Perfecto, escribe tu correo aquí abajo 👇"}]);
+        setFinished(true);
+      }, 450);
+    }
+  };
+
+  const enviarPropuesta = () => {
+    const resumen = `🌐 SOLICITUD: Página Web\n\nTipo de proyecto: ${answers.tipo}\nNecesita: ${answers.necesita}\nUrgencia: ${answers.urgencia}\nContacto preferido: ${answers.contacto}${contactInput?`\nDato de contacto: ${contactInput}`:""}`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(resumen)}`,"_blank");
+  };
+
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16, animation:"overlayIn 0.2s ease" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:20, width:"100%", maxWidth:460, maxHeight:"88vh", display:"flex", flexDirection:"column", animation:"modalIn 0.3s ease", position:"relative", overflow:"hidden" }}>
+        <div style={{ padding:"16px 18px", background:"linear-gradient(135deg,#1d4ed8,#0c1f4a)", display:"flex", alignItems:"center", gap:12 }}>
+          <div style={{ width:42, height:42, background:"rgba(255,255,255,0.15)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:21 }}>🌐</div>
+          <div style={{ flex:1 }}>
+            <div style={{ color:"#fff", fontWeight:800, fontSize:15 }}>Creamos tu página web</div>
+            <div style={{ color:"rgba(255,255,255,0.7)", fontSize:11.5 }}>Cuéntanos qué necesitas</div>
+          </div>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.15)", border:"none", color:"#fff", width:30, height:30, borderRadius:"50%", cursor:"pointer", fontSize:16 }}>×</button>
+        </div>
+
+        <div style={{ flex:1, overflowY:"auto", padding:18, display:"flex", flexDirection:"column", gap:12 }}>
+          {messages.map((m,i)=>(
+            <div key={i} style={{ display:"flex", justifyContent:m.role==="bot"?"flex-start":"flex-end" }}>
+              <div style={{ maxWidth:"82%", background:m.role==="bot"?t.card:"linear-gradient(135deg,#1d4ed8,#1e40af)", border:m.role==="bot"?`1px solid ${t.border}`:"none", color:m.role==="bot"?t.text:"#fff", padding:"11px 14px", borderRadius:14, fontSize:13.5, lineHeight:1.55, whiteSpace:"pre-wrap" }}>{m.text}</div>
+            </div>
+          ))}
+          {!finished && step < WEB_PREGUNTAS.length && (
+            <div style={{ display:"flex", flexDirection:"column", gap:7, marginTop:4 }}>
+              {WEB_PREGUNTAS[step].options.map((opt,i)=>(
+                <button key={i} onClick={()=>selectOption(opt)} style={{ textAlign:"left", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:12, color:t.text, fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s ease" }} onMouseEnter={e=>e.target.style.borderColor="#3b82f6"} onMouseLeave={e=>e.target.style.borderColor=t.border}>{opt}</button>
+              ))}
+            </div>
+          )}
+          {finished && (
+            <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:4 }}>
+              <input value={contactInput} onChange={e=>setContactInput(e.target.value)} placeholder={answers.contacto?.includes("WhatsApp")?"Tu número de WhatsApp (opcional)":"Tu correo electrónico"} style={{ width:"100%", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:12, padding:"12px 14px", color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+              <button onClick={enviarPropuesta} style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>💬 Enviar y continuar por WhatsApp</button>
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── CLUB DIGITAL MARKET ──────────────────────────────────────────────────────
 function ClubModal({ dark, onClose }) {
   const t = getTheme(dark);
@@ -1152,6 +1250,7 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
     {icon:"👥",label:"Seguidores",key:"seguidores"},
     {icon:"🔐",label:"Validar Código",key:"validar"},
     {icon:"📺",label:"Activa tu Smart TV",key:"activar-tv"},
+    {icon:"🌐",label:"Creamos tu página web",key:"web-offer"},
     {icon:"🛒",label:"Carrito",key:"cart",badge:cartCount},
     {icon:"🤖",label:"Chat Bot",key:"chat"},
     {icon:"🆘",label:"Soporte",key:"soporte"},
@@ -2033,6 +2132,7 @@ export default function App() {
   const [showVip, setShowVip] = useState(false);
   const [showRuleta, setShowRuleta] = useState(false);
   const [showClub, setShowClub] = useState(false);
+  const [showWebOffer, setShowWebOffer] = useState(false);
   const [cartAnim, setCartAnim] = useState(false);
   const [sortPantallas, setSortPantallas] = useState("relevancia");
   const [viewPantallas, setViewPantallas] = useState("grid");
@@ -2067,6 +2167,7 @@ export default function App() {
 
   const navigate = (key) => {
     if (key==="wa") { window.open(`https://wa.me/${WA_NUMBER}`,"_blank"); return; }
+    if (key==="web-offer") { setScreen("home"); setShowWebOffer(true); return; }
     setScreen(key);
   };
 
@@ -2210,6 +2311,7 @@ export default function App() {
       )}
       {showRuleta && <Ruleta dark={dark} onClose={()=>setShowRuleta(false)} />}
       {showClub && <ClubModal dark={dark} onClose={()=>setShowClub(false)} />}
+      {showWebOffer && <WebOfferChat dark={dark} onClose={()=>setShowWebOffer(false)} />}
 
       <SideMenu open={menuOpen} onClose={()=>setMenuOpen(false)} onNav={navigate} cartCount={cart.length} dark={dark} onToggleTheme={()=>setDark(d=>!d)} />
 
@@ -2284,6 +2386,21 @@ export default function App() {
 
       {/* CARRUSEL DE PROMOCIONES */}
       <div style={{ marginTop:12 }}><PromoCarrusel dark={dark} onAddCart={addCart} onOpenClub={()=>setShowClub(true)} onOpenRuleta={()=>setShowRuleta(true)} /></div>
+
+      {/* OFERTA: CREAMOS TU PAGINA WEB */}
+      <div style={{ padding:"14px 16px 0" }}>
+        <button onClick={()=>setShowWebOffer(true)} className="web-offer-banner" style={{ width:"100%", background:"linear-gradient(135deg,#0c1f4a,#1d4ed8 50%,#3b82f6)", border:"none", borderRadius:18, padding:"20px 22px", cursor:"pointer", fontFamily:"inherit", textAlign:"left", position:"relative", overflow:"hidden", display:"flex", alignItems:"center", gap:16 }}>
+          <div style={{ position:"absolute", top:-30, right:-30, width:120, height:120, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
+          <div style={{ position:"absolute", bottom:-40, right:40, width:90, height:90, borderRadius:"50%", background:"rgba(255,255,255,0.06)" }} />
+          <div style={{ fontSize:38, flexShrink:0, position:"relative", zIndex:1 }}>🌐</div>
+          <div style={{ flex:1, position:"relative", zIndex:1 }}>
+            <div style={{ color:"#bfdbfe", fontSize:10.5, fontWeight:700, textTransform:"uppercase", letterSpacing:1, marginBottom:4 }}>✨ Nuevo servicio</div>
+            <div style={{ color:"#fff", fontWeight:800, fontSize:17, marginBottom:4 }}>¿Quieres tu propia página web?</div>
+            <div style={{ color:"rgba(255,255,255,0.85)", fontSize:12.5, lineHeight:1.5 }}>Creamos tu página web profesional, lista para vender y conectada directo a WhatsApp. Cuéntanos qué necesitas y te armamos una propuesta a tu medida.</div>
+          </div>
+          <div style={{ color:"#fff", fontSize:20, flexShrink:0, position:"relative", zIndex:1 }}>›</div>
+        </button>
+      </div>
 
       {/* PANTALLAS */}
       {activeTab==="pantallas" && (
