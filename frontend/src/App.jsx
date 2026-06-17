@@ -343,6 +343,8 @@ const getCSS = (dark) => `
     animation:brandGradient 6s ease infinite;
   }
   .menu-btn-text { display:none; }
+  .activacion-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(124,58,237,0.2); }
+  .activacion-card:active { transform:scale(0.96); }
   ::-webkit-scrollbar { width:10px; height:10px; }
   ::-webkit-scrollbar-track { background:rgba(124,58,237,0.05); }
   ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#7c3aed,#a855f7); border-radius:10px; }
@@ -394,17 +396,18 @@ function Img({ src, alt, size=44, style={} }) {
 // ─── CARRUSEL PELICULAS ───────────────────────────────────────────────────────
 // ─── CARRUSEL DE PROMOCIONES ──────────────────────────────────────────────────
 const PROMOS = [
-  { emoji:"🎁", tag:"Promo Netflix activa", title:"Lleva 2 Pantallas, 2 o 3 Meses", desc:"y recibe 1 app GRATIS 🥳 a tu elección entre estas plataformas:", items:["Disney+","HBO Max","Plex","ViX+","Crunchyroll","Paramount+","IPTV"], color:"#E50914", bgDark:"linear-gradient(135deg,#2a0000,#1f0000)", bgLight:"linear-gradient(135deg,#fff1f1,#ffe4e4)" },
-  { emoji:"🔥", tag:"Lo más vendido", title:"Combo VIP — 9 Plataformas", desc:"El combo más completo de la tienda, ideal si quieres todo en un solo pago:", items:["Netflix","HBO Max","Prime Video","ViX+","Crunchyroll","IPTV","Paramount+","Plex","Jellyfin"], price:"$45.000", color:"#a855f7", bgDark:"linear-gradient(135deg,#1f0a2a,#150620)", bgLight:"linear-gradient(135deg,#f6eeff,#ece0ff)" },
-  { emoji:"👑", tag:"Club Digital Market", title:"Únete por $10.000 al mes", desc:"Beneficios exclusivos para miembros del club:", items:["1 giro de ruleta cada mes","Descuentos exclusivos","Ofertas anticipadas","Notificaciones por WhatsApp"], color:"#FFD700", bgDark:"linear-gradient(135deg,#2a2000,#1f1700)", bgLight:"linear-gradient(135deg,#fffbe6,#fff3c4)" },
-  { emoji:"🎰", tag:"Ruleta de premios", title:"Gira y gana cada mes", desc:"Disponible para suscriptores del Club Digital Market:", items:["Descuentos en combos","Meses gratis","Plataformas de regalo","Premios sorpresa"], color:"#F59E0B", bgDark:"linear-gradient(135deg,#2a1800,#1f1100)", bgLight:"linear-gradient(135deg,#fff4e6,#ffe4c4)" },
+  { id:"promo-netflix2p", emoji:"🎁", tag:"Promo Netflix activa", title:"Lleva 2 Pantallas, 2 o 3 Meses", desc:"y recibe 1 app GRATIS 🥳 a tu elección entre estas plataformas:", items:["Disney+","HBO Max","Plex","ViX+","Crunchyroll","Paramount+","IPTV"], color:"#E50914", bgDark:"linear-gradient(135deg,#2a0000,#1f0000)", bgLight:"linear-gradient(135deg,#fff1f1,#ffe4e4)", action:"whatsapp" },
+  { id:"vip", emoji:"🔥", tag:"Lo más vendido", title:"Combo VIP — 9 Plataformas", desc:"El combo más completo de la tienda, ideal si quieres todo en un solo pago:", items:["Netflix","HBO Max","Prime Video","ViX+","Crunchyroll","IPTV","Paramount+","Plex","Jellyfin"], price:"$45.000", priceNum:45000, color:"#a855f7", bgDark:"linear-gradient(135deg,#1f0a2a,#150620)", bgLight:"linear-gradient(135deg,#f6eeff,#ece0ff)", action:"cart" },
+  { id:"club", emoji:"👑", tag:"Club Digital Market", title:"Únete por $10.000 al mes", desc:"Beneficios exclusivos para miembros del club:", items:["1 giro de ruleta cada mes","Descuentos exclusivos","Ofertas anticipadas","Notificaciones por WhatsApp"], price:"$10.000", priceNum:10000, color:"#FFD700", bgDark:"linear-gradient(135deg,#2a2000,#1f1700)", bgLight:"linear-gradient(135deg,#fffbe6,#fff3c4)", action:"club" },
+  { id:"ruleta", emoji:"🎰", tag:"Ruleta de premios", title:"Gira y gana cada mes", desc:"Disponible para suscriptores del Club Digital Market:", items:["Descuentos en combos","Meses gratis","Plataformas de regalo","Premios sorpresa"], color:"#F59E0B", bgDark:"linear-gradient(135deg,#2a1800,#1f1100)", bgLight:"linear-gradient(135deg,#fff4e6,#ffe4c4)", action:"ruleta" },
 ];
 
-function PromoCarrusel({ dark }) {
+function PromoCarrusel({ dark, onAddCart, onOpenClub, onOpenRuleta }) {
   const t = getTheme(dark);
   const [active, setActive] = useState(0);
   const [visible, setVisible] = useState(true);
   const [paused, setPaused] = useState(false);
+  const [added, setAdded] = useState(false);
   const dragRef = useRef({ startX:0, dragging:false });
   const resumeTimer = useRef(null);
 
@@ -466,11 +469,23 @@ function PromoCarrusel({ dark }) {
           </div>
           <p style={{ color:t.text, fontSize:16, fontWeight:800, lineHeight:1.3, marginBottom:6 }}>{p.title}</p>
           <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.5, marginBottom:10 }}>{p.desc}</p>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6 }}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:12 }}>
             {p.items.map((it,i)=>(
               <span key={i} style={{ background:dark?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)", border:`1px solid ${p.color}33`, color:t.text, fontSize:11.5, fontWeight:600, padding:"4px 10px", borderRadius:20 }}>{it}</span>
             ))}
           </div>
+          <button
+            onClick={(e)=>{
+              e.stopPropagation();
+              if (p.action==="cart") { onAddCart({ id:p.id, name:p.title, price:p.priceNum, color:p.color, desc:p.desc, img:IMG.comboVip }); setAdded(true); setTimeout(()=>setAdded(false),1500); }
+              else if (p.action==="club") onOpenClub();
+              else if (p.action==="ruleta") onOpenRuleta();
+              else window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Me interesa la promoción: ${p.title}`)}`,"_blank");
+            }}
+            style={{ width:"100%", padding:"11px 0", background:added?"linear-gradient(135deg,#10b981,#059669)":`linear-gradient(135deg,${p.color},${p.color}99)`, border:"none", borderRadius:11, color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.25s ease" }}
+          >
+            {added ? "✓ Agregado al carrito" : p.action==="cart" ? "🛒 Agregar al carrito" : p.action==="club" ? "👑 Unirme al Club" : p.action==="ruleta" ? "🎰 Girar la Ruleta" : "💬 Quiero esta promo"}
+          </button>
         </div>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:10, marginTop:10 }}>
           <button onClick={()=>{ goTo(active-1); pauseTemporarily(); }} aria-label="Anterior" style={{ background:"transparent", border:"none", color:t.muted, fontSize:16, cursor:"pointer", padding:4, lineHeight:1 }}>‹</button>
@@ -528,9 +543,11 @@ function MovieModal({ movie, dark, onClose }) {
 function Carrusel({ dark }) {
   const [movies, setMovies] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [paused, setPaused] = useState(false);
   const scrollRef = useRef(null);
   const dragRef = useRef({ down:false, startX:0, scrollLeft:0, moved:false });
   const autoRef = useRef(null);
+  const SPEED = 0.6; // velocidad tranquila y constante, nunca cambia
   const t = getTheme(dark);
 
   useEffect(() => {
@@ -549,21 +566,23 @@ function Carrusel({ dark }) {
     }).catch(()=>{});
   }, []);
 
+  // Único intervalo controlado por el estado "paused" — nunca se duplica ni acelera
   useEffect(() => {
+    clearInterval(autoRef.current);
+    if (paused) return;
     autoRef.current = setInterval(()=>{
       if (scrollRef.current && !dragRef.current.down) {
-        scrollRef.current.scrollLeft += 0.8;
-        if (scrollRef.current.scrollLeft >= scrollRef.current.scrollWidth/2) scrollRef.current.scrollLeft=0;
+        scrollRef.current.scrollLeft += SPEED;
+        if (scrollRef.current.scrollLeft >= scrollRef.current.scrollWidth/2) scrollRef.current.scrollLeft = 0;
       }
     }, 20);
     return () => clearInterval(autoRef.current);
-  }, [movies]);
+  }, [movies, paused]);
 
   if (!movies.length) return null;
   const all = [...movies,...movies];
 
   const startDrag = (x) => {
-    clearInterval(autoRef.current);
     dragRef.current = { down:true, startX:x-(scrollRef.current?.offsetLeft||0), scrollLeft:scrollRef.current?.scrollLeft||0, moved:false };
   };
   const moveDrag = (x) => {
@@ -575,12 +594,12 @@ function Carrusel({ dark }) {
   const endDrag = (movie) => {
     if (!dragRef.current.moved && movie) setSelectedMovie(movie);
     dragRef.current.down=false; dragRef.current.moved=false;
-    autoRef.current = setInterval(()=>{
-      if(scrollRef.current&&!dragRef.current.down){
-        scrollRef.current.scrollLeft+=0.8;
-        if(scrollRef.current.scrollLeft>=scrollRef.current.scrollWidth/2) scrollRef.current.scrollLeft=0;
-      }
-    },20);
+    // Al soltar, el carrusel sigue moviéndose a la MISMA velocidad tranquila (no se acelera)
+  };
+
+  const manualScroll = (dir) => {
+    setPaused(true);
+    if (scrollRef.current) scrollRef.current.scrollBy({ left: dir*240, behavior:"smooth" });
   };
 
   return (
@@ -589,7 +608,11 @@ function Carrusel({ dark }) {
       <div style={{ padding:"12px 0 8px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
         <div style={{ padding:"0 16px", marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <span style={{ color:t.muted, fontSize:12, letterSpacing:"1.5px", textTransform:"uppercase", fontWeight:600 }}>🎬 Estrenos y destacados</span>
-          <span style={{ color:t.muted, fontSize:10 }}>Toca para ver info</span>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <button onClick={()=>manualScroll(-1)} aria-label="Retroceder" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:7, width:26, height:26, color:t.text, fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>‹</button>
+            <button onClick={()=>setPaused(p=>!p)} aria-label={paused?"Reanudar":"Pausar"} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:7, width:26, height:26, color:t.text, fontSize:11, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>{paused?"▶":"⏸"}</button>
+            <button onClick={()=>manualScroll(1)} aria-label="Adelantar" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:7, width:26, height:26, color:t.text, fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>›</button>
+          </div>
         </div>
         <div
           ref={scrollRef}
@@ -600,11 +623,11 @@ function Carrusel({ dark }) {
           onTouchStart={e=>startDrag(e.touches[0].pageX)}
           onTouchMove={e=>moveDrag(e.touches[0].pageX)}
           onTouchEnd={()=>endDrag(null)}
-          style={{ display:"flex", gap:8, overflowX:"auto", paddingLeft:16, paddingRight:16, paddingBottom:4, scrollbarWidth:"none", msOverflowStyle:"none", cursor:"grab", userSelect:"none", WebkitOverflowScrolling:"touch" }}
+          style={{ display:"flex", gap:10, overflowX:"auto", paddingLeft:16, paddingRight:16, paddingBottom:4, scrollbarWidth:"none", msOverflowStyle:"none", cursor:"grab", userSelect:"none", WebkitOverflowScrolling:"touch" }}
         >
           {all.map((m,i)=>(
-            <div key={`${m.id}-${i}`} onMouseUp={()=>endDrag(m)} onTouchEnd={()=>endDrag(m)} style={{ flexShrink:0, width:95, cursor:"pointer" }}>
-              <div className="card-hover" style={{ width:95, height:140, borderRadius:10, overflow:"hidden", background:"#1a2535", boxShadow:"0 3px 10px rgba(0,0,0,0.3)" }}>
+            <div key={`${m.id}-${i}`} onMouseUp={()=>endDrag(m)} onTouchEnd={()=>endDrag(m)} style={{ flexShrink:0, width:120, cursor:"pointer" }}>
+              <div className="card-hover" style={{ width:120, height:178, borderRadius:12, overflow:"hidden", background:"#1a2535", boxShadow:"0 4px 14px rgba(0,0,0,0.35)" }}>
                 <img src={`${TMDB_IMG}${m.poster_path}`} alt={m.title||m.name} style={{ width:"100%", height:"100%", objectFit:"cover", pointerEvents:"none" }} loading="lazy" />
               </div>
               <div style={{ marginTop:4, fontSize:9, color:t.muted, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{m.title||m.name}</div>
@@ -1128,6 +1151,7 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
     {icon:"🗓️",label:"Meses",key:"meses"},
     {icon:"👥",label:"Seguidores",key:"seguidores"},
     {icon:"🔐",label:"Validar Código",key:"validar"},
+    {icon:"📺",label:"Activa tu Smart TV",key:"activar-tv"},
     {icon:"🛒",label:"Carrito",key:"cart",badge:cartCount},
     {icon:"🤖",label:"Chat Bot",key:"chat"},
     {icon:"🆘",label:"Soporte",key:"soporte"},
@@ -1551,6 +1575,72 @@ function ReportarError({ onBack, dark, prefill="" }) {
   );
 }
 
+// ─── ACTIVAR SMART TV CON CÓDIGO ──────────────────────────────────────────────
+const ACTIVACIONES = [
+  { id:"netflix", name:"Netflix", icon:"🎬", color:"#E50914", url:"https://www.netflix.com/tv2", img:IMG.netflix },
+  { id:"disney", name:"Disney+", icon:"✨", color:"#0063e5", url:"https://www.disneyplus.com/begin", img:IMG.disneyStd },
+  { id:"prime", name:"Prime Video", icon:"📦", color:"#00A8E1", url:"https://www.primevideo.com/mytv", img:IMG.prime },
+  { id:"max", name:"Max (HBO)", icon:"🟣", color:"#8B5CF6", url:"https://auth.max.com/link", img:IMG.hbo },
+  { id:"paramount", name:"Paramount+", icon:"⭐", color:"#0064FF", url:"https://www.paramountplus.com/tv", img:IMG.paramount },
+  { id:"crunchyroll", name:"Crunchyroll", icon:"🍥", color:"#F47521", url:"https://www.crunchyroll.com/activate", img:IMG.crunchyroll },
+  { id:"vix", name:"ViX", icon:"📺", color:"#00D4AA", url:"https://vix.com/activar", img:IMG.vix },
+  { id:"youtube", name:"YouTube", icon:"▶️", color:"#FF0000", url:"https://yt.be/activate", img:IMG.youtube },
+  { id:"spotify", name:"Spotify", icon:"🎵", color:"#1DB954", url:"https://www.spotify.com/pair", img:IMG.spotify },
+  { id:"winplay", name:"WIN Play", icon:"🏆", color:"#FF6B00", url:"https://winplay.co/activar" },
+  { id:"appletv", name:"Apple TV", icon:"🍎", color:"#A2AAAD", url:"https://link.apple.com/" },
+  { id:"directv", name:"DirecTV GO", icon:"📡", color:"#00529B", url:"https://www.directvgo.com/activar", img:IMG.directv },
+  { id:"iptv", name:"IPTV Smarters", icon:"📶", color:"#9B59B6", url:"https://www.iptvsmarters.com/#downloads" },
+];
+
+function ActivarSmartTV({ onBack, dark }) {
+  const t = getTheme(dark);
+  return (
+    <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
+      <div style={{ maxWidth:900, margin:"0 auto", paddingBottom:50 }}>
+        <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
+          <BackButton onClick={onBack} dark={dark} label="" />
+          <div style={{ width:42, height:42, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>📺</div>
+          <div><div style={{ fontWeight:800, fontSize:18 }}>Activa tu Smart TV con Código</div><div style={{ color:t.muted, fontSize:11.5 }}>Activa tus pantallas más rápido</div></div>
+        </div>
+
+        <div style={{ padding:20 }}>
+          <div style={{ background:"linear-gradient(135deg,#0d1f35,#0a1628)", border:"1px solid #1e3a5f", borderRadius:16, padding:20, marginBottom:22 }}>
+            <p style={{ color:"#60a5fa", fontSize:13, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:10 }}>💡 ¿Cómo funciona?</p>
+            <p style={{ color:t.text, fontSize:14, lineHeight:1.7 }}>
+              Cuando abres una app de streaming en tu Smart TV por primera vez (o se cerró sesión), la pantalla muestra un <strong>código de varios dígitos</strong>. Selecciona aquí abajo la plataforma que estás activando, te llevamos directo a la página oficial donde debes ingresar ese código, y listo — tu TV queda activada en segundos.
+            </p>
+            <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.6, marginTop:10 }}>
+              Esta sección es útil tanto para clientes que activan su propia cuenta, como para vendedores que necesitan activar pantallas rápidamente sin buscar cada enlace por separado.
+            </p>
+          </div>
+
+          <p style={{ color:t.muted, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:12 }}>Selecciona la plataforma</p>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12 }}>
+            {ACTIVACIONES.map(app=>(
+              <button key={app.id} onClick={()=>window.open(app.url,"_blank")} className="activacion-card" style={{ background:t.card, border:`1px solid ${app.color}33`, borderRadius:14, padding:"18px 14px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:10, transition:"all 0.2s ease" }}>
+                {app.img ? (
+                  <div style={{ width:44, height:44, borderRadius:12, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                    <Img src={app.img} alt={app.name} size={44} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"contain", padding:4 }} />
+                  </div>
+                ) : (
+                  <div style={{ width:44, height:44, borderRadius:12, background:`${app.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>{app.icon}</div>
+                )}
+                <span style={{ color:t.text, fontWeight:700, fontSize:13, textAlign:"center" }}>{app.name}</span>
+                <span style={{ color:app.color, fontSize:11, fontWeight:600 }}>Activar →</span>
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginTop:24, padding:16, background:t.card, border:`1px solid ${t.border}`, borderRadius:14, textAlign:"center" }}>
+            <p style={{ color:t.muted, fontSize:13, marginBottom:10 }}>¿El código no llega o tienes dudas?</p>
+            <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hola! Necesito ayuda activando mi Smart TV 📺")}`,"_blank")} style={{ padding:"11px 22px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:11, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Pedir ayuda por WhatsApp</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Soporte({ onBack, dark }) {
   const [open, setOpen] = useState(null);
   const t = getTheme(dark);
@@ -1885,6 +1975,7 @@ export default function App() {
 
   if (screen==="search") return <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onDetail={(item)=>{ setDetail(item); setScreen("detail"); }} />;
   if (screen==="validar") return <ValidarCodigo onBack={()=>setScreen("home")} dark={dark} />;
+  if (screen==="activar-tv") return <ActivarSmartTV onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="cart") return <Carrito items={cart} onRemove={removeCart} onClear={()=>setCart([])} onBack={()=>setScreen("home")} dark={dark} />;
   if (screen==="soporte") return <SoporteIA onBack={()=>setScreen("home")} dark={dark} onOpenValidador={()=>setScreen("validar")} />;
   if (screen==="reportar") return <ReportarError onBack={()=>setScreen("home")} dark={dark} />;
@@ -2141,7 +2232,7 @@ export default function App() {
       <div style={{ marginTop:8 }}><Carrusel dark={dark} /></div>
 
       {/* CARRUSEL DE PROMOCIONES */}
-      <div style={{ marginTop:12 }}><PromoCarrusel dark={dark} /></div>
+      <div style={{ marginTop:12 }}><PromoCarrusel dark={dark} onAddCart={addCart} onOpenClub={()=>setShowClub(true)} onOpenRuleta={()=>setShowRuleta(true)} /></div>
 
       {/* PANTALLAS */}
       {activeTab==="pantallas" && (
