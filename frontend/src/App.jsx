@@ -90,12 +90,13 @@ const MESES = [
 ];
 
 const COMBOS = [
-  { id:"c2apps", name:"2 Apps sin Netflix", price:18000, img:IMG.combo2, color:"#6C63FF", desc:"Elige 2 plataformas" },
-  { id:"c3apps", name:"3 Apps sin Netflix", price:22000, img:IMG.combo3, color:"#6C63FF", desc:"Elige 3 plataformas" },
+  { id:"c2apps", name:"2 Apps sin Netflix", price:18000, img:null, color:"#6C63FF", desc:"Elige 2 plataformas" },
+  { id:"c3apps", name:"3 Apps sin Netflix", price:22000, img:null, color:"#6C63FF", desc:"Elige 3 plataformas" },
   { id:"cx2", name:"Combo x2 Apps", price:22000, img:IMG.combo2, color:"#E50914", desc:"Netflix + 1 plataforma" },
   { id:"cx3", name:"Combo x3 Apps", price:28000, img:IMG.combo3, color:"#E50914", desc:"Netflix + 2 plataformas" },
   { id:"cx4", name:"Combo x4 Apps", price:30000, img:IMG.combo4, color:"#E50914", desc:"Netflix + 3 plataformas" },
   { id:"cx5", name:"Combo x5 Apps", price:32000, img:IMG.combo5, color:"#E50914", desc:"Netflix + 4 plataformas" },
+  { id:"comboFav", name:"Combo Favorito", price:32000, img:null, color:"#FFD700", badge:"⭐ Favorito", desc:"Netflix + Prime + Disney Premium" },
   { id:"vip", name:"Combo VIP 9 Apps", price:45000, img:IMG.comboVip, color:"#a855f7", badge:"VIP 💎", desc:"9 plataformas premium" },
 ];
 
@@ -347,6 +348,10 @@ const getCSS = (dark) => `
   .activacion-card:active { transform:scale(0.96); }
   .web-offer-banner { transition:transform 0.2s ease, box-shadow 0.2s ease; }
   .web-offer-banner:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(29,78,216,0.4); }
+  .no-side-border { padding-left:0; padding-right:0; }
+  @media (min-width:1024px) {
+    .no-side-border > div { max-width:100% !important; padding-left:24px; padding-right:24px; box-sizing:border-box; }
+  }
   ::-webkit-scrollbar { width:10px; height:10px; }
   ::-webkit-scrollbar-track { background:rgba(124,58,237,0.05); }
   ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#7c3aed,#a855f7); border-radius:10px; }
@@ -388,9 +393,15 @@ function BackButton({ onClick, dark, label="Volver" }) {
 
 function Img({ src, alt, size=44, style={} }) {
   const [err, setErr] = useState(false);
+  const showPlaceholder = !src || err;
   return (
-    <div style={{ width:size, height:size, borderRadius:10, background:"#1a2535", overflow:"hidden", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", ...style }}>
-      {!err && src ? <img src={src} alt={alt} onError={()=>setErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : <span style={{ fontSize:size*0.4, color:"#555" }}>{alt?.[0]||"?"}</span>}
+    <div style={{ width:size, height:size, borderRadius:10, background:showPlaceholder?"repeating-linear-gradient(45deg, #1a2535, #1a2535 10px, #20304a 10px, #20304a 20px)":"#1a2535", overflow:"hidden", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", ...style }}>
+      {!showPlaceholder ? <img src={src} alt={alt} onError={()=>setErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }} /> : (
+        <div style={{ textAlign:"center", padding:4 }}>
+          <div style={{ fontSize:size*0.28 }}>🖼️</div>
+          {size>60 && <div style={{ fontSize:size*0.08, color:"#8497b8", marginTop:2, fontWeight:600 }}>Imagen pendiente</div>}
+        </div>
+      )}
     </div>
   );
 }
@@ -1844,13 +1855,31 @@ function Seguidores({ onBack, onAddCart, dark, inline=false, cart=[], onDetail }
 function Chat({ onBack, dark }) {
   const [messages, setMessages] = useState([{ role:"assistant", text:"¡Hola! 👋 Bienvenido a Digital Market 🚀\nSoy tu asistente virtual. Tenemos cuentas 100% originales.\n\n¿En qué te puedo ayudar hoy?" }]);
   const [input, setInput] = useState(""); const [loading, setLoading] = useState(false);
+  const [showValidadorInline, setShowValidadorInline] = useState(false);
+  const [valAuth, setValAuth] = useState(false);
+  const [valUser, setValUser] = useState(""); const [valPass, setValPass] = useState(""); const [valErr, setValErr] = useState("");
+  const [valEmail, setValEmail] = useState(""); const [valPlat, setValPlat] = useState("netflix");
+  const [valLoading, setValLoading] = useState(false);
   const t = getTheme(dark);
   const bottomRef = useRef(null);
-  useEffect(()=>{ bottomRef.current?.scrollIntoView({ behavior:"smooth" }); },[messages]);
+  useEffect(()=>{ bottomRef.current?.scrollIntoView({ behavior:"smooth" }); },[messages, showValidadorInline]);
+
+  const CODIGO_KEYWORDS = ["validar codigo","validador","codigo de acceso","codigo de hogar","error de hogar","codigo de inicio","actualizar hogar","2fa","verificacion en dos pasos"];
+
   const send = (text) => {
     if (!text.trim()||loading) return;
     const tx = text.trim(); setInput("");
     setMessages(p=>[...p,{role:"user",text:tx}]);
+    const norm = tx.toLowerCase();
+    if (CODIGO_KEYWORDS.some(k=>norm.includes(k))) {
+      setLoading(true);
+      setTimeout(()=>{
+        setMessages(p=>[...p,{role:"assistant",text:"Puedo ayudarte a validar tu código directo desde aquí 🔐 Solo necesito el usuario y contraseña del validador. 👇"}]);
+        setLoading(false);
+        setShowValidadorInline(true);
+      }, 500);
+      return;
+    }
     setLoading(true);
     const reply = getBotReply(tx);
     const delay = 500 + Math.min(reply.length*8, 1200);
@@ -1859,6 +1888,39 @@ function Chat({ onBack, dark }) {
       setLoading(false);
     }, delay);
   };
+
+  const handleValAuth = async () => {
+    if (!valUser.trim()||!valPass.trim()) return;
+    setValLoading(true); setValErr("");
+    try {
+      const res = await fetch("/auth-validador", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({user:valUser.trim(),pass:valPass.trim()}) });
+      const data = await res.json();
+      if (data.ok) { setValAuth(true); setMessages(p=>[...p,{role:"assistant",text:"✅ Acceso correcto. Ahora dime el correo y la plataforma para buscar tu código."}]); }
+      else setValErr(data.mensaje||"Usuario o contraseña incorrectos");
+    } catch(e) { setValErr("Error de conexión, intenta de nuevo"); }
+    setValLoading(false);
+  };
+
+  const handleValBuscar = async () => {
+    if (!valEmail.trim()) return;
+    setValLoading(true);
+    setMessages(p=>[...p,{role:"user",text:`Buscar código de ${valPlat} para ${valEmail.trim()}`}]);
+    try {
+      const res = await fetch("/buscar-correo", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email:valEmail.trim(), plataforma:valPlat }) });
+      const data = await res.json();
+      if (data.ok) {
+        setMessages(p=>[...p,{role:"assistant",text:`✅ ¡Encontré tu código! Asunto: "${data.correo.asunto}" — Recibido: ${data.correo.hora}.\n\nPara ver el código completo con formato, te recomiendo abrir el Validador de Códigos desde el menú 🔐`}]);
+      } else {
+        setMessages(p=>[...p,{role:"assistant",text:`😕 ${data.mensaje||"No encontré ningún código reciente para ese correo."}`}]);
+      }
+    } catch(e) {
+      setMessages(p=>[...p,{role:"assistant",text:"Hubo un error buscando el código. Intenta de nuevo en un momento."}]);
+    }
+    setValLoading(false);
+    setShowValidadorInline(false);
+    setValAuth(false); setValUser(""); setValPass(""); setValEmail("");
+  };
+
   return (
     <div style={{ display:"flex", flexDirection:"column", height:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
       <div style={{ maxWidth:960, margin:"0 auto", width:"100%", display:"flex", flexDirection:"column", height:"100vh" }}>
@@ -1876,6 +1938,30 @@ function Chat({ onBack, dark }) {
           </div>
         ))}
         {loading && <div style={{ display:"flex", gap:4, paddingLeft:40 }}>{[0,1,2].map(i=><div key={i} style={{ width:8, height:8, background:"#7c3aed", borderRadius:"50%", animation:`blink 1s ease ${i*0.2}s infinite` }}/>)}</div>}
+        {showValidadorInline && (
+          <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:14, padding:16, animation:"fadeUp 0.25s ease" }}>
+            {!valAuth ? (
+              <>
+                <p style={{ color:t.muted, fontSize:12, marginBottom:10, fontWeight:600 }}>🔐 Acceso al validador</p>
+                <input value={valUser} onChange={e=>setValUser(e.target.value)} placeholder="Usuario" style={{ width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:9, padding:"9px 12px", color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", marginBottom:8, boxSizing:"border-box" }} />
+                <input value={valPass} onChange={e=>setValPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleValAuth()} type="password" placeholder="Contraseña" style={{ width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:9, padding:"9px 12px", color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", marginBottom:8, boxSizing:"border-box" }} />
+                {valErr && <p style={{ color:"#ef4444", fontSize:11.5, marginBottom:8 }}>⚠️ {valErr}</p>}
+                <button onClick={handleValAuth} disabled={valLoading} style={{ width:"100%", padding:11, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", opacity:valLoading?0.7:1 }}>{valLoading?"Verificando...":"Ingresar"}</button>
+              </>
+            ) : (
+              <>
+                <p style={{ color:t.muted, fontSize:12, marginBottom:10, fontWeight:600 }}>📧 Buscar código</p>
+                <select value={valPlat} onChange={e=>setValPlat(e.target.value)} style={{ width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:9, padding:"9px 12px", color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", marginBottom:8, boxSizing:"border-box" }}>
+                  <option value="netflix">Netflix</option>
+                  <option value="disney">Disney+</option>
+                  <option value="ambas">Cualquiera</option>
+                </select>
+                <input value={valEmail} onChange={e=>setValEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleValBuscar()} placeholder="Correo de la cuenta" style={{ width:"100%", background:t.bg, border:`1px solid ${t.border}`, borderRadius:9, padding:"9px 12px", color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", marginBottom:8, boxSizing:"border-box" }} />
+                <button onClick={handleValBuscar} disabled={valLoading} style={{ width:"100%", padding:11, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", opacity:valLoading?0.7:1 }}>{valLoading?"Buscando...":"🔍 Buscar código"}</button>
+              </>
+            )}
+          </div>
+        )}
         <div ref={bottomRef}/>
       </div>
       <div style={{ padding:"10px 14px 26px", background:t.surface, borderTop:`1px solid ${t.border}` }}>
@@ -1895,11 +1981,18 @@ function Chat({ onBack, dark }) {
 }
 
 // ─── BUSCADOR AVANZADO ────────────────────────────────────────────────────────
+const SEGUIDORES_ITEMS = [
+  {id:"fb1k",name:"Facebook 1.000 Seguidores",desc:"1.000 seguidores reales",price:38000,img:"/images/seg_facebook.png",color:"#1877F2"},
+  {id:"ig1k",name:"Instagram 1.000 Seguidores",desc:"1.000 seguidores reales",price:38000,img:"/images/seg_instagram.png",color:"#E1306C"},
+  {id:"tt1k",name:"TikTok 1.000 Seguidores",desc:"1.000 seguidores reales",price:58000,img:"/images/seg_tiktok.png",color:"#ee1d52"},
+];
+
 const ALL_ITEMS = [
   ...PANTALLAS,
   ...MESES,
   ...COMBOS,
   ...FAV_COMBOS,
+  ...SEGUIDORES_ITEMS,
 ];
 
 const CATEGORIAS = ["Todas","Netflix","Spotify","YouTube","Disney+","HBO","Prime","Paramount","Crunchyroll","ViX","Plex","Jellyfin","IPTV","WIN+","DirecTV","Apple TV","Canva","PlayStation","Office","Combos","Seguidores"];
@@ -1976,17 +2069,30 @@ function ProductGrid({ items, dark, onAddCart, onDetail, cart, view }) {
     <div className="product-grid">
       {items.map((item,i)=>{
         const cnt = countFor(item.id);
+        const handleBuyNow = (e) => {
+          e.stopPropagation();
+          onAddCart(item);
+          window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${item.name} por ${formatPrice(item.price)} 🙏`)}`,"_blank");
+        };
         return (
-          <div key={item.id} className="card-hover" onClick={()=>onDetail(item)} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
+          <div key={item.id} className="card-hover" style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:16, overflow:"hidden", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
             {item.badge && <div style={{ position:"absolute", top:8, left:8, zIndex:2, background:item.color, borderRadius:6, padding:"2px 8px", fontSize:9, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
-            {cnt>0 && <div style={{ position:"absolute", top:8, right:8, zIndex:2, background:item.color, color:"#fff", borderRadius:"50%", width:24, height:24, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:800, boxShadow:"0 2px 8px rgba(0,0,0,0.3)" }}>{cnt}</div>}
-            <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}><Img src={item.img} alt={item.name} size={200} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
+            {/* Imagen arriba - click abre el detalle */}
+            <div onClick={()=>onDetail(item)} style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535", cursor:"pointer" }}><Img src={item.img} alt={item.name} size={200} style={{ borderRadius:0, width:"100%", height:"100%", objectFit:"cover" }} /></div>
             <div style={{ padding:"10px 12px 12px" }}>
-              <div style={{ fontWeight:700, fontSize:13, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
-              <div style={{ color:t.muted, fontSize:11, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:6 }}>
-                <span style={{ color:item.color, fontWeight:800, fontSize:15 }}>{formatPrice(item.price)}</span>
-                <button onClick={(e)=>handleAdd(e,item)} style={{ background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":`linear-gradient(135deg,${item.color},${item.color}99)`, border:"none", borderRadius:8, padding:"6px 10px", color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>{addedMap[item.id]?"✓":"🛒"}</button>
+              <div onClick={()=>onDetail(item)} style={{ cursor:"pointer" }}>
+                <div style={{ fontWeight:700, fontSize:13, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
+                <div style={{ color:t.muted, fontSize:11, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
+              </div>
+              {/* Precio en el centro, contador a la derecha */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:10 }}>
+                <span style={{ color:item.color, fontWeight:800, fontSize:17 }}>{formatPrice(item.price)}</span>
+                {cnt>0 && <div style={{ position:"absolute", right:0, background:item.color, color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>}
+              </div>
+              {/* Botones abajo con colores animados */}
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:"9px 0", background:`linear-gradient(135deg,${item.color},${item.color}cc)`, border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+                <button onClick={(e)=>handleAdd(e,item)} className={addedMap[item.id]?"":"glow-green"} style={{ width:"100%", padding:"9px 0", background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{addedMap[item.id]?"✓ Agregado":"🛒 Agregar al carrito"}</button>
               </div>
             </div>
           </div>
@@ -2206,6 +2312,9 @@ export default function App() {
           <BackButton onClick={()=>{ setActiveTab("favoritos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>⭐</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Favoritos</span>
+          <div style={{ flex:1 }} />
+          <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
+          <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
         <div style={{ padding:"16px" }}>
           <p style={{ color:t.muted, fontSize:13, marginBottom:16 }}>Los combos más populares entre nuestros clientes ⭐</p>
@@ -2225,6 +2334,9 @@ export default function App() {
           <BackButton onClick={()=>{ setActiveTab("pantallas"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>📺</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Pantallas</span>
+          <div style={{ flex:1 }} />
+          <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
+          <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
         <div style={{ padding:16 }}>
           <FiltroBar dark={dark} sortBy={sortPantallas} setSortBy={setSortPantallas} view={viewPantallas} setView={setViewPantallas} count={PANTALLAS.length} />
@@ -2243,6 +2355,9 @@ export default function App() {
           <BackButton onClick={()=>{ setActiveTab("combos"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>🔥</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Combos</span>
+          <div style={{ flex:1 }} />
+          <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
+          <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
         <div style={{ padding:16 }}>
           <div style={{ background:"linear-gradient(135deg,#1f1200,#2a1800)", border:"1px solid #cccc0022", borderRadius:14, padding:"12px 16px", marginBottom:16 }}>
@@ -2264,6 +2379,9 @@ export default function App() {
           <BackButton onClick={()=>{ setActiveTab("meses"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>🗓️</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Paquetes por Meses</span>
+          <div style={{ flex:1 }} />
+          <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
+          <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
         <div style={{ padding:16 }}>
           <FiltroBar dark={dark} sortBy={sortMeses} setSortBy={setSortMeses} view={viewMeses} setView={setViewMeses} count={MESES.length} />
@@ -2282,6 +2400,9 @@ export default function App() {
           <BackButton onClick={()=>{ setActiveTab("seguidores"); setScreen("home"); }} dark={dark} label="" />
           <span style={{ fontSize:22 }}>👥</span>
           <span style={{ fontWeight:800, fontSize:18 }}>Seguidores</span>
+          <div style={{ flex:1 }} />
+          <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
+          <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
         <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} dark={dark} cart={cart} onDetail={setDetail} />
       </div>
