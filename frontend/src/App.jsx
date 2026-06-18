@@ -1299,7 +1299,7 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
 }
 
 // ─── DETAIL ───────────────────────────────────────────────────────────────────
-function Detail({ item, onBack, onAddCart, dark, cartCountForItem=0 }) {
+function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0 }) {
   const accent = item.color||"#7c3aed";
   const t = getTheme(dark);
   const [added, setAdded] = useState(false);
@@ -1317,45 +1317,49 @@ function Detail({ item, onBack, onAddCart, dark, cartCountForItem=0 }) {
 
   return (
     <div onClick={onBack} style={{ position:"fixed", inset:0, zIndex:400, background:"rgba(0,0,0,0.78)", display:"flex", alignItems:"center", justifyContent:"center", padding:18, animation:"overlayIn 0.2s ease" }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:22, maxWidth:440, width:"100%", maxHeight:"90vh", overflowY:"auto", animation:"fadeUp 0.3s ease", position:"relative", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
-        <button onClick={onBack} aria-label="Cerrar" style={{ position:"absolute", top:14, right:14, zIndex:5, width:34, height:34, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:18, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
+      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:22, maxWidth:420, width:"100%", maxHeight:"94vh", overflowY:"auto", animation:"fadeUp 0.3s ease", position:"relative", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
+        <button onClick={onBack} aria-label="Cerrar" style={{ position:"absolute", top:12, right:12, zIndex:5, width:32, height:32, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:17, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
 
-        {/* Imagen arriba */}
-        <div style={{ width:"100%", aspectRatio:"1/0.85", overflow:"hidden", borderRadius:"22px 22px 0 0", background:"#1a2535" }}>
+        {/* Imagen arriba - mas compacta para que todo quepa sin scroll */}
+        <div style={{ width:"100%", aspectRatio:"16/9", overflow:"hidden", borderRadius:"22px 22px 0 0", background:"#1a2535" }}>
           <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} />
         </div>
 
-        <div style={{ padding:"18px 22px 22px" }}>
-          {item.badge && <div style={{ display:"inline-block", background:accent, borderRadius:6, padding:"3px 10px", fontSize:10, fontWeight:700, color:"#fff", marginBottom:8 }}>{item.badge}</div>}
-          <h2 style={{ fontSize:20, fontWeight:800, marginBottom:4 }}>{item.name}</h2>
-          <p style={{ color:t.muted, fontSize:13, marginBottom:16 }}>{item.desc}</p>
+        <div style={{ padding:"14px 20px 18px" }}>
+          {item.badge && <div style={{ display:"inline-block", background:accent, borderRadius:6, padding:"2px 9px", fontSize:9.5, fontWeight:700, color:"#fff", marginBottom:6 }}>{item.badge}</div>}
+          <h2 style={{ fontSize:18, fontWeight:800, marginBottom:3 }}>{item.name}</h2>
+          <p style={{ color:t.muted, fontSize:12.5, marginBottom:12 }}>{item.desc}</p>
 
           {/* Precio centro, contador derecha */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:18 }}>
-            <span style={{ color:accent, fontWeight:900, fontSize:30 }}>{formatPrice(item.price)}</span>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:cartCountForItem>0?8:14 }}>
+            <span style={{ color:accent, fontWeight:900, fontSize:26 }}>{formatPrice(item.price)}</span>
             {cartCountForItem>0 && (
-              <div style={{ position:"absolute", right:0, background:accent, color:"#fff", borderRadius:20, padding:"4px 12px", fontSize:13, fontWeight:800, display:"flex", alignItems:"center", gap:5 }}>
+              <div style={{ position:"absolute", right:0, background:accent, color:"#fff", borderRadius:20, padding:"3px 11px", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", gap:5 }}>
                 🛒 {cartCountForItem}
               </div>
             )}
           </div>
 
+          {cartCountForItem>0 && (
+            <button onClick={()=>onRemoveOne(item)} style={{ width:"100%", padding:8, background:"transparent", border:`1.5px solid #ef444466`, borderRadius:9, color:"#ef4444", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>🗑️ Quitar del carrito</button>
+          )}
+
           {item.features && (
-            <div style={{ marginBottom:18 }}>
-              <p style={{ color:t.muted, fontSize:11, letterSpacing:"1px", textTransform:"uppercase", marginBottom:10, fontWeight:600 }}>Incluye</p>
+            <div style={{ marginBottom:14 }}>
+              <p style={{ color:t.muted, fontSize:10, letterSpacing:"1px", textTransform:"uppercase", marginBottom:7, fontWeight:600 }}>Incluye</p>
               {item.features.map((f,i)=>(
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0", borderBottom:i<item.features.length-1?`1px solid ${t.border}`:"none" }}>
-                  <div style={{ width:20, height:20, borderRadius:6, background:`${accent}1a`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, color:accent, flexShrink:0 }}>✓</div>
-                  <span style={{ color:t.text, fontSize:13 }}>{f}</span>
+                <div key={i} style={{ display:"flex", alignItems:"center", gap:9, padding:"6px 0", borderBottom:i<item.features.length-1?`1px solid ${t.border}`:"none" }}>
+                  <div style={{ width:18, height:18, borderRadius:6, background:`${accent}1a`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, color:accent, flexShrink:0 }}>✓</div>
+                  <span style={{ color:t.text, fontSize:12.5 }}>{f}</span>
                 </div>
               ))}
             </div>
           )}
 
           {/* Botones abajo con colores animados */}
-          <div style={{ display:"flex", flexDirection:"column", gap:9 }}>
-            <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:15, background:`linear-gradient(135deg,${accent},${accent}cc)`, border:"none", borderRadius:13, color:"#fff", fontWeight:800, fontSize:15, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
-            <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:14, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:13, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
+          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+            <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:13, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
+            <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:14, background:`linear-gradient(135deg,${accent},${accent}cc)`, border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
           </div>
         </div>
       </div>
@@ -2091,8 +2095,8 @@ function ProductGrid({ items, dark, onAddCart, onDetail, cart, view }) {
               </div>
               {/* Botones abajo con colores animados */}
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:"9px 0", background:`linear-gradient(135deg,${item.color},${item.color}cc)`, border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
                 <button onClick={(e)=>handleAdd(e,item)} className={addedMap[item.id]?"":"glow-green"} style={{ width:"100%", padding:"9px 0", background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{addedMap[item.id]?"✓ Agregado":"🛒 Agregar al carrito"}</button>
+                <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:"9px 0", background:`linear-gradient(135deg,${item.color},${item.color}cc)`, border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
               </div>
             </div>
           </div>
@@ -2270,6 +2274,11 @@ export default function App() {
     setTimeout(()=>setCartAnim(false), 400);
   };
   const removeCart = (i) => setCart(p=>p.filter((_,idx)=>idx!==i));
+  const removeOneById = (item) => setCart(p=>{
+    const idx = p.findIndex(c=>c.id===item.id);
+    if (idx===-1) return p;
+    return p.filter((_,i)=>i!==idx);
+  });
 
   const navigate = (key) => {
     if (key==="wa") { window.open(`https://wa.me/${WA_NUMBER}`,"_blank"); return; }
@@ -2277,7 +2286,7 @@ export default function App() {
     setScreen(key);
   };
 
-  const detailModal = detail && <Detail item={detail} onBack={()=>setDetail(null)} onAddCart={addCart} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} />;
+  const detailModal = detail && <Detail item={detail} onBack={()=>setDetail(null)} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} />;
 
   if (screen==="search") return <>
     <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onDetail={(item)=>{ setDetail(item); }} />
@@ -2462,10 +2471,14 @@ export default function App() {
       </div>
 
       {/* LOGO Y NOMBRE CENTRADOS */}
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"18px 16px 14px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
-        <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(220px, 60vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
-        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(22px, 5vw, 32px)", letterSpacing:0.5, marginTop:6, textAlign:"center" }}>Digital Market</span>
-        <span style={{ fontSize:10.5, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginTop:6 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 16px 16px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
+        <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(120px, 32vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
+        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(22px, 5vw, 32px)", letterSpacing:0.5, marginTop:4, textAlign:"center" }}>Digital Market</span>
+        <span style={{ fontSize:10.5, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginTop:6, marginBottom:14 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
+        <button onClick={()=>setScreen("search")} style={{ width:"100%", maxWidth:480, display:"flex", alignItems:"center", gap:10, background:t.card, border:`1.5px solid ${t.border}`, borderRadius:16, padding:"14px 18px", cursor:"pointer", fontFamily:"inherit" }}>
+          <span style={{ fontSize:19, opacity:0.5 }}>🔍</span>
+          <span style={{ color:t.muted, fontSize:14.5, textAlign:"left" }}>Buscar plataformas, combos, paquetes...</span>
+        </button>
       </div>
 
 
@@ -2522,114 +2535,6 @@ export default function App() {
           <div style={{ color:"#fff", fontSize:20, flexShrink:0, position:"relative", zIndex:1 }}>›</div>
         </button>
       </div>
-
-      {/* PANTALLAS */}
-      {activeTab==="pantallas" && (
-        <div style={{ padding:"0 16px" }}>
-          <div className="product-grid">
-            {PANTALLAS.map((item,i)=>(
-              <div key={item.id} className="card-hover" onClick={()=>{ setDetail(item); }} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
-                {item.badge && <div style={{ position:"absolute", top:8, left:8, zIndex:1, background:item.color, borderRadius:6, padding:"2px 8px", fontSize:9, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
-                <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}>
-                  <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" onError={e=>e.target.style.display="none"} />
-                </div>
-                <div style={{ padding:"10px 12px" }}>
-                  <div style={{ fontWeight:700, fontSize:13, marginBottom:3, color:t.text }}>{item.name}</div>
-                  <div style={{ fontWeight:900, fontSize:18, color:item.color }}>{formatPrice(item.price)}</div>
-                  <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>{item.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* MESES */}
-      {activeTab==="meses" && (
-        <div style={{ padding:"0 16px" }}>
-          {["Netflix","Spotify","YouTube"].map(cat=>{
-            const items = MESES.filter(m=>m.cat===cat);
-            return (
-              <div key={cat} style={{ marginBottom:24 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                  <Img src={items[0].img} alt={cat} size={28} style={{ borderRadius:7 }} />
-                  <span style={{ fontWeight:700, fontSize:15, color:items[0].color }}>{cat}</span>
-                </div>
-                <div className="product-grid">
-                  {items.map((item,i)=>(
-                    <div key={item.id} className="card-hover" onClick={()=>{ setDetail(item); }} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:14, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
-                      {item.badge && <div style={{ position:"absolute", top:8, right:8, zIndex:1, background:item.color, borderRadius:5, padding:"2px 6px", fontSize:8, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
-                      <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}>
-                        <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" onError={e=>e.target.style.display="none"} />
-                      </div>
-                      <div style={{ padding:"10px 12px" }}>
-                        <div style={{ color:item.color, fontSize:10, fontWeight:600, marginBottom:3, textTransform:"uppercase" }}>{item.name.replace(item.cat+" ","")}</div>
-                        <div style={{ fontWeight:900, fontSize:18, color:t.text }}>{formatPrice(item.price)}</div>
-                        <div style={{ color:t.muted, fontSize:10, marginTop:2 }}>{item.desc}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* COMBOS */}
-      {activeTab==="combos" && (
-        <div style={{ padding:"0 16px" }}>
-          <div style={{ background:"linear-gradient(135deg,#0d0d00,#141400)", border:"1px solid #2a2a00", borderRadius:14, padding:"12px 14px", marginBottom:16 }}>
-            <p style={{ color:"#cccc00", fontSize:12, lineHeight:1.6 }}>💡 <strong style={{ color:"#ffff88" }}>Combos = más plataformas por menos.</strong> Las activamos en minutos.</p>
-          </div>
-          <div className="product-grid">
-            {COMBOS.map((c,i)=>(
-              <div key={c.id} className="card-hover" onClick={()=>{ setDetail({...c,features:[c.desc,"Activación en minutos","Soporte incluido"]}); }} style={{ background:t.card, border:`1px solid ${c.badge?c.color+"44":t.border}`, borderRadius:16, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
-                {c.badge && <div style={{ position:"absolute", top:8, left:8, zIndex:1, background:c.color, borderRadius:6, padding:"2px 8px", fontSize:9, fontWeight:700, color:"#fff" }}>{c.badge}</div>}
-                <div style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:"#1a2535" }}>
-                  <img src={c.img} alt={c.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" onError={e=>e.target.style.display="none"} />
-                </div>
-                <div style={{ padding:"10px 12px" }}>
-                  <div style={{ fontWeight:700, fontSize:13, marginBottom:3, color:t.text }}>{c.name}</div>
-                  <div style={{ fontWeight:900, fontSize:18, color:c.color }}>{formatPrice(c.price)}</div>
-                  <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>{c.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* FAVORITOS */}
-      {activeTab==="favoritos" && (
-        <div style={{ padding:"0 16px" }}>
-          <div style={{ background:"linear-gradient(135deg,#1a1000,#201500)", border:"1px solid #3a2800", borderRadius:14, padding:"12px 14px", marginBottom:16 }}>
-            <p style={{ color:"#FFD700", fontSize:12, lineHeight:1.6, fontWeight:600 }}>⭐ Los combos más vendidos — favoritos de nuestros clientes</p>
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-            {FAV_COMBOS.map(c=>(
-              <div key={c.id} className="card-hover" onClick={()=>{ setDetail({...c,features:[c.desc,"Activación en minutos","Soporte incluido"]}); }} style={{ background:t.card, border:`1px solid ${c.color}33`, borderRadius:16, overflow:"hidden", display:"flex", position:"relative" }}>
-                <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg,transparent,${c.color}88,transparent)` }} />
-                <div style={{ width:130, height:130, overflow:"hidden", flexShrink:0, background:"#1a2535" }}>
-                  <img src={c.img} alt={c.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} loading="lazy" onError={e=>e.target.style.display="none"} />
-                </div>
-                <div style={{ flex:1, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"center" }}>
-                  <div style={{ display:"flex", gap:2, marginBottom:6 }}>{Array.from({length:c.stars}).map((_,i)=><span key={i} style={{ fontSize:12 }}>⭐</span>)}</div>
-                  <div style={{ fontWeight:700, fontSize:15, marginBottom:3, color:t.text }}>{c.name}</div>
-                  <div style={{ color:t.muted, fontSize:12, marginBottom:6 }}>{c.desc}</div>
-                  <div style={{ color:c.color, fontWeight:900, fontSize:20 }}>{formatPrice(c.price)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab==="seguidores" && (
-        <div style={{ padding:"0 16px" }}>
-          <Seguidores onBack={()=>setActiveTab("favoritos")} onAddCart={addCart} dark={dark} inline={true} cart={cart} onDetail={setDetail} />
-        </div>
-      )}
 
       {/* FAB CHAT */}
       <button onClick={()=>setScreen("chat")} className="fab-pulse" style={{ position:"fixed", bottom:24, right:20, width:58, height:58, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:"50%", fontSize:26, cursor:"pointer", boxShadow:"0 6px 24px rgba(124,58,237,0.5)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:99 }}>🤖</button>
