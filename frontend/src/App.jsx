@@ -1,15 +1,42 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-const TMDB_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYzM1M2QwMDNiOWExODNiZjE0NDI1OGJhOWU3ZjMxYyIsIm5iZiI6MTc4MDcwODAyMS4wMDE5OTk5LCJzdWIiOiI2YTIzNzJiNDIyNDVmZTQzNzQ4ZGQxYmYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.TFI6fd9DYZlQiQ7PTsKF5PIOTl6Cf6riJf8Lj3OnLDE";
+// TMDB_TOKEN y WA_NUMBER se cargan desde el backend (/api/config) para no
+// exponerlos en el código fuente del navegador.
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const TMDB_IMG = "https://image.tmdb.org/t/p/w300";
 const OTP_URL = ""; // mismo servidor: backend y frontend unidos
-const WA_NUMBER = "573223071283";
 const WA_DISPLAY = "3223071283";
 const LOGO_URL = "/images/logo-icon-only.png";
 const LOGO_FULL_URL = "/images/logo-transparent.png";
 const PAGO_NUMERO = "3052308374";
+
+// Variables que se populan al cargar la app desde /api/config
+let WA_NUMBER = "";
+let TMDB_TOKEN = "";
+let _configLoaded = false;
+let _configCallbacks = [];
+
+function getConfig(cb) {
+  if (_configLoaded) return cb();
+  _configCallbacks.push(cb);
+  if (_configCallbacks.length === 1) {
+    fetch("/api/config")
+      .then(r => r.json())
+      .then(data => {
+        WA_NUMBER = data.waNumber || "";
+        TMDB_TOKEN = data.tmdbToken || "";
+        _configLoaded = true;
+        _configCallbacks.forEach(fn => fn());
+        _configCallbacks = [];
+      })
+      .catch(() => {
+        _configLoaded = true; // evitar loop infinito si el endpoint falla
+        _configCallbacks.forEach(fn => fn());
+        _configCallbacks = [];
+      });
+  }
+}
 const RULETA_CODE = "DMJUN2026";
 
 const formatPrice = p => `$${p.toLocaleString("es-CO")}`;
@@ -2232,6 +2259,8 @@ function Buscador({ dark, onBack, onAddCart, onDetail }) {
 
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
 export default function App() {
+  const [configReady, setConfigReady] = useState(false);
+  useEffect(() => { getConfig(() => setConfigReady(true)); }, []);
   const [screen, setScreen] = useState(()=>{ try{ const s=localStorage.getItem("dm_screen"); return ["home","favoritos","pantallas","combos","meses","seguidores"].includes(s)?s:"home"; }catch(e){ return "home"; } });
   const [activeTab, setActiveTab] = useState(()=>{ try{ return localStorage.getItem("dm_tab")||"favoritos"; }catch(e){ return "favoritos"; } });
   const [dark, setDark] = useState(()=>{ try{ const d=localStorage.getItem("dm_dark"); return d===null?true:d==="true"; }catch(e){ return true; } });
@@ -2287,6 +2316,16 @@ export default function App() {
   };
 
   const detailModal = detail && <Detail item={detail} onBack={()=>setDetail(null)} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} />;
+
+  if (!configReady) {
+    const t0 = getTheme(dark);
+    return (
+      <div style={{ minHeight:"100vh", width:"100%", background:t0.bg, display:"flex", alignItems:"center", justifyContent:"center" }}>
+        <style>{getCSS(dark)}</style>
+        <div style={{ width:42, height:42, border:`3px solid ${t0.border}`, borderTopColor:"#7c3aed", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+      </div>
+    );
+  }
 
   if (screen==="search") return <>
     <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onDetail={(item)=>{ setDetail(item); }} />
