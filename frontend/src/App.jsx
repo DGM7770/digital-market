@@ -1340,9 +1340,9 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
             )}
           </div>
 
-          {cartCountForItem>0 && (
-            <button onClick={()=>onRemoveOne(item)} style={{ width:"100%", padding:8, background:"transparent", border:`1.5px solid #ef444466`, borderRadius:9, color:"#ef4444", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>🗑️ Quitar del carrito</button>
-          )}
+          {cartCountForItem>0 ? (
+            <button onClick={()=>onRemoveOne(item)} style={{ width:"100%", padding:9, background:"transparent", border:"1.5px solid #ef4444", borderRadius:9, color:"#ef4444", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>🗑️ Quitar 1 del carrito</button>
+          ) : null}
 
           {item.features && (
             <div style={{ marginBottom:14 }}>
@@ -2432,7 +2432,7 @@ export default function App() {
           <div style={{ position:"absolute", top:"35%", right:"18%", width:90, height:90, borderRadius:"50%", background:"radial-gradient(circle, rgba(59,130,246,0.2), transparent 70%)", animation:"floatBob 3.5s ease-in-out infinite" }} />
 
           <div style={{ textAlign:"center", animation:"welcomeZoom 0.7s cubic-bezier(0.16,1,0.3,1)", padding:32, position:"relative" }}>
-            <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(280px, 70vw)", height:"auto", objectFit:"contain", marginBottom:8, filter:"drop-shadow(0 0 40px rgba(168,85,247,0.6)) drop-shadow(0 0 80px rgba(255,107,53,0.3))", animation:"floatBob 3s ease-in-out infinite" }} />
+            <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(210px, 52vw)", height:"auto", objectFit:"contain", marginBottom:8, filter:"drop-shadow(0 0 40px rgba(168,85,247,0.6)) drop-shadow(0 0 80px rgba(255,107,53,0.3))", animation:"floatBob 3s ease-in-out infinite" }} />
             <div className="brand-animated" style={{ fontSize:"clamp(34px, 8vw, 48px)", fontWeight:900, marginBottom:10, letterSpacing:0.5 }}>Digital Market</div>
             <p style={{ fontSize:17, marginBottom:8, fontWeight:700 }}><span style={{ color:"#60a5fa" }}>Streaming</span> <span style={{ color:"#f87171" }}>Premium</span> 🚀</p>
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12.5, animation:"blink 2s ease infinite" }}>Toca para continuar</p>
@@ -2472,10 +2472,10 @@ export default function App() {
 
       {/* LOGO Y NOMBRE CENTRADOS */}
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 16px 16px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
-        <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(120px, 32vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
-        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(22px, 5vw, 32px)", letterSpacing:0.5, marginTop:4, textAlign:"center" }}>Digital Market</span>
-        <span style={{ fontSize:10.5, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginTop:6, marginBottom:14 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
-        <button onClick={()=>setScreen("search")} style={{ width:"100%", maxWidth:480, display:"flex", alignItems:"center", gap:10, background:t.card, border:`1.5px solid ${t.border}`, borderRadius:16, padding:"14px 18px", cursor:"pointer", fontFamily:"inherit" }}>
+        <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(90px, 24vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
+        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(16px, 3.75vw, 24px)", letterSpacing:0.5, marginTop:4, textAlign:"center" }}>Digital Market</span>
+        <span style={{ fontSize:8, fontWeight:700, letterSpacing:2, textTransform:"uppercase", marginTop:4, marginBottom:12 }}><span style={{ color:"#3b82f6" }}>Streaming</span> <span style={{ color:"#ef4444" }}>Premium</span></span>
+        <button onClick={()=>setScreen("search")} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, background:t.card, border:`1.5px solid ${t.border}`, borderRadius:16, padding:"14px 18px", cursor:"pointer", fontFamily:"inherit" }}>
           <span style={{ fontSize:19, opacity:0.5 }}>🔍</span>
           <span style={{ color:t.muted, fontSize:14.5, textAlign:"left" }}>Buscar plataformas, combos, paquetes...</span>
         </button>
@@ -2486,7 +2486,7 @@ export default function App() {
       <div style={{ padding:"12px 16px 0", display:"flex", gap:8 }}>
         <button onClick={()=>setScreen("validar")} className="quick-access glow-purple" style={{ flex:1, background:"linear-gradient(135deg,#2a1a4a,#1e1235)", border:"1px solid #7c3aed55", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>🔐</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Validar Código</div><div style={{ color:"#c4b5fd", fontSize:10 }}>Netflix & Disney+</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Validar Código</div></div>
         </button>
         <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}`,"_blank")} className="quick-access glow-green" style={{ flex:1, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>💬</span>
