@@ -1270,6 +1270,7 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
   const t = getTheme(dark);
   const [render, setRender] = useState(open);
   const [closing, setClosing] = useState(false);
+  const [catalogoOpen, setCatalogoOpen] = useState(false);
   useEffect(() => {
     if (open) { setRender(true); setClosing(false); }
     else if (render) {
@@ -1279,20 +1280,26 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
     }
   }, [open, render]);
   if (!render) return null;
-  const items = [
+
+  const catalogoItems = [
     {icon:"⭐",label:"Favoritos",key:"favoritos"},
     {icon:"📺",label:"Pantallas",key:"pantallas"},
     {icon:"🔥",label:"Combos",key:"combos"},
     {icon:"🗓️",label:"Meses",key:"meses"},
     {icon:"👥",label:"Seguidores",key:"seguidores"},
+  ];
+
+  const itemsAntes = [
     {icon:"🔐",label:"Validar Código",key:"validar"},
-    {icon:"📺",label:"Activa tu Smart TV",key:"activar-tv"},
+    {icon:"📺",label:"Activar Smart TV",key:"activar-tv"},
     {icon:"🌐",label:"Creamos tu página web",key:"web-offer"},
     {icon:"🛒",label:"Carrito",key:"cart",badge:cartCount},
-    {icon:"🤖",label:"Chat Bot",key:"chat"},
-    {icon:"🆘",label:"Soporte",key:"soporte"},
+  ];
+
+  const itemsDespues = [
     {icon:"📞",label:"WhatsApp",key:"wa"},
   ];
+
   return (
     <>
       <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:200, animation:closing?"overlayOut 0.25s ease forwards":"overlayIn 0.2s ease" }} />
@@ -1307,10 +1314,39 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
           </div>
         </div>
         <div style={{ flex:1, overflowY:"auto", padding:"10px 0" }}>
-          {items.map((item,i)=>(
-            <button key={item.key} onClick={()=>{ onNav(item.key); onClose(); }} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"13px 18px", background:"transparent", border:"none", color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit", position:"relative", textAlign:"left", animation:`fadeUp 0.35s ease backwards`, animationDelay:`${i*0.04}s` }}>
+
+          {/* CATÁLOGO - submenu desplegable */}
+          <button onClick={()=>setCatalogoOpen(o=>!o)} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"13px 18px", background:"transparent", border:"none", color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit", textAlign:"left", animation:"fadeUp 0.35s ease backwards" }}>
+            <span style={{ fontSize:20 }}>📂</span><span style={{ flex:1, fontWeight:700 }}>Catálogo</span>
+            <span style={{ fontSize:12, transition:"transform 0.2s ease", transform:catalogoOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+          </button>
+          {catalogoOpen && (
+            <div style={{ animation:"fadeUp 0.25s ease" }}>
+              {catalogoItems.map((item,i)=>(
+                <button key={item.key} onClick={()=>{ onNav(item.key); onClose(); }} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"11px 18px 11px 38px", background:"transparent", border:"none", color:t.text, fontSize:13.5, cursor:"pointer", fontFamily:"inherit", position:"relative", textAlign:"left", animation:"fadeUp 0.3s ease backwards", animationDelay:`${i*0.03}s` }}>
+                  <span style={{ fontSize:17 }}>{item.icon}</span><span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {itemsAntes.map((item,i)=>(
+            <button key={item.key} onClick={()=>{ onNav(item.key); onClose(); }} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"13px 18px", background:"transparent", border:"none", color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit", position:"relative", textAlign:"left", animation:"fadeUp 0.35s ease backwards", animationDelay:`${(i+1)*0.04}s` }}>
               <span style={{ fontSize:20 }}>{item.icon}</span><span>{item.label}</span>
               {item.badge>0 && <div style={{ position:"absolute", right:18, background:"#E50914", color:"#fff", borderRadius:"50%", width:20, height:20, fontSize:10, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{item.badge}</div>}
+            </button>
+          ))}
+
+          {/* CLUB DIGITAL MARKET - boton grande, ocupa la posicion donde antes estaba Soporte */}
+          <div style={{ padding:"10px 18px" }}>
+            <button onClick={()=>{ onNav("club"); onClose(); }} style={{ width:"100%", display:"flex", alignItems:"center", justifyContent:"center", gap:8, padding:"13px 16px", background:"linear-gradient(135deg,#FFD700,#f59e0b)", border:"none", borderRadius:12, color:"#1a1200", fontWeight:800, fontSize:13.5, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 14px rgba(245,158,11,0.35)" }}>
+              👑 Club Digital Market
+            </button>
+          </div>
+
+          {itemsDespues.map((item,i)=>(
+            <button key={item.key} onClick={()=>{ onNav(item.key); onClose(); }} className="menu-item" style={{ width:"100%", display:"flex", alignItems:"center", gap:12, padding:"13px 18px", background:"transparent", border:"none", color:t.text, fontSize:14, cursor:"pointer", fontFamily:"inherit", position:"relative", textAlign:"left", animation:"fadeUp 0.35s ease backwards" }}>
+              <span style={{ fontSize:20 }}>{item.icon}</span><span>{item.label}</span>
             </button>
           ))}
         </div>
@@ -1385,7 +1421,7 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
           {/* Botones abajo con colores animados */}
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:13, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
-            <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:14, background:`linear-gradient(135deg,${accent},${accent}cc)`, border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+            <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
           </div>
         </div>
       </div>
@@ -1622,8 +1658,20 @@ function ReportarError({ onBack, dark, prefill="" }) {
   const [errorCorreo, setErrorCorreo] = useState("");
   const fileRef = useRef(null);
 
+  const TIPOS_PERMITIDOS = ["image/jpeg","image/jpg","image/png","image/webp","image/heic","image/heif","image/gif","image/bmp"];
+  const EXTENSIONES_PERMITIDAS = [".jpg",".jpeg",".png",".webp",".heic",".heif",".gif",".bmp"];
+
   const handleFile = (file) => {
     if (!file) return;
+    const nombreLower = (file.name||"").toLowerCase();
+    const extensionValida = EXTENSIONES_PERMITIDAS.some(ext=>nombreLower.endsWith(ext));
+    const tipoValido = TIPOS_PERMITIDOS.includes((file.type||"").toLowerCase());
+    // HEIC en algunos navegadores no reporta un MIME type reconocible, por eso
+    // también aceptamos si la extensión del archivo es válida aunque el MIME venga vacío
+    if (!tipoValido && !(file.type==="" && extensionValida)) {
+      alert("Ese tipo de archivo no está permitido. Solo se aceptan imágenes: JPG, PNG, WEBP, HEIC, GIF o BMP.");
+      return;
+    }
     if (file.size > 15*1024*1024) { alert("La imagen supera el máximo de 15 MB. Por favor elige una más liviana."); return; }
     setImage(file);
     const reader = new FileReader();
@@ -1848,7 +1896,7 @@ function Soporte({ onBack, dark }) {
 }
 
 // ─── SEGUIDORES ───────────────────────────────────────────────────────────────
-function Seguidores({ onBack, onAddCart, dark, inline=false, cart=[], onDetail }) {
+function Seguidores({ onBack, onAddCart, onRemoveOne, dark, inline=false, cart=[], onDetail }) {
   const t = getTheme(dark);
   const [sortBy, setSortBy] = useState("relevancia");
   const [view, setView] = useState("grid");
@@ -1870,7 +1918,7 @@ function Seguidores({ onBack, onAddCart, dark, inline=false, cart=[], onDetail }
           ))}
         </div>
         <FiltroBar dark={dark} sortBy={sortBy} setSortBy={setSortBy} view={view} setView={setView} count={packs.length} />
-        <ProductGrid items={sortItems(packs, sortBy)} dark={dark} onAddCart={onAddCart} onDetail={onDetail||(()=>{})} cart={cart} view={view} />
+        <ProductGrid items={sortItems(packs, sortBy)} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne||(()=>{})} onDetail={onDetail||(()=>{})} cart={cart} view={view} />
       </div>
   );
   if (inline) return content;
@@ -2058,7 +2106,7 @@ function sortItems(items, sortBy) {
   return arr;
 }
 
-function ProductGrid({ items, dark, onAddCart, onDetail, cart, view }) {
+function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view }) {
   const t = getTheme(dark);
   const [addedMap, setAddedMap] = useState({});
 
@@ -2069,6 +2117,11 @@ function ProductGrid({ items, dark, onAddCart, onDetail, cart, view }) {
     onAddCart(item);
     setAddedMap(m=>({...m,[item.id]:true}));
     setTimeout(()=>setAddedMap(m=>({...m,[item.id]:false})),1200);
+  };
+
+  const handleRemove = (e, item) => {
+    e.stopPropagation();
+    onRemoveOne(item);
   };
 
   if (view==="list") {
@@ -2085,8 +2138,13 @@ function ProductGrid({ items, dark, onAddCart, onDetail, cart, view }) {
                 <div style={{ color:item.color, fontWeight:800, fontSize:16 }}>{formatPrice(item.price)}</div>
               </div>
               <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6, padding:"0 14px" }}>
-                {cnt>0 && <div style={{ background:item.color, color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>}
-                <button onClick={(e)=>handleAdd(e,item)} style={{ background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":`linear-gradient(135deg,${item.color},${item.color}99)`, border:"none", borderRadius:8, padding:"7px 12px", color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>{addedMap[item.id]?"✓":"🛒 Agregar"}</button>
+                {cnt>0 && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" style={{ background:"transparent", border:"1.5px solid #ef4444", borderRadius:"50%", width:20, height:20, color:"#ef4444", fontWeight:800, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0 }}>−</button>
+                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>
+                  </div>
+                )}
+                <button onClick={(e)=>handleAdd(e,item)} style={{ background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:8, padding:"7px 12px", color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>{addedMap[item.id]?"✓":"🛒 Agregar"}</button>
               </div>
             </div>
           );
@@ -2114,15 +2172,20 @@ function ProductGrid({ items, dark, onAddCart, onDetail, cart, view }) {
                 <div style={{ fontWeight:700, fontSize:13, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
                 <div style={{ color:t.muted, fontSize:11, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
               </div>
-              {/* Precio en el centro, contador a la derecha */}
+              {/* Precio en el centro, contador (con boton de quitar) a la derecha */}
               <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:10 }}>
                 <span style={{ color:item.color, fontWeight:800, fontSize:17 }}>{formatPrice(item.price)}</span>
-                {cnt>0 && <div style={{ position:"absolute", right:0, background:item.color, color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>}
+                {cnt>0 && (
+                  <div style={{ position:"absolute", right:0, display:"flex", alignItems:"center", gap:5 }}>
+                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" style={{ background:"transparent", border:"1.5px solid #ef4444", borderRadius:"50%", width:20, height:20, color:"#ef4444", fontWeight:800, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, flexShrink:0 }}>−</button>
+                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>
+                  </div>
+                )}
               </div>
-              {/* Botones abajo con colores animados */}
+              {/* Botones abajo - colores fijos y consistentes en todos los productos */}
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                 <button onClick={(e)=>handleAdd(e,item)} className={addedMap[item.id]?"":"glow-green"} style={{ width:"100%", padding:"9px 0", background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{addedMap[item.id]?"✓ Agregado":"🛒 Agregar al carrito"}</button>
-                <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:"9px 0", background:`linear-gradient(135deg,${item.color},${item.color}cc)`, border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+                <button onClick={handleBuyNow} className="glow-purple" style={{ width:"100%", padding:"9px 0", background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
               </div>
             </div>
           </div>
@@ -2311,6 +2374,7 @@ export default function App() {
   const navigate = (key) => {
     if (key==="wa") { window.open(`https://wa.me/${WA_NUMBER}`,"_blank"); return; }
     if (key==="web-offer") { setScreen("home"); setShowWebOffer(true); return; }
+    if (key==="club") { setScreen("home"); setShowClub(true); return; }
     setScreen(key);
   };
 
@@ -2366,7 +2430,7 @@ export default function App() {
         <div style={{ padding:"16px" }}>
           <p style={{ color:t.muted, fontSize:13, marginBottom:16 }}>Los combos más populares entre nuestros clientes ⭐</p>
           <FiltroBar dark={dark} sortBy={sortFavoritos} setSortBy={setSortFavoritos} view={viewFavoritos} setView={setViewFavoritos} count={FAV_COMBOS.length} />
-          <ProductGrid items={sortItems(FAV_COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortFavoritos)} dark={dark} onAddCart={addCart} onDetail={setDetail} cart={cart} view={viewFavoritos} />
+          <ProductGrid items={sortItems(FAV_COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortFavoritos)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewFavoritos} />
         </div>
       </div>
     </div>
@@ -2387,7 +2451,7 @@ export default function App() {
         </div>
         <div style={{ padding:16 }}>
           <FiltroBar dark={dark} sortBy={sortPantallas} setSortBy={setSortPantallas} view={viewPantallas} setView={setViewPantallas} count={PANTALLAS.length} />
-          <ProductGrid items={sortItems(PANTALLAS, sortPantallas)} dark={dark} onAddCart={addCart} onDetail={setDetail} cart={cart} view={viewPantallas} />
+          <ProductGrid items={sortItems(PANTALLAS, sortPantallas)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewPantallas} />
         </div>
       </div>
     </div>
@@ -2411,7 +2475,7 @@ export default function App() {
             <p style={{ color:"#cccc00", fontSize:12, lineHeight:1.6 }}>💡 <strong style={{ color:"#ffff88" }}>Combos = más plataformas por menos.</strong> Las activamos en minutos.</p>
           </div>
           <FiltroBar dark={dark} sortBy={sortCombos} setSortBy={setSortCombos} view={viewCombos} setView={setViewCombos} count={COMBOS.length} />
-          <ProductGrid items={sortItems(COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortCombos)} dark={dark} onAddCart={addCart} onDetail={setDetail} cart={cart} view={viewCombos} />
+          <ProductGrid items={sortItems(COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortCombos)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewCombos} />
         </div>
       </div>
     </div>
@@ -2432,7 +2496,7 @@ export default function App() {
         </div>
         <div style={{ padding:16 }}>
           <FiltroBar dark={dark} sortBy={sortMeses} setSortBy={setSortMeses} view={viewMeses} setView={setViewMeses} count={MESES.length} />
-          <ProductGrid items={sortItems(MESES, sortMeses)} dark={dark} onAddCart={addCart} onDetail={setDetail} cart={cart} view={viewMeses} />
+          <ProductGrid items={sortItems(MESES, sortMeses)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewMeses} />
         </div>
       </div>
     </div>
@@ -2451,7 +2515,7 @@ export default function App() {
           <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
           <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
-        <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} dark={dark} cart={cart} onDetail={setDetail} />
+        <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cart={cart} onDetail={setDetail} />
       </div>
     </div>
   );
