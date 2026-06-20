@@ -375,6 +375,9 @@ const getCSS = (dark) => `
   }
   .menu-btn-text { display:none; }
   .activacion-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(124,58,237,0.2); }
+  .platform-btn { transition:transform 0.2s ease, box-shadow 0.2s ease; }
+  .platform-btn:hover { transform:translateY(-4px); }
+  .platform-btn:active { transform:scale(0.97); }
   .activacion-card:active { transform:scale(0.96); }
   .web-offer-banner { transition:transform 0.2s ease, box-shadow 0.2s ease; }
   .web-offer-banner:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(29,78,216,0.4); }
@@ -386,6 +389,17 @@ const getCSS = (dark) => `
   ::-webkit-scrollbar-track { background:rgba(124,58,237,0.05); }
   ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,#7c3aed,#a855f7); border-radius:10px; }
   ::-webkit-scrollbar-thumb:hover { background:linear-gradient(180deg,#8b4ff5,#b76bfc); }
+
+  /* Modal de producto: una columna compacta en celular, dos columnas anchas en PC */
+  .detail-img-wrap { border-radius:22px 22px 0 0; aspect-ratio:4/3; }
+  @media (min-width:760px) {
+    .detail-modal { max-width:760px !important; }
+    .detail-layout { display:grid; grid-template-columns:1fr 1fr; align-items:stretch; }
+    .detail-img-wrap { border-radius:22px 0 0 22px; aspect-ratio:auto; height:100%; min-height:380px; }
+  }
+  @media (min-width:1024px) {
+    .detail-modal { max-width:880px !important; }
+  }
   html { scrollbar-color:#7c3aed rgba(124,58,237,0.05); scrollbar-width:thin; }
   @media (min-width:480px) {
     .menu-btn-text { display:inline; }
@@ -1108,20 +1122,16 @@ function ValidarCodigo({ onBack, dark }) {
         {!platform ? (
           <>
             <p style={{ color:t.muted, fontSize:14, marginBottom:20, textAlign:"center", fontWeight:600 }}>Selecciona la plataforma</p>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:16 }}>
-              <button onClick={()=>setPlatform("netflix")} style={{ background:"#1a0000", border:"2px solid #E50914", borderRadius:18, padding:24, cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
-                <div style={{ width:90, height:90, borderRadius:18, overflow:"hidden", background:"#000" }}>
-                  <img src={IMG.netflix} alt="Netflix" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                </div>
-                <div style={{ color:"#fff", fontWeight:800, fontSize:18 }}>Netflix</div>
-                <div style={{ color:"#E50914", fontSize:12 }}>Código de hogar</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:16, maxWidth:560, marginLeft:"auto", marginRight:"auto" }}>
+              <button onClick={()=>setPlatform("netflix")} className="platform-btn" style={{ background:"linear-gradient(160deg,#2a0a0a,#1a0505)", border:"1.5px solid #E5091455", borderRadius:18, padding:"30px 18px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:10 }}>
+                <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#E50914,#a30710)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, boxShadow:"0 6px 18px rgba(229,9,20,0.35)" }}>🎬</div>
+                <div style={{ color:"#fff", fontWeight:800, fontSize:17, marginTop:4 }}>Netflix</div>
+                <div style={{ color:"#f87171", fontSize:11.5, fontWeight:600 }}>Código de hogar</div>
               </button>
-              <button onClick={()=>setPlatform("disney")} style={{ background:"#00001a", border:"2px solid #0063e5", borderRadius:18, padding:24, cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:12 }}>
-                <div style={{ width:90, height:90, borderRadius:18, overflow:"hidden", background:"#000" }}>
-                  <img src={IMG.disneyPrem} alt="Disney+" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-                </div>
-                <div style={{ color:"#fff", fontWeight:800, fontSize:18 }}>Disney+</div>
-                <div style={{ color:"#0063e5", fontSize:12 }}>Código acceso único</div>
+              <button onClick={()=>setPlatform("disney")} className="platform-btn" style={{ background:"linear-gradient(160deg,#0a1233,#050a1f)", border:"1.5px solid #0063e555", borderRadius:18, padding:"30px 18px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:10 }}>
+                <div style={{ width:64, height:64, borderRadius:18, background:"linear-gradient(135deg,#0063e5,#0044a3)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:30, boxShadow:"0 6px 18px rgba(0,99,229,0.35)" }}>✨</div>
+                <div style={{ color:"#fff", fontWeight:800, fontSize:17, marginTop:4 }}>Disney+</div>
+                <div style={{ color:"#60a5fa", fontSize:11.5, fontWeight:600 }}>Código acceso único</div>
               </button>
             </div>
           </>
@@ -1381,49 +1391,51 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
 
   return (
     <div onClick={onBack} style={{ position:"fixed", inset:0, zIndex:400, background:"rgba(0,0,0,0.78)", display:"flex", alignItems:"center", justifyContent:"center", padding:18, animation:"overlayIn 0.2s ease" }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:22, maxWidth:420, width:"100%", maxHeight:"94vh", overflowY:"auto", animation:"fadeUp 0.3s ease", position:"relative", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
+      <div onClick={e=>e.stopPropagation()} className="detail-modal" style={{ background:t.surface, borderRadius:22, maxWidth:420, width:"100%", maxHeight:"88vh", overflowY:"auto", animation:"fadeUp 0.3s ease", position:"relative", boxShadow:"0 20px 60px rgba(0,0,0,0.5)" }}>
         <button onClick={onBack} aria-label="Cerrar" style={{ position:"absolute", top:12, right:12, zIndex:5, width:32, height:32, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:17, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>×</button>
 
-        {/* Imagen arriba - se ve completa, sin recortes */}
-        <div style={{ width:"100%", aspectRatio:"4/3", overflow:"hidden", borderRadius:"22px 22px 0 0", background:dark?"#0d141f":"#e8ecf2", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} onError={e=>e.target.style.display="none"} />
-        </div>
-
-        <div style={{ padding:"14px 20px 18px" }}>
-          {item.badge && <div style={{ display:"inline-block", background:accent, borderRadius:6, padding:"2px 9px", fontSize:9.5, fontWeight:700, color:"#fff", marginBottom:6 }}>{item.badge}</div>}
-          <h2 style={{ fontSize:18, fontWeight:800, marginBottom:3 }}>{item.name}</h2>
-          <p style={{ color:t.muted, fontSize:12.5, marginBottom:12 }}>{item.desc}</p>
-
-          {/* Precio centro, contador derecha */}
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:cartCountForItem>0?8:14 }}>
-            <span style={{ color:accent, fontWeight:900, fontSize:26 }}>{formatPrice(item.price)}</span>
-            {cartCountForItem>0 && (
-              <div style={{ position:"absolute", right:0, background:accent, color:"#fff", borderRadius:20, padding:"3px 11px", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", gap:5 }}>
-                🛒 {cartCountForItem}
-              </div>
-            )}
+        <div className="detail-layout">
+          {/* Imagen - se ve completa, sin recortes */}
+          <div className="detail-img-wrap" style={{ width:"100%", overflow:"hidden", background:dark?"#0d141f":"#e8ecf2", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} onError={e=>e.target.style.display="none"} />
           </div>
 
-          {cartCountForItem>0 ? (
-            <button onClick={()=>onRemoveOne(item)} style={{ width:"100%", padding:10, background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:7, boxShadow:"0 2px 8px rgba(239,68,68,0.35)" }}>🗑️ Quitar 1 del carrito</button>
-          ) : null}
+          <div style={{ padding:"14px 20px 18px" }}>
+            {item.badge && <div style={{ display:"inline-block", background:accent, borderRadius:6, padding:"2px 9px", fontSize:9.5, fontWeight:700, color:"#fff", marginBottom:6 }}>{item.badge}</div>}
+            <h2 style={{ fontSize:18, fontWeight:800, marginBottom:3 }}>{item.name}</h2>
+            <p style={{ color:t.muted, fontSize:12.5, marginBottom:12 }}>{item.desc}</p>
 
-          {item.features && (
-            <div style={{ marginBottom:14 }}>
-              <p style={{ color:t.muted, fontSize:10, letterSpacing:"1px", textTransform:"uppercase", marginBottom:7, fontWeight:600 }}>Incluye</p>
-              {item.features.map((f,i)=>(
-                <div key={i} style={{ display:"flex", alignItems:"center", gap:9, padding:"6px 0", borderBottom:i<item.features.length-1?`1px solid ${t.border}`:"none" }}>
-                  <div style={{ width:18, height:18, borderRadius:6, background:`${accent}1a`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, color:accent, flexShrink:0 }}>✓</div>
-                  <span style={{ color:t.text, fontSize:12.5 }}>{f}</span>
+            {/* Precio centro, contador derecha */}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:cartCountForItem>0?8:14 }}>
+              <span style={{ color:accent, fontWeight:900, fontSize:26 }}>{formatPrice(item.price)}</span>
+              {cartCountForItem>0 && (
+                <div style={{ position:"absolute", right:0, background:accent, color:"#fff", borderRadius:20, padding:"3px 11px", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", gap:5 }}>
+                  🛒 {cartCountForItem}
                 </div>
-              ))}
+              )}
             </div>
-          )}
 
-          {/* Botones abajo con colores animados */}
-          <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-            <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:13, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
-            <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:12, color:"#1a1200", fontWeight:800, fontSize:14.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+            {cartCountForItem>0 ? (
+              <button onClick={()=>onRemoveOne(item)} style={{ width:"100%", padding:10, background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit", marginBottom:12, display:"flex", alignItems:"center", justifyContent:"center", gap:7, boxShadow:"0 2px 8px rgba(239,68,68,0.35)" }}>🗑️ Quitar 1 del carrito</button>
+            ) : null}
+
+            {item.features && (
+              <div style={{ marginBottom:14 }}>
+                <p style={{ color:t.muted, fontSize:10, letterSpacing:"1px", textTransform:"uppercase", marginBottom:7, fontWeight:600 }}>Incluye</p>
+                {item.features.map((f,i)=>(
+                  <div key={i} style={{ display:"flex", alignItems:"center", gap:9, padding:"6px 0", borderBottom:i<item.features.length-1?`1px solid ${t.border}`:"none" }}>
+                    <div style={{ width:18, height:18, borderRadius:6, background:`${accent}1a`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:9, color:accent, flexShrink:0 }}>✓</div>
+                    <span style={{ color:t.text, fontSize:12.5 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Botones abajo con colores animados */}
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:13, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
+              <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:12, color:"#1a1200", fontWeight:800, fontSize:14.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1830,7 +1842,7 @@ function ActivarSmartTV({ onBack, dark }) {
           </div>
 
           <p style={{ color:t.muted, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:12 }}>Selecciona la plataforma</p>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12, marginBottom:26 }}>
             {ACTIVACIONES.map(app=>(
               <button key={app.id} onClick={()=>window.open(app.url,"_blank")} className="activacion-card" style={{ background:t.card, border:`1px solid ${app.color}33`, borderRadius:14, padding:"18px 14px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:10, transition:"all 0.2s ease" }}>
                 {app.img ? (
@@ -1846,9 +1858,26 @@ function ActivarSmartTV({ onBack, dark }) {
             ))}
           </div>
 
-          <div style={{ marginTop:24, padding:16, background:t.card, border:`1px solid ${t.border}`, borderRadius:14, textAlign:"center" }}>
-            <p style={{ color:t.muted, fontSize:13, marginBottom:10 }}>¿El código no llega o tienes dudas?</p>
-            <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hola! Necesito ayuda activando mi Smart TV 📺")}`,"_blank")} style={{ padding:"11px 22px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:11, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Pedir ayuda por WhatsApp</button>
+          {/* GUÍA PASO A PASO */}
+          <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:20 }}>
+            <p style={{ color:t.text, fontSize:14, fontWeight:800, marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>📋 Cómo activar tu Smart TV paso a paso</p>
+            {[
+              ["1","Abre la app del servicio en tu Smart TV", "Busca el ícono de la plataforma (Netflix, Disney+, Prime, etc.) en el menú de aplicaciones de tu TV y ábrela."],
+              ["2","Anota el código que aparece en pantalla", "Tu TV mostrará un código de varios dígitos o letras. Este código es temporal, así que ten a mano tu celular para el siguiente paso."],
+              ["3","Toca el botón de la plataforma aquí arriba", "Te llevará directo a la página oficial de activación en tu navegador."],
+              ["4","Ingresa el código y confirma", "Escribe el código exacto que viste en tu TV. En segundos la pantalla se activará automáticamente."],
+            ].map(([n,title,desc],i)=>(
+              <div key={i} style={{ display:"flex", gap:14, marginBottom:i<3?16:0, alignItems:"flex-start" }}>
+                <div style={{ width:30, height:30, borderRadius:10, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:14, flexShrink:0 }}>{n}</div>
+                <div>
+                  <div style={{ color:t.text, fontWeight:700, fontSize:13.5, marginBottom:3 }}>{title}</div>
+                  <div style={{ color:t.muted, fontSize:12.5, lineHeight:1.6 }}>{desc}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ marginTop:18, padding:"12px 14px", background:dark?"rgba(245,158,11,0.08)":"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)", borderRadius:10 }}>
+              <p style={{ color:"#f59e0b", fontSize:12, lineHeight:1.6 }}>⚠️ <strong>Importante:</strong> el código expira en pocos minutos. Si se vence, simplemente vuelve a abrir la app en tu TV para generar uno nuevo.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -2176,13 +2205,13 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
                 <div style={{ fontWeight:700, fontSize:13, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
                 <div style={{ color:t.muted, fontSize:11, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
               </div>
-              {/* Precio en el centro, contador (con boton de quitar) a la derecha */}
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", position:"relative", marginBottom:10 }}>
-                <span style={{ color:item.color, fontWeight:800, fontSize:17 }}>{formatPrice(item.price)}</span>
+              {/* Precio a la izquierda, contador+quitar a la derecha - sin superposicion */}
+              <div style={{ display:"flex", alignItems:"center", justifyContent:cnt>0?"space-between":"center", gap:6, marginBottom:10, minHeight:28 }}>
+                <span style={{ color:item.color, fontWeight:800, fontSize:17, flexShrink:0 }}>{formatPrice(item.price)}</span>
                 {cnt>0 && (
-                  <div style={{ position:"absolute", right:0, display:"flex", alignItems:"center", gap:6 }}>
-                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" title="Quitar 1 del carrito" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:"50%", width:26, height:26, color:"#fff", fontWeight:900, fontSize:15, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, flexShrink:0, boxShadow:"0 2px 6px rgba(239,68,68,0.4)" }}>−</button>
-                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" title="Quitar 1 del carrito" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:"50%", width:24, height:24, color:"#fff", fontWeight:900, fontSize:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, flexShrink:0, boxShadow:"0 2px 6px rgba(239,68,68,0.4)" }}>−</button>
+                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:10.5, fontWeight:800, whiteSpace:"nowrap" }}>🛒 {cnt}</div>
                   </div>
                 )}
               </div>
@@ -2199,12 +2228,13 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
   );
 }
 
-function Buscador({ dark, onBack, onAddCart, onDetail }) {
+function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[] }) {
   const t = getTheme(dark);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Todas");
   const [maxPrice, setMaxPrice] = useState(100000);
   const [sortBy, setSortBy] = useState("relevancia");
+  const [view, setView] = useState("grid");
 
   const results = ALL_ITEMS.filter(item=>{
     const name = (item.name||"").toLowerCase();
@@ -2221,9 +2251,14 @@ function Buscador({ dark, onBack, onAddCart, onDetail }) {
     return 0;
   });
 
-  // Deduplicar por id
+  // Deduplicar por nombre + precio (mismo producto puede tener distinto id en distintas categorías)
   const seen = new Set();
-  const unique = results.filter(i=>{ if(seen.has(i.id)) return false; seen.add(i.id); return true; });
+  const unique = results.filter(i=>{
+    const key = `${(i.name||"").toLowerCase().trim()}__${i.price}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   return (
     <div style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
@@ -2250,7 +2285,7 @@ function Buscador({ dark, onBack, onAddCart, onDetail }) {
           </div>
 
           {/* Filtros */}
-          <div style={{ display:"flex", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", gap:10, marginBottom:14, flexWrap:"wrap", alignItems:"center" }}>
             {/* Ordenar */}
             <select value={sortBy} onChange={e=>setSortBy(e.target.value)} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", color:t.text, fontSize:13, fontFamily:"inherit", cursor:"pointer", outline:"none" }}>
               <option value="relevancia">Relevancia</option>
@@ -2258,6 +2293,11 @@ function Buscador({ dark, onBack, onAddCart, onDetail }) {
               <option value="precio-desc">Mayor precio</option>
               <option value="nombre">A → Z</option>
             </select>
+            {/* Vista grid/lista */}
+            <div style={{ display:"flex", gap:4, background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:3 }}>
+              <button onClick={()=>setView("grid")} aria-label="Vista cuadrícula" style={{ background:view==="grid"?"#7c3aed":"transparent", border:"none", borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14, color:view==="grid"?"#fff":t.muted }}>▦</button>
+              <button onClick={()=>setView("list")} aria-label="Vista lista" style={{ background:view==="list"?"#7c3aed":"transparent", border:"none", borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14, color:view==="list"?"#fff":t.muted }}>☰</button>
+            </div>
             {/* Precio máximo */}
             <div style={{ display:"flex", alignItems:"center", gap:8, background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px" }}>
               <span style={{ color:t.muted, fontSize:12 }}>Hasta:</span>
@@ -2294,28 +2334,7 @@ function Buscador({ dark, onBack, onAddCart, onDetail }) {
               <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Estoy buscando "${query}" y no lo encontré en la página`)}`,"_blank")} style={{ marginTop:16, padding:"12px 24px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Preguntar por WhatsApp</button>
             </div>
           ) : (
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              {unique.map((item,i)=>(
-                <div key={`${item.id}-${i}`} style={{ background:t.card, border:`1px solid ${item.color?item.color+"33":t.border}`, borderRadius:14, overflow:"hidden", display:"flex", animation:"fadeUp 0.25s ease backwards", animationDelay:`${i*0.03}s` }}>
-                  <div style={{ width:90, height:90, flexShrink:0, overflow:"hidden", background:dark?"#0d141f":"#e8ecf2", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <Img src={item.img} alt={item.name} size={90} style={{ width:"100%", height:"100%", borderRadius:0 }} imgStyle={{ objectFit:"contain" }} />
-                  </div>
-                  <div style={{ flex:1, padding:"10px 14px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
-                    <div>
-                      <div style={{ fontWeight:700, fontSize:14, marginBottom:2 }}>{item.name}</div>
-                      <div style={{ color:t.muted, fontSize:11, marginBottom:4 }}>{item.desc}</div>
-                    </div>
-                    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                      <span style={{ color:item.color||"#7c3aed", fontWeight:900, fontSize:17 }}>{formatPrice(item.price)}</span>
-                      <div style={{ display:"flex", gap:6 }}>
-                        <button onClick={()=>onAddCart(item)} style={{ padding:"6px 12px", background:`linear-gradient(135deg,${item.color||"#7c3aed"},${item.color||"#7c3aed"}88)`, border:"none", borderRadius:8, color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>🛒</button>
-                        <button onClick={()=>onDetail(item)} style={{ padding:"6px 12px", background:t.surface, border:`1px solid ${t.border}`, borderRadius:8, color:t.text, fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit" }}>Ver más</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ProductGrid items={unique} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne} onDetail={onDetail} cart={cart} view={view} />
           )}
         </div>
       </div>
@@ -2395,7 +2414,7 @@ export default function App() {
   }
 
   if (screen==="search") return <>
-    <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onDetail={(item)=>{ setDetail(item); }} />
+    <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={(item)=>{ setDetail(item); }} cart={cart} />
     {detailModal}
   </>;
   if (screen==="validar") return <ValidarCodigo onBack={()=>setScreen("home")} dark={dark} />;
@@ -2563,7 +2582,10 @@ export default function App() {
         </button>
         <div style={{ flex:1 }} />
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          <button onClick={()=>setScreen("soporte")} className="hdr-btn report-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:8, padding:"7px 11px", cursor:"pointer", fontSize:11, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap" }}><span className="report-text">🚩 Reportar error</span><span className="report-icon-only">🚩</span></button>
+          <button onClick={()=>setScreen("soporte")} aria-label="Reportar error" title="Reportar error" className="hdr-btn report-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, padding:"8px 12px", cursor:"pointer", fontSize:11.5, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap", display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontSize:15, lineHeight:1 }}>🚩</span>
+            <span className="report-text">Reportar error</span>
+          </button>
           <button onClick={()=>setScreen("search")} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
           <button onClick={()=>setDark(d=>!d)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>{dark?"☀️":"🌙"}</button>
           <button onClick={()=>setScreen("cart")} className="hdr-btn" style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", cursor:"pointer", color:t.text, fontSize:18, animation:cartAnim?"cartBounce 0.4s ease":"none" }}>
