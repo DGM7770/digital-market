@@ -319,10 +319,10 @@ const getCSS = (dark) => `
   @keyframes tabGlow { 0%,100%{box-shadow:0 4px 14px rgba(124,58,237,0.35)} 50%{box-shadow:0 4px 22px rgba(124,58,237,0.65)} }
   .tab-active { transform:scale(1.05); animation:tabGlow 2.2s ease-in-out infinite; }
   .cart-bounce { animation:cartBounce 0.4s ease; }
-  .product-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-  @media (min-width:640px) { .product-grid { grid-template-columns:repeat(3,1fr); gap:14px; } }
-  @media (min-width:1024px) { .product-grid { grid-template-columns:repeat(4,1fr); gap:18px; } }
-  @media (min-width:1400px) { .product-grid { grid-template-columns:repeat(5,1fr); gap:20px; } }
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:12px; max-width:100%; }
+  @media (min-width:640px) { .product-grid { grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:14px; } }
+  @media (min-width:1024px) { .product-grid { grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:18px; } }
+  @media (min-width:1400px) { .product-grid { grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; } }
   @keyframes backGlow { 0%,100%{box-shadow:0 2px 8px rgba(124,58,237,0.15), 0 0 0 0 rgba(124,58,237,0.0)} 50%{box-shadow:0 2px 14px rgba(124,58,237,0.35), 0 0 0 4px rgba(124,58,237,0.08)} }
   .back-btn { display:inline-flex; align-items:center; gap:8px; transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; animation:backGlow 2.6s ease-in-out infinite; cursor:pointer; }
   .back-btn:hover { transform:translateX(-4px) scale(1.04); animation:none; box-shadow:0 4px 16px rgba(124,58,237,0.45); }
@@ -338,8 +338,8 @@ const getCSS = (dark) => `
   @keyframes floatBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
   .cart-item { transition:transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
   .cart-item:hover { transform:translateX(4px); box-shadow:0 6px 18px rgba(0,0,0,0.12); }
-  .remove-btn { transition:transform 0.15s ease, background 0.15s ease; }
-  .remove-btn:hover { transform:scale(1.08); background:#2a1414; }
+  .remove-btn { transition:transform 0.15s ease, box-shadow 0.15s ease; }
+  .remove-btn:hover { transform:scale(1.06); box-shadow:0 4px 12px rgba(239,68,68,0.5); }
   .remove-btn:active { transform:scale(0.92); }
   @keyframes checkoutGlow { 0%,100%{box-shadow:0 6px 18px rgba(37,211,102,0.35)} 50%{box-shadow:0 6px 28px rgba(37,211,102,0.6)} }
   .checkout-btn { animation:checkoutGlow 2.5s ease-in-out infinite; transition:transform 0.15s ease; }
@@ -375,9 +375,16 @@ const getCSS = (dark) => `
   }
   .menu-btn-text { display:none; }
   .activacion-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(124,58,237,0.2); }
+  .activacion-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  @media (min-width:480px) { .activacion-grid { grid-template-columns:repeat(3,1fr); } }
+  @media (min-width:768px) { .activacion-grid { grid-template-columns:repeat(4,1fr); gap:14px; } }
+  @media (min-width:1100px) { .activacion-grid { grid-template-columns:repeat(5,1fr); } }
   .platform-btn { transition:transform 0.2s ease, box-shadow 0.2s ease; }
   .platform-btn:hover { transform:translateY(-4px); }
   .platform-btn:active { transform:scale(0.97); }
+  .vip-apps-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+  .vip-app-item { display:flex; flex-direction:column; align-items:center; }
+  @media (min-width:480px) { .vip-modal { max-width:460px !important; } .vip-apps-grid { gap:10px; } }
   .activacion-card:active { transform:scale(0.96); }
   .web-offer-banner { transition:transform 0.2s ease, box-shadow 0.2s ease; }
   .web-offer-banner:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(29,78,216,0.4); }
@@ -997,44 +1004,54 @@ function ClubModal({ dark, onClose }) {
 // ─── VIP MODAL ────────────────────────────────────────────────────────────────
 function VipModal({ onClose, onAdd, dark }) {
   const t = getTheme(dark);
+  const apps = [
+    {name:"Netflix",img:IMG.netflix},{name:"HBO Max",img:IMG.hbo},{name:"Prime",img:IMG.prime},
+    {name:"ViX+",img:IMG.vix},{name:"Crunchyroll",img:IMG.crunchyroll},{name:"IPTV",img:IMG.iptv},
+    {name:"Paramount+",img:IMG.paramount},{name:"Plex",img:IMG.plex},{name:"Jellyfin",img:IMG.jellyfin},
+  ];
   return (
-    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.9)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:16, animation:"overlayIn 0.2s ease" }}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:20, width:"100%", maxWidth:440, maxHeight:"92vh", overflowY:"auto", animation:"modalIn 0.3s ease", position:"relative" }}>
-        <button onClick={onClose} style={{ position:"absolute", top:12, right:12, background:"#1a2535", border:"none", color:"#888", width:30, height:30, borderRadius:"50%", cursor:"pointer", fontSize:18, zIndex:1 }}>×</button>
-        <div style={{ padding:"24px 20px 0", textAlign:"center" }}>
-          <div style={{ fontSize:11, color:"#FFD700", letterSpacing:2, textTransform:"uppercase", fontWeight:700, marginBottom:8 }}>⭐ Oferta Exclusiva ⭐</div>
-          <h2 style={{ fontSize:28, fontWeight:900, marginBottom:4 }}>Combo VIP 💎</h2>
-          <p style={{ color:t.muted, fontSize:13, marginBottom:20 }}>9 plataformas premium · 1 pantalla de cada una</p>
+    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.9)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:14, animation:"overlayIn 0.2s ease" }}>
+      <div onClick={e=>e.stopPropagation()} className="vip-modal" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:20, width:"100%", maxWidth:400, maxHeight:"92vh", overflowY:"auto", animation:"modalIn 0.3s ease", position:"relative" }}>
+        <button onClick={onClose} aria-label="Cerrar" style={{ position:"absolute", top:10, right:10, background:"rgba(0,0,0,0.5)", border:"none", color:"#fff", width:28, height:28, borderRadius:"50%", cursor:"pointer", fontSize:16, zIndex:2 }}>×</button>
+
+        {/* TEXTO EXPLICATIVO ARRIBA */}
+        <div style={{ padding:"18px 18px 0", textAlign:"center" }}>
+          <div style={{ fontSize:10, color:"#FFD700", letterSpacing:2, textTransform:"uppercase", fontWeight:700, marginBottom:5 }}>⭐ Oferta Exclusiva ⭐</div>
+          <h2 style={{ fontSize:21, fontWeight:900, marginBottom:3 }}>Combo VIP 💎</h2>
+          <p style={{ color:t.muted, fontSize:11.5 }}>9 plataformas premium · 1 pantalla de cada una</p>
         </div>
-        <div style={{ padding:"0 20px" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:10, marginBottom:20 }}>
-            {[{name:"Netflix",img:IMG.netflix},{name:"HBO Max",img:IMG.hbo},{name:"Prime",img:IMG.prime},{name:"ViX+",img:IMG.vix},{name:"Crunchyroll",img:IMG.crunchyroll},{name:"IPTV",img:IMG.iptv},{name:"Paramount+",img:IMG.paramount},{name:"Plex",img:IMG.plex},{name:"Jellyfin",img:IMG.jellyfin}].map((it,i)=>(
-              <div key={i} style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:14, padding:"12px 8px", textAlign:"center" }}>
-                <div style={{ width:54, height:54, borderRadius:12, overflow:"hidden", background:"#1a2535", margin:"0 auto 8px", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <img src={it.img} alt={it.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} />
+
+        <div style={{ padding:"14px 18px 0" }}>
+          {/* LOGOS COMPACTOS Y PROFESIONALES */}
+          <div className="vip-apps-grid">
+            {apps.map((it,i)=>(
+              <div key={i} className="vip-app-item">
+                <div style={{ width:"100%", aspectRatio:"1/1", borderRadius:11, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.25)" }}>
+                  <Img src={it.img} alt={it.name} size={48} style={{ width:"100%", height:"100%", borderRadius:0 }} imgStyle={{ objectFit:"contain", padding:5 }} />
                 </div>
-                <div style={{ fontSize:11, fontWeight:700, color:t.text }}>{it.name}</div>
+                <div style={{ fontSize:9.5, fontWeight:700, color:t.text, textAlign:"center", marginTop:4, lineHeight:1.2 }}>{it.name}</div>
               </div>
             ))}
           </div>
-          <div style={{ background:"linear-gradient(135deg,#1a0010,#0d0028)", border:"1px solid #3a0040", borderRadius:16, padding:"18px 20px", marginBottom:16 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+
+          <div style={{ background:"linear-gradient(135deg,#1a0010,#0d0028)", border:"1px solid #3a0040", borderRadius:14, padding:"13px 16px", margin:"14px 0" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
-                <div style={{ fontSize:14, color:"#888", textDecoration:"line-through" }}>$58.000</div>
-                <div style={{ fontSize:40, fontWeight:900, color:"#fff" }}>$45.000</div>
-                <div style={{ fontSize:13, color:"#25d366", fontWeight:700 }}>Ahorras $13.000 🎉</div>
+                <div style={{ fontSize:12, color:"#888", textDecoration:"line-through" }}>$58.000</div>
+                <div style={{ fontSize:28, fontWeight:900, color:"#fff", lineHeight:1.1 }}>$45.000</div>
+                <div style={{ fontSize:11.5, color:"#25d366", fontWeight:700 }}>Ahorras $13.000 🎉</div>
               </div>
-              <div style={{ textAlign:"right" }}>
-                <div style={{ fontSize:11, color:"#888", marginBottom:6 }}>Cupón:</div>
-                <div onClick={()=>navigator.clipboard?.writeText("DM10")} style={{ background:"rgba(229,9,20,0.15)", border:"2px dashed #E50914", borderRadius:10, padding:"8px 14px", fontSize:16, fontWeight:800, color:"#E50914", cursor:"pointer" }}>📋 DM10</div>
-                <div style={{ fontSize:9, color:"#555", marginTop:3 }}>Toca para copiar</div>
+              <div onClick={()=>navigator.clipboard?.writeText("DM10")} style={{ textAlign:"center", cursor:"pointer" }}>
+                <div style={{ fontSize:9.5, color:"#888", marginBottom:4 }}>Cupón:</div>
+                <div style={{ background:"rgba(229,9,20,0.15)", border:"2px dashed #E50914", borderRadius:9, padding:"6px 11px", fontSize:13, fontWeight:800, color:"#E50914" }}>📋 DM10</div>
               </div>
             </div>
           </div>
-          <button onClick={()=>{ onAdd({ id:"vip", name:"Combo VIP 💎 (9 plataformas)", price:45000, img:IMG.comboVip, color:"#a855f7", desc:"Netflix+HBO+Prime+ViX+Crunchyroll+IPTV+Paramount+Plex+Jellyfin" }); onClose(); }} style={{ width:"100%", padding:18, background:"linear-gradient(135deg,#E50914,#a855f7)", border:"none", borderRadius:14, color:"#fff", fontWeight:800, fontSize:16, cursor:"pointer", fontFamily:"inherit", marginBottom:10 }}>
+
+          <button onClick={()=>{ onAdd({ id:"vip", name:"Combo VIP 💎 (9 plataformas)", price:45000, img:IMG.comboVip, color:"#a855f7", desc:"Netflix+HBO+Prime+ViX+Crunchyroll+IPTV+Paramount+Plex+Jellyfin" }); onClose(); }} style={{ width:"100%", padding:15, background:"linear-gradient(135deg,#E50914,#a855f7)", border:"none", borderRadius:13, color:"#fff", fontWeight:800, fontSize:14.5, cursor:"pointer", fontFamily:"inherit", marginBottom:8 }}>
             💎 Agregar al carrito — $45.000
           </button>
-          <button onClick={onClose} style={{ width:"100%", padding:10, background:"transparent", border:"none", color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:20 }}>No gracias, continuar sin descuento</button>
+          <button onClick={onClose} style={{ width:"100%", padding:9, background:"transparent", border:"none", color:t.muted, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", marginBottom:14 }}>No gracias, continuar sin descuento</button>
         </div>
       </div>
     </div>
@@ -1225,7 +1242,7 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
       <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.3)":"0 4px 16px rgba(0,0,0,0.05)" }}>
         <BackButton onClick={onBack} dark={dark} label="" />
         <div style={{ flex:1 }}><div style={{ fontWeight:800, fontSize:18 }}>🛒 Mi Carrito</div><div style={{ color:t.muted, fontSize:12 }}>{items.length} producto{items.length!==1?"s":""}</div></div>
-        {items.length>0 && <button onClick={onClear} className="hdr-btn" style={{ background:"#1a0f0f", border:"1px solid #3a1a1a", borderRadius:10, padding:"7px 14px", color:"#ef4444", fontSize:12, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>🗑️ Vaciar</button>}
+        {items.length>0 && <button onClick={onClear} className="hdr-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:10, padding:"8px 15px", color:"#fff", fontSize:12.5, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.35)", display:"flex", alignItems:"center", gap:6 }}>🗑️ Vaciar</button>}
       </div>
       <div style={{ flex:1, padding:"14px 16px", overflowY:"auto" }}>
         {items.length===0 ? (
@@ -1245,7 +1262,7 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
               </div>
               <div style={{ textAlign:"right", flexShrink:0 }}>
                 <div style={{ color:item.color||t.text, fontWeight:900, fontSize:16, marginBottom:6 }}>{formatPrice(item.price)}</div>
-                <button onClick={()=>onRemove(i)} className="remove-btn" style={{ background:"#1a0f0f", border:"1px solid #3a1a1a", borderRadius:8, color:"#ef4444", fontSize:11, fontWeight:600, cursor:"pointer", padding:"5px 10px", fontFamily:"inherit", display:"inline-flex", alignItems:"center", gap:4 }}>✕ Quitar</button>
+                <button onClick={()=>onRemove(i)} className="remove-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, color:"#fff", fontSize:11.5, fontWeight:700, cursor:"pointer", padding:"6px 12px", fontFamily:"inherit", display:"inline-flex", alignItems:"center", gap:5, boxShadow:"0 2px 6px rgba(239,68,68,0.3)" }}>✕ Quitar</button>
               </div>
             </div>
           ))}
@@ -1826,7 +1843,7 @@ function ActivarSmartTV({ onBack, dark }) {
   const t = getTheme(dark);
   return (
     <div className="no-side-border" style={{ minHeight:"100vh", width:"100%", background:t.bg, fontFamily:"'Outfit',system-ui,sans-serif", color:t.text }}>
-      <div style={{ maxWidth:900, margin:"0 auto", paddingBottom:50 }}>
+      <div style={{ maxWidth:1200, margin:"0 auto", paddingBottom:50 }}>
         <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
           <BackButton onClick={onBack} dark={dark} label="" />
           <div style={{ width:42, height:42, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>📺</div>
@@ -1844,19 +1861,20 @@ function ActivarSmartTV({ onBack, dark }) {
             </p>
           </div>
 
-          <p style={{ color:t.muted, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:12 }}>Selecciona la plataforma</p>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(140px, 1fr))", gap:12, marginBottom:26 }}>
+          <p style={{ color:t.muted, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:14 }}>Selecciona la plataforma</p>
+          <div className="activacion-grid" style={{ marginBottom:26 }}>
             {ACTIVACIONES.map(app=>(
-              <button key={app.id} onClick={()=>window.open(app.url,"_blank")} className="activacion-card" style={{ background:t.card, border:`1px solid ${app.color}33`, borderRadius:14, padding:"18px 14px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:10, transition:"all 0.2s ease" }}>
+              <button key={app.id} onClick={()=>window.open(app.url,"_blank")} className="activacion-card" style={{ background:`linear-gradient(160deg, ${t.card}, ${app.color}0d)`, border:`1.5px solid ${app.color}40`, borderRadius:16, padding:"20px 14px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:11, transition:"all 0.2s ease", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:-20, right:-20, width:70, height:70, borderRadius:"50%", background:`${app.color}14` }} />
                 {app.img ? (
-                  <div style={{ width:44, height:44, borderRadius:12, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                    <Img src={app.img} alt={app.name} size={44} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain", padding:4 }} />
+                  <div style={{ width:62, height:62, borderRadius:16, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 6px 16px ${app.color}33`, position:"relative", zIndex:1 }}>
+                    <Img src={app.img} alt={app.name} size={62} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain", padding:6 }} />
                   </div>
                 ) : (
-                  <div style={{ width:44, height:44, borderRadius:12, background:`${app.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>{app.icon}</div>
+                  <div style={{ width:62, height:62, borderRadius:16, background:`${app.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, boxShadow:`0 6px 16px ${app.color}33`, position:"relative", zIndex:1 }}>{app.icon}</div>
                 )}
-                <span style={{ color:t.text, fontWeight:700, fontSize:13, textAlign:"center" }}>{app.name}</span>
-                <span style={{ color:app.color, fontSize:11, fontWeight:600 }}>Activar →</span>
+                <span style={{ color:t.text, fontWeight:800, fontSize:13.5, textAlign:"center", position:"relative", zIndex:1 }}>{app.name}</span>
+                <span style={{ color:app.color, fontSize:11, fontWeight:700, position:"relative", zIndex:1, display:"flex", alignItems:"center", gap:3 }}>Activar <span style={{ transition:"transform 0.2s ease" }}>→</span></span>
               </button>
             ))}
           </div>
@@ -2588,7 +2606,6 @@ export default function App() {
           <button onClick={()=>setScreen("soporte")} aria-label="Reportar error" title="Reportar error" className="hdr-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, padding:"8px 14px", cursor:"pointer", fontSize:12, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap" }}>
             Reportar Error
           </button>
-          <button onClick={()=>setScreen("search")} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
           <button onClick={()=>setDark(d=>!d)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>{dark?"☀️":"🌙"}</button>
           <button onClick={()=>setScreen("cart")} className="hdr-btn" style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", cursor:"pointer", color:t.text, fontSize:18, animation:cartAnim?"cartBounce 0.4s ease":"none" }}>
             🛒{cart.length>0 && <div style={{ position:"absolute", top:-6, right:-6, background:"#E50914", color:"#fff", borderRadius:"50%", width:18, height:18, fontSize:9, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", animation:"fadeUp 0.3s ease" }}>{cart.length}</div>}
@@ -2600,12 +2617,9 @@ export default function App() {
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 16px 16px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
         <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(68px, 18vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
         <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(16px, 3.75vw, 24px)", letterSpacing:0.5, marginTop:4, textAlign:"center" }}>Digital Market</span>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginTop:4, marginBottom:12 }}>
-          <span style={{ fontSize:8, fontWeight:700, letterSpacing:2, textTransform:"uppercase", color:t.muted }}>Tu tienda digital de confianza</span>
-          <div style={{ display:"flex", alignItems:"center", gap:4, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:16, padding:"3px 8px" }}>
-            <div style={{ width:5, height:5, background:"#25d366", borderRadius:"50%", animation:"blink 1.6s ease infinite" }} />
-            <span style={{ color:"#25d366", fontSize:8.5, fontWeight:700 }}>En línea</span>
-          </div>
+        <div style={{ display:"flex", alignItems:"center", gap:4, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:16, padding:"3px 9px", marginTop:8, marginBottom:12 }}>
+          <div style={{ width:5, height:5, background:"#25d366", borderRadius:"50%", animation:"blink 1.6s ease infinite" }} />
+          <span style={{ color:"#25d366", fontSize:9, fontWeight:700 }}>En línea</span>
         </div>
         <button onClick={()=>setScreen("search")} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, background:t.card, border:`1.5px solid ${t.border}`, borderRadius:16, padding:"14px 18px", cursor:"pointer", fontFamily:"inherit" }}>
           <span style={{ fontSize:19, opacity:0.5 }}>🔍</span>
