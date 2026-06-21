@@ -323,6 +323,16 @@ const getCSS = (dark) => `
   @media (min-width:640px) { .product-grid { grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:14px; } }
   @media (min-width:1024px) { .product-grid { grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:18px; } }
   @media (min-width:1400px) { .product-grid { grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:20px; } }
+  .product-grid-compact { grid-template-columns:repeat(auto-fill, minmax(108px, 1fr)) !important; gap:9px !important; }
+  @media (min-width:640px) { .product-grid-compact { grid-template-columns:repeat(auto-fill, minmax(125px, 1fr)) !important; gap:10px !important; } }
+  @media (min-width:1024px) { .product-grid-compact { grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)) !important; gap:12px !important; } }
+  @media (min-width:1400px) { .product-grid-compact { grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)) !important; gap:14px !important; } }
+  .product-grid-compact { grid-template-columns:repeat(3, 1fr) !important; gap:8px !important; }
+  @media (min-width:480px) { .product-grid-compact { grid-template-columns:repeat(4, 1fr) !important; } }
+  @media (min-width:640px) { .product-grid-compact { grid-template-columns:repeat(5, 1fr) !important; gap:10px !important; } }
+  @media (min-width:900px) { .product-grid-compact { grid-template-columns:repeat(6, 1fr) !important; } }
+  @media (min-width:1200px) { .product-grid-compact { grid-template-columns:repeat(7, 1fr) !important; } }
+  @media (min-width:1500px) { .product-grid-compact { grid-template-columns:repeat(8, 1fr) !important; } }
   @keyframes backGlow { 0%,100%{box-shadow:0 2px 8px rgba(124,58,237,0.15), 0 0 0 0 rgba(124,58,237,0.0)} 50%{box-shadow:0 2px 14px rgba(124,58,237,0.35), 0 0 0 4px rgba(124,58,237,0.08)} }
   .back-btn { display:inline-flex; align-items:center; gap:8px; transition:transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease; animation:backGlow 2.6s ease-in-out infinite; cursor:pointer; }
   .back-btn:hover { transform:translateX(-4px) scale(1.04); animation:none; box-shadow:0 4px 16px rgba(124,58,237,0.45); }
@@ -384,7 +394,8 @@ const getCSS = (dark) => `
   .platform-btn:active { transform:scale(0.97); }
   .vip-apps-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
   .vip-app-item { display:flex; flex-direction:column; align-items:center; }
-  @media (min-width:480px) { .vip-modal { max-width:460px !important; } .vip-apps-grid { gap:10px; } }
+  .vip-banner { max-height:160px; }
+  @media (min-width:480px) { .vip-modal { max-width:460px !important; } .vip-apps-grid { gap:10px; } .vip-banner { max-height:190px; } }
   .activacion-card:active { transform:scale(0.96); }
   .web-offer-banner { transition:transform 0.2s ease, box-shadow 0.2s ease; }
   .web-offer-banner:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(29,78,216,0.4); }
@@ -1012,34 +1023,39 @@ function VipModal({ onClose, onAdd, dark }) {
   return (
     <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.9)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:14, animation:"overlayIn 0.2s ease" }}>
       <div onClick={e=>e.stopPropagation()} className="vip-modal" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:20, width:"100%", maxWidth:400, maxHeight:"92vh", overflowY:"auto", animation:"modalIn 0.3s ease", position:"relative" }}>
-        <button onClick={onClose} aria-label="Cerrar" style={{ position:"absolute", top:10, right:10, background:"rgba(0,0,0,0.5)", border:"none", color:"#fff", width:28, height:28, borderRadius:"50%", cursor:"pointer", fontSize:16, zIndex:2 }}>×</button>
+        <button onClick={onClose} aria-label="Cerrar" style={{ position:"absolute", top:10, right:10, background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", width:28, height:28, borderRadius:"50%", cursor:"pointer", fontSize:16, zIndex:2 }}>×</button>
+
+        {/* IMAGEN BANNER - moderada, no gigante ni diminuta */}
+        <div className="vip-banner" style={{ width:"100%", aspectRatio:"16/9", overflow:"hidden", borderRadius:"20px 20px 0 0", background:dark?"#0d141f":"#e8ecf2", display:"flex", alignItems:"center", justifyContent:"center" }}>
+          <img src={IMG.comboVip} alt="Combo VIP" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>e.target.style.display="none"} />
+        </div>
 
         {/* TEXTO EXPLICATIVO ARRIBA */}
-        <div style={{ padding:"18px 18px 0", textAlign:"center" }}>
-          <div style={{ fontSize:10, color:"#FFD700", letterSpacing:2, textTransform:"uppercase", fontWeight:700, marginBottom:5 }}>⭐ Oferta Exclusiva ⭐</div>
-          <h2 style={{ fontSize:21, fontWeight:900, marginBottom:3 }}>Combo VIP 💎</h2>
+        <div style={{ padding:"14px 18px 0", textAlign:"center" }}>
+          <div style={{ fontSize:10, color:"#FFD700", letterSpacing:2, textTransform:"uppercase", fontWeight:700, marginBottom:4 }}>⭐ Oferta Exclusiva ⭐</div>
+          <h2 style={{ fontSize:20, fontWeight:900, marginBottom:2 }}>Combo VIP 💎</h2>
           <p style={{ color:t.muted, fontSize:11.5 }}>9 plataformas premium · 1 pantalla de cada una</p>
         </div>
 
-        <div style={{ padding:"14px 18px 0" }}>
-          {/* LOGOS COMPACTOS Y PROFESIONALES */}
+        <div style={{ padding:"12px 18px 0" }}>
+          {/* LOGOS COMPACTOS - complemento, no protagonistas */}
           <div className="vip-apps-grid">
             {apps.map((it,i)=>(
               <div key={i} className="vip-app-item">
-                <div style={{ width:"100%", aspectRatio:"1/1", borderRadius:11, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.25)" }}>
-                  <Img src={it.img} alt={it.name} size={48} style={{ width:"100%", height:"100%", borderRadius:0 }} imgStyle={{ objectFit:"contain", padding:5 }} />
+                <div style={{ width:"100%", aspectRatio:"1/1", borderRadius:10, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 6px rgba(0,0,0,0.2)" }}>
+                  <Img src={it.img} alt={it.name} size={40} style={{ width:"100%", height:"100%", borderRadius:0 }} imgStyle={{ objectFit:"contain", padding:4 }} />
                 </div>
-                <div style={{ fontSize:9.5, fontWeight:700, color:t.text, textAlign:"center", marginTop:4, lineHeight:1.2 }}>{it.name}</div>
+                <div style={{ fontSize:8.5, fontWeight:700, color:t.text, textAlign:"center", marginTop:3, lineHeight:1.15 }}>{it.name}</div>
               </div>
             ))}
           </div>
 
-          <div style={{ background:"linear-gradient(135deg,#1a0010,#0d0028)", border:"1px solid #3a0040", borderRadius:14, padding:"13px 16px", margin:"14px 0" }}>
+          <div style={{ background:"linear-gradient(135deg,#1a0010,#0d0028)", border:"1px solid #3a0040", borderRadius:14, padding:"12px 16px", margin:"12px 0" }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div>
                 <div style={{ fontSize:12, color:"#888", textDecoration:"line-through" }}>$58.000</div>
-                <div style={{ fontSize:28, fontWeight:900, color:"#fff", lineHeight:1.1 }}>$45.000</div>
-                <div style={{ fontSize:11.5, color:"#25d366", fontWeight:700 }}>Ahorras $13.000 🎉</div>
+                <div style={{ fontSize:26, fontWeight:900, color:"#fff", lineHeight:1.1 }}>$45.000</div>
+                <div style={{ fontSize:11, color:"#25d366", fontWeight:700 }}>Ahorras $13.000 🎉</div>
               </div>
               <div onClick={()=>navigator.clipboard?.writeText("DM10")} style={{ textAlign:"center", cursor:"pointer" }}>
                 <div style={{ fontSize:9.5, color:"#888", marginBottom:4 }}>Cupón:</div>
@@ -2159,7 +2175,7 @@ function sortItems(items, sortBy) {
   return arr;
 }
 
-function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view }) {
+function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view, compact=false }) {
   const t = getTheme(dark);
   const [addedMap, setAddedMap] = useState({});
 
@@ -2208,7 +2224,7 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
   }
 
   return (
-    <div className="product-grid">
+    <div className={compact?"product-grid product-grid-compact":"product-grid"}>
       {items.map((item,i)=>{
         const cnt = countFor(item.id);
         const handleBuyNow = (e) => {
@@ -2217,29 +2233,29 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
           window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Quiero comprar ${item.name} por ${formatPrice(item.price)} 🙏`)}`,"_blank");
         };
         return (
-          <div key={item.id} className="card-hover" style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:16, overflow:"hidden", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
-            {item.badge && <div style={{ position:"absolute", top:8, left:8, zIndex:2, background:item.color, borderRadius:6, padding:"2px 8px", fontSize:9, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
+          <div key={item.id} className="card-hover" style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:compact?12:16, overflow:"hidden", position:"relative", animationDelay:`${(i%10)*0.04}s` }}>
+            {item.badge && <div style={{ position:"absolute", top:6, left:6, zIndex:2, background:item.color, borderRadius:6, padding:"2px 7px", fontSize:8.5, fontWeight:700, color:"#fff" }}>{item.badge}</div>}
             {/* Imagen arriba - click abre el detalle */}
-            <div onClick={()=>onDetail(item)} style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:dark?"#0d141f":"#e8ecf2", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Img src={item.img} alt={item.name} size={200} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain" }} /></div>
-            <div style={{ padding:"10px 12px 12px" }}>
+            <div onClick={()=>onDetail(item)} style={{ width:"100%", aspectRatio:"1/1", overflow:"hidden", background:dark?"#0d141f":"#e8ecf2", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}><Img src={item.img} alt={item.name} size={compact?120:200} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain" }} /></div>
+            <div style={{ padding:compact?"7px 8px 8px":"10px 12px 12px" }}>
               <div onClick={()=>onDetail(item)} style={{ cursor:"pointer" }}>
-                <div style={{ fontWeight:700, fontSize:13, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
-                <div style={{ color:t.muted, fontSize:11, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
+                <div style={{ fontWeight:700, fontSize:compact?11.5:13, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
+                {!compact && <div style={{ color:t.muted, fontSize:11, marginBottom:8, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>}
               </div>
               {/* Precio a la izquierda, contador+quitar a la derecha - sin superposicion */}
-              <div style={{ display:"flex", alignItems:"center", justifyContent:cnt>0?"space-between":"center", gap:6, marginBottom:10, minHeight:28 }}>
-                <span style={{ color:item.color, fontWeight:800, fontSize:17, flexShrink:0 }}>{formatPrice(item.price)}</span>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:cnt>0?"space-between":"center", gap:6, marginBottom:compact?7:10, minHeight:compact?22:28, marginTop:compact?4:0 }}>
+                <span style={{ color:item.color, fontWeight:800, fontSize:compact?13.5:17, flexShrink:0 }}>{formatPrice(item.price)}</span>
                 {cnt>0 && (
-                  <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" title="Quitar 1 del carrito" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:"50%", width:24, height:24, color:"#fff", fontWeight:900, fontSize:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, flexShrink:0, boxShadow:"0 2px 6px rgba(239,68,68,0.4)" }}>−</button>
-                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:10.5, fontWeight:800, whiteSpace:"nowrap" }}>🛒 {cnt}</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
+                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" title="Quitar 1 del carrito" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:"50%", width:compact?19:24, height:compact?19:24, color:"#fff", fontWeight:900, fontSize:compact?11:14, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, flexShrink:0, boxShadow:"0 2px 6px rgba(239,68,68,0.4)" }}>−</button>
+                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:compact?"1px 6px":"2px 8px", fontSize:compact?9:10.5, fontWeight:800, whiteSpace:"nowrap" }}>🛒 {cnt}</div>
                   </div>
                 )}
               </div>
               {/* Botones abajo - colores fijos y consistentes en todos los productos */}
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                <button onClick={(e)=>handleAdd(e,item)} className={addedMap[item.id]?"":"glow-green"} style={{ width:"100%", padding:"9px 0", background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{addedMap[item.id]?"✓ Agregado":"🛒 Agregar al carrito"}</button>
-                <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:"9px 0", background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:9, color:"#1a1200", fontWeight:700, fontSize:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+              <div style={{ display:"flex", flexDirection:"column", gap:compact?4:6 }}>
+                <button onClick={(e)=>handleAdd(e,item)} className={addedMap[item.id]?"":"glow-green"} style={{ width:"100%", padding:compact?"6px 0":"9px 0", background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:compact?7:9, color:"#fff", fontWeight:700, fontSize:compact?9.5:11.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{addedMap[item.id]?"✓ Agregado":compact?"🛒 Agregar":"🛒 Agregar al carrito"}</button>
+                <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:compact?"6px 0":"9px 0", background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:compact?7:9, color:"#1a1200", fontWeight:700, fontSize:compact?9.5:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
               </div>
             </div>
           </div>
@@ -2355,7 +2371,7 @@ function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[] }) {
               <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Estoy buscando "${query}" y no lo encontré en la página`)}`,"_blank")} style={{ marginTop:16, padding:"12px 24px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Preguntar por WhatsApp</button>
             </div>
           ) : (
-            <ProductGrid items={unique} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne} onDetail={onDetail} cart={cart} view={view} />
+            <ProductGrid items={unique} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne} onDetail={onDetail} cart={cart} view={view} compact={view==="grid"} />
           )}
         </div>
       </div>

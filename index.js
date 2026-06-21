@@ -5,6 +5,8 @@ var cron = require('node-cron');
 var cors = require('cors');
 var path = require('path');
 var helmet = require('helmet');
+var { migrate } = require('./db/migrate');
+var dbRoutes = require('./db/routes');
 var rateLimit = require('express-rate-limit');
 var compression = require('compression');
 var crypto = require('crypto');
@@ -444,6 +446,9 @@ app.get('/api/config', function (req, res) {
   });
 });
 
+// 12) SISTEMA DE CUENTAS, SALDO Y COMPRAS (registro, login, panel admin)
+app.use('/api', dbRoutes);
+
 // FRONTEND ESTATICO
 app.use(express.static(path.join(__dirname, 'frontend', 'build'), {
   maxAge: IS_PROD ? '1d' : 0,
@@ -479,6 +484,8 @@ process.on('uncaughtException', function (err) {
 });
 
 var PORT = process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', function () {
-  logger.info('servidor_iniciado', { puerto: PORT, entorno: process.env.NODE_ENV || 'development' });
+migrate().finally(function () {
+  app.listen(PORT, '0.0.0.0', function () {
+    logger.info('servidor_iniciado', { puerto: PORT, entorno: process.env.NODE_ENV || 'development' });
+  });
 });
