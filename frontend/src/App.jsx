@@ -1314,7 +1314,7 @@ function Carrito({ items, onRemove, onClear, onBack, dark }) {
 }
 
 // ─── MENU LATERAL ─────────────────────────────────────────────────────────────
-function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
+function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme, authUser }) {
   const t = getTheme(dark);
   const [render, setRender] = useState(open);
   const [closing, setClosing] = useState(false);
@@ -1345,6 +1345,7 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
   ];
 
   const itemsDespues = [
+    {icon:"👤",label:authUser?`Mi cuenta (${authUser.nombre.split(" ")[0]})`:"Iniciar sesión",key:"mi-cuenta"},
     {icon:"📞",label:"WhatsApp",key:"wa"},
   ];
 
@@ -1409,20 +1410,41 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme }) {
 }
 
 // ─── DETAIL ───────────────────────────────────────────────────────────────────
-function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0 }) {
+function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0, authUser, authToken, onGoLogin, onGoAccount }) {
   const accent = item.color||"#7c3aed";
   const t = getTheme(dark);
   const [added, setAdded] = useState(false);
+  const [comprando, setComprando] = useState(false);
+  const [compraResult, setCompraResult] = useState(null); // null | {ok, mensaje, compra, saldo}
 
   const handleAdd = () => {
     onAddCart(item);
     setAdded(true);
     setTimeout(()=>setAdded(false), 1200);
   };
+
   const handleBuyNow = () => {
     onAddCart(item);
     const msg = `Hola! Quiero comprar ${item.name} por ${formatPrice(item.price)} 🙏`;
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
+  };
+
+  const handleComprarConSaldo = async () => {
+    if (!authUser || !authToken) { onGoLogin(); return; }
+    setComprando(true); setCompraResult(null);
+    try {
+      const res = await fetch("/api/comprar", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${authToken}` },
+        body: JSON.stringify({ producto_id: item.id, producto_nombre: item.name, precio: item.price }),
+      });
+      const data = await res.json();
+      setCompraResult(data);
+    } catch(e) {
+      setCompraResult({ ok:false, mensaje:"Error de conexión. Intenta de nuevo." });
+    } finally {
+      setComprando(false);
+    }
   };
 
   return (
@@ -1469,8 +1491,58 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
 
             {/* Botones abajo con colores animados */}
             <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+
+              {/* Resultado de compra con saldo */}
+              {compraResult && (
+                <div style={{ background:compraResult.ok?"#22c55e18":"#ef444418", border:`1px solid ${compraResult.ok?"#22c55e44":"#ef444444"}`, borderRadius:12, padding:"12px 14px", marginBottom:4 }}>
+                  {compraResult.ok ? (
+                    <div>
+                      <div style={{ color:"#22c55e", fontWeight:800, fontSize:13, marginBottom:6 }}>✓ Compra exitosa</div>
+                      <div style={{ color:t.muted, fontSize:11.5, marginBottom:8 }}>Saldo restante: {formatSaldo(compraResult.saldo)}</div>
+                      {compraResult.compra?.cuenta ? (
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          <div style={{ fontWeight:700, fontSize:12, color:t.text, marginBottom:2 }}>🔐 Tus accesos:</div>
+                          {[["👤 Usuario", compraResult.compra.cuenta.usuario],["🔑 Contraseña", compraResult.compra.cuenta.password],compraResult.compra.cuenta.perfil&&["📺 Perfil", compraResult.compra.cuenta.perfil]].filter(Boolean).map(([k,v])=>(
+                            <div key={k} style={{ background:t.card, borderRadius:8, padding:"8px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                              <span style={{ color:t.muted, fontSize:11 }}>{k}</span>
+                              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                                <span style={{ fontWeight:700, fontSize:12, fontFamily:"monospace" }}>{v}</span>
+                                <button onClick={()=>navigator.clipboard?.writeText(v)} style={{ background:"#7c3aed22", border:"none", borderRadius:5, padding:"2px 7px", color:"#7c3aed", fontSize:9.5, cursor:"pointer", fontWeight:700 }}>Copiar</button>
+                              </div>
+                            </div>
+                          ))}
+                          {compraResult.compra.cuenta.notas && <div style={{ color:t.muted, fontSize:11, marginTop:4 }}>📝 {compraResult.compra.cuenta.notas}</div>}
+                        </div>
+                      ) : (
+                        <div style={{ color:"#f59e0b", fontSize:11.5 }}>⏳ Tus accesos serán asignados en breve. Ve a "Mi cuenta" para verlos.</div>
+                      )}
+                      <button onClick={onGoAccount} style={{ width:"100%", marginTop:10, padding:"8px 0", background:"#7c3aed22", border:"none", borderRadius:9, color:"#a78bfa", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Ver en Mi cuenta →</button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ color:"#ef4444", fontWeight:700, fontSize:13, marginBottom:4 }}>✗ {compraResult.mensaje}</div>
+                      {compraResult.mensaje?.includes("Saldo insuficiente") && (
+                        <div style={{ color:t.muted, fontSize:11.5 }}>Tu saldo actual: {formatSaldo(compraResult.saldo)}. Contacta al administrador para recargar.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:12, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
-              <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:13, background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:12, color:"#1a1200", fontWeight:800, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+
+              {/* Botón de compra con saldo (si está logueado) o con WhatsApp */}
+              {authUser ? (
+                <button onClick={handleComprarConSaldo} disabled={comprando||!!compraResult?.ok} style={{ width:"100%", padding:13, background:comprando||compraResult?.ok?"#374151":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:13.5, cursor:comprando||compraResult?.ok?"not-allowed":"pointer", fontFamily:"inherit" }}>
+                  {comprando?"Procesando...":compraResult?.ok?"✓ Comprado con saldo":"💜 Comprar con saldo"}
+                </button>
+              ) : (
+                <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:13, background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:12, color:"#1a1200", fontWeight:800, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+              )}
+
+              {!authUser && (
+                <button onClick={onGoLogin} style={{ width:"100%", padding:9, background:"transparent", border:`1px solid ${t.border}`, borderRadius:10, color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>🔓 Iniciar sesión para pagar con saldo</button>
+              )}
             </div>
           </div>
         </div>
@@ -2380,9 +2452,487 @@ function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[] }) {
 }
 
 // ─── APP PRINCIPAL ────────────────────────────────────────────────────────────
+
+// ════════════════════════════════════════════════════════════════════════════
+// SISTEMA DE AUTENTICACION - API helper
+// ════════════════════════════════════════════════════════════════════════════
+const API = {
+  async post(url, body, token) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(body),
+    });
+    return res.json();
+  },
+  async get(url, token) {
+    const res = await fetch(url, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    return res.json();
+  },
+};
+
+function formatSaldo(n) {
+  return "$" + Number(n || 0).toLocaleString("es-CO");
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PANTALLA DE LOGIN / REGISTRO
+// ════════════════════════════════════════════════════════════════════════════
+function AuthScreen({ onBack, onLogin, dark }) {
+  const t = getTheme(dark);
+  const [tab, setTab] = useState("login");
+  const [nombre, setNombre] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [password, setPassword] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async () => {
+    setError(""); setLoading(true);
+    try {
+      const url = tab === "login" ? "/api/auth/login" : "/api/auth/registro";
+      const body = tab === "login"
+        ? { correo, password }
+        : { nombre, correo, password, telefono };
+      const data = await API.post(url, body);
+      if (data.ok) {
+        localStorage.setItem("dm_token", data.token);
+        localStorage.setItem("dm_user", JSON.stringify(data.user));
+        onLogin(data.user, data.token);
+      } else {
+        setError(data.mensaje || "Error al procesar la solicitud");
+      }
+    } catch (e) {
+      setError("Error de conexión. Intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"inherit" }}>
+      <div style={{ width:"100%", maxWidth:400 }}>
+        <button onClick={onBack} style={{ background:"transparent", border:"none", color:t.muted, cursor:"pointer", fontSize:13, marginBottom:24, display:"flex", alignItems:"center", gap:6 }}>← Volver a la tienda</button>
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <img src={LOGO_URL} alt="Digital Market" style={{ width:72, height:"auto", objectFit:"contain", marginBottom:10, filter:"drop-shadow(0 4px 16px rgba(168,85,247,0.4))" }} />
+          <div className="brand-animated" style={{ fontWeight:900, fontSize:26 }}>Digital Market</div>
+          <div style={{ color:t.muted, fontSize:13, marginTop:4 }}>Tu cuenta personal de compras</div>
+        </div>
+        <div style={{ background:t.surface, borderRadius:20, padding:28, border:`1px solid ${t.border}`, boxShadow:"0 8px 32px rgba(0,0,0,0.2)" }}>
+          {/* Tabs Login / Registro */}
+          <div style={{ display:"flex", background:t.card, borderRadius:12, padding:4, marginBottom:24, gap:4 }}>
+            {["login","registro"].map(k=>(
+              <button key={k} onClick={()=>{ setTab(k); setError(""); }} style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none", background:tab===k?"#7c3aed":"transparent", color:tab===k?"#fff":t.muted, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s ease" }}>
+                {k==="login"?"Iniciar sesión":"Registrarme"}
+              </button>
+            ))}
+          </div>
+          {tab==="registro" && (
+            <>
+              <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>NOMBRE COMPLETO</label>
+              <input value={nombre} onChange={e=>setNombre(e.target.value)} placeholder="Tu nombre" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} />
+            </>
+          )}
+          <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CORREO ELECTRÓNICO</label>
+          <input type="email" value={correo} onChange={e=>setCorreo(e.target.value)} placeholder="tu@correo.com" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} />
+          <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CONTRASEÑA {tab==="registro"&&<span style={{fontWeight:400}}>(mínimo 8 caracteres)</span>}</label>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
+          {tab==="registro" && (
+            <>
+              <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>TELÉFONO <span style={{fontWeight:400}}>(opcional)</span></label>
+              <input value={telefono} onChange={e=>setTelefono(e.target.value)} placeholder="3XX XXX XXXX" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} />
+            </>
+          )}
+          {error && <div style={{ background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"10px 14px", color:"#f87171", fontSize:13, marginBottom:14 }}>{error}</div>}
+          <button onClick={handleSubmit} disabled={loading} style={{ width:"100%", padding:14, background:loading?"#4a2a8a":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14.5, cursor:loading?"not-allowed":"pointer", fontFamily:"inherit" }}>
+            {loading?"Procesando...":tab==="login"?"Iniciar sesión →":"Crear mi cuenta →"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// DASHBOARD DEL CLIENTE
+// ════════════════════════════════════════════════════════════════════════════
+function DashboardCliente({ user, token, onLogout, onBack, dark }) {
+  const t = getTheme(dark);
+  const [tab, setTab] = useState("inicio");
+  const [compras, setCompras] = useState([]);
+  const [movimientos, setMovimientos] = useState([]);
+  const [userData, setUserData] = useState(user);
+  const [loading, setLoading] = useState(false);
+  const [compraAbierta, setCompraAbierta] = useState(null);
+
+  useEffect(() => {
+    API.get("/api/me", token).then(d => { if(d.ok) setUserData(d.user); });
+    API.get("/api/me/compras", token).then(d => { if(d.ok) setCompras(d.compras); });
+    API.get("/api/me/movimientos", token).then(d => { if(d.ok) setMovimientos(d.movimientos); });
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const tabs = [
+    { key:"inicio", label:"🏠 Inicio" },
+    { key:"compras", label:"🛍️ Compras" },
+    { key:"movimientos", label:"📊 Movimientos" },
+  ];
+
+  return (
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"inherit" }}>
+      {/* Header */}
+      <div style={{ background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <button onClick={onBack} style={{ background:"transparent", border:"none", color:t.muted, cursor:"pointer", fontSize:13, display:"flex", alignItems:"center", gap:5 }}>← Tienda</button>
+        <span style={{ fontWeight:800, fontSize:15 }}>Mi Cuenta</span>
+        <button onClick={onLogout} style={{ background:"transparent", border:`1px solid ${t.border}`, borderRadius:8, padding:"6px 12px", color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Salir</button>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display:"flex", background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"0 18px" }}>
+        {tabs.map(tb=>(
+          <button key={tb.key} onClick={()=>setTab(tb.key)} style={{ background:"transparent", border:"none", borderBottom:tab===tb.key?"2px solid #7c3aed":"2px solid transparent", color:tab===tb.key?"#7c3aed":t.muted, padding:"12px 14px", fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>
+            {tb.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ maxWidth:700, margin:"0 auto", padding:"20px 16px" }}>
+
+        {/* INICIO */}
+        {tab==="inicio" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+            {/* Tarjeta de saldo */}
+            <div style={{ background:"linear-gradient(135deg,#7c3aed,#4f46e5)", borderRadius:20, padding:"24px 22px", color:"#fff", position:"relative", overflow:"hidden" }}>
+              <div style={{ position:"absolute", top:-30, right:-30, width:100, height:100, borderRadius:"50%", background:"rgba(255,255,255,0.08)" }} />
+              <div style={{ fontSize:12, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", opacity:0.8, marginBottom:6 }}>Saldo disponible</div>
+              <div style={{ fontSize:38, fontWeight:900, marginBottom:4 }}>{formatSaldo(userData?.saldo)}</div>
+              <div style={{ fontSize:12, opacity:0.7 }}>Para comprar productos en Digital Market</div>
+            </div>
+            {/* Info del usuario */}
+            <div style={{ background:t.surface, borderRadius:16, padding:"18px 20px", border:`1px solid ${t.border}` }}>
+              <div style={{ fontWeight:800, fontSize:15, marginBottom:14 }}>👤 Mi perfil</div>
+              {[["Nombre",userData?.nombre],["Correo",userData?.correo],["Teléfono",userData?.telefono||"No registrado"],["Miembro desde",userData?.creado_en?new Date(userData.creado_en).toLocaleDateString("es-CO"):"-"]].map(([k,v])=>(
+                <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom:`1px solid ${t.border}` }}>
+                  <span style={{ color:t.muted, fontSize:12.5 }}>{k}</span>
+                  <span style={{ fontWeight:600, fontSize:13, textAlign:"right", maxWidth:"60%" }}>{v}</span>
+                </div>
+              ))}
+            </div>
+            {/* Resumen */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              {[["🛍️","Compras",compras.length],["💰","Recargas",movimientos.filter(m=>m.tipo==="recarga").length]].map(([icon,label,val])=>(
+                <div key={label} style={{ background:t.surface, borderRadius:14, padding:"16px 18px", border:`1px solid ${t.border}`, textAlign:"center" }}>
+                  <div style={{ fontSize:24, marginBottom:4 }}>{icon}</div>
+                  <div style={{ fontSize:22, fontWeight:900, color:"#7c3aed" }}>{val}</div>
+                  <div style={{ fontSize:11, color:t.muted, fontWeight:600 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* COMPRAS */}
+        {tab==="compras" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:4 }}>Mis compras</div>
+            {compras.length === 0
+              ? <div style={{ textAlign:"center", padding:"40px 20px", color:t.muted }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>🛍️</div>
+                  <div style={{ fontWeight:700, marginBottom:6 }}>Aún no has comprado nada</div>
+                  <div style={{ fontSize:13 }}>Cuando compres un producto aparecerá aquí con todos los accesos</div>
+                </div>
+              : compras.map(c=>(
+                <div key={c.id} style={{ background:t.surface, borderRadius:14, border:`1px solid ${c.estado==="completada"?"#22c55e44":c.estado==="sin_stock"?"#f59e0b44":t.border}`, overflow:"hidden" }}>
+                  <div onClick={()=>setCompraAbierta(compraAbierta===c.id?null:c.id)} style={{ padding:"14px 16px", cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:13.5 }}>{c.producto_nombre}</div>
+                      <div style={{ color:t.muted, fontSize:11.5, marginTop:2 }}>{new Date(c.creado_en).toLocaleDateString("es-CO")} · {formatSaldo(c.precio)}</div>
+                    </div>
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <div style={{ background:c.estado==="completada"?"#22c55e22":c.estado==="sin_stock"?"#f59e0b22":"#ef444422", color:c.estado==="completada"?"#22c55e":c.estado==="sin_stock"?"#f59e0b":"#ef4444", borderRadius:20, padding:"3px 10px", fontSize:10.5, fontWeight:700 }}>
+                        {c.estado==="completada"?"✓ Completada":c.estado==="sin_stock"?"⏳ En proceso":"✗ Cancelada"}
+                      </div>
+                      <span style={{ color:t.muted, fontSize:12 }}>{compraAbierta===c.id?"▲":"▼"}</span>
+                    </div>
+                  </div>
+                  {compraAbierta===c.id && (
+                    <div style={{ padding:"14px 16px", background:t.card, borderTop:`1px solid ${t.border}` }}>
+                      {c.cuenta_usuario ? (
+                        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                          <div style={{ fontWeight:700, fontSize:13, marginBottom:4 }}>🔐 Tus accesos</div>
+                          {[["👤 Usuario",c.cuenta_usuario],["🔑 Contraseña",c.cuenta_password],c.perfil&&["📺 Perfil",c.perfil],c.notas&&["📝 Notas",c.notas]].filter(Boolean).map(([k,v])=>(
+                            <div key={k} style={{ background:t.surface, borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", border:`1px solid ${t.border}` }}>
+                              <span style={{ color:t.muted, fontSize:12 }}>{k}</span>
+                              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                                <span style={{ fontWeight:700, fontSize:13, fontFamily:"monospace" }}>{v}</span>
+                                <button onClick={()=>navigator.clipboard?.writeText(v)} style={{ background:"#7c3aed22", border:"none", borderRadius:6, padding:"3px 8px", color:"#7c3aed", fontSize:10, cursor:"pointer", fontWeight:700 }}>Copiar</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ textAlign:"center", padding:"10px 0", color:t.muted }}>
+                          <div style={{ fontSize:24, marginBottom:6 }}>⏳</div>
+                          <div style={{ fontWeight:700, fontSize:13, marginBottom:4 }}>Accesos en preparación</div>
+                          <div style={{ fontSize:12 }}>El administrador asignará tus accesos en breve. Puedes escribirnos por WhatsApp.</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))
+            }
+          </div>
+        )}
+
+        {/* MOVIMIENTOS */}
+        {tab==="movimientos" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:4 }}>Historial de movimientos</div>
+            {movimientos.length === 0
+              ? <div style={{ textAlign:"center", padding:"40px 20px", color:t.muted }}>
+                  <div style={{ fontSize:40, marginBottom:12 }}>📊</div>
+                  <div style={{ fontWeight:700 }}>Sin movimientos aún</div>
+                </div>
+              : movimientos.map(m=>(
+                <div key={m.id} style={{ background:t.surface, borderRadius:12, padding:"13px 16px", border:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:13 }}>{m.descripcion||m.tipo}</div>
+                    <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>{new Date(m.creado_en).toLocaleDateString("es-CO","es-CO")}</div>
+                  </div>
+                  <div style={{ textAlign:"right" }}>
+                    <div style={{ fontWeight:900, fontSize:15, color:m.monto>0?"#22c55e":"#ef4444" }}>
+                      {m.monto>0?"+":""}{formatSaldo(m.monto)}
+                    </div>
+                    <div style={{ color:t.muted, fontSize:10.5, marginTop:2 }}>Saldo: {formatSaldo(m.saldo_resultante)}</div>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PANEL ADMINISTRADOR
+// ════════════════════════════════════════════════════════════════════════════
+function PanelAdmin({ token, onLogout, onBack, dark }) {
+  const t = getTheme(dark);
+  const [tab, setTab] = useState("usuarios");
+  const [usuarios, setUsuarios] = useState([]);
+  const [inventario, setInventario] = useState([]);
+  const [userSeleccionado, setUserSeleccionado] = useState(null);
+  const [montoRecarga, setMontoRecarga] = useState("");
+  const [descRecarga, setDescRecarga] = useState("");
+  const [msgRecarga, setMsgRecarga] = useState("");
+  const [loadingRecarga, setLoadingRecarga] = useState(false);
+  const [formInv, setFormInv] = useState({ producto_id:"", producto_nombre:"", cuenta_usuario:"", cuenta_password:"", perfil:"", notas:"" });
+  const [msgInv, setMsgInv] = useState("");
+  const [loadingInv, setLoadingInv] = useState(false);
+
+  const cargarDatos = () => {
+    API.get("/api/admin/usuarios", token).then(d => { if(d.ok) setUsuarios(d.usuarios); });
+    API.get("/api/admin/inventario", token).then(d => { if(d.ok) setInventario(d.resumen); });
+  };
+
+  useEffect(() => { cargarDatos(); }, [token]);
+
+  const recargarSaldo = async () => {
+    if (!userSeleccionado || !montoRecarga || isNaN(montoRecarga) || Number(montoRecarga) < 1) {
+      setMsgRecarga("Selecciona un usuario y escribe un monto válido"); return;
+    }
+    setLoadingRecarga(true); setMsgRecarga("");
+    const data = await API.post("/api/admin/recargar", { usuario_id: userSeleccionado.id, monto: Number(montoRecarga), descripcion: descRecarga || undefined }, token);
+    if (data.ok) {
+      setMsgRecarga(`✓ Saldo recargado. Nuevo saldo: ${formatSaldo(data.saldo)}`);
+      setMontoRecarga(""); setDescRecarga(""); setUserSeleccionado(null); cargarDatos();
+    } else {
+      setMsgRecarga("Error: " + (data.mensaje || "Intenta de nuevo"));
+    }
+    setLoadingRecarga(false);
+  };
+
+  const agregarInventario = async () => {
+    if (!formInv.producto_id || !formInv.producto_nombre || !formInv.cuenta_usuario || !formInv.cuenta_password) {
+      setMsgInv("Completa los campos obligatorios (*)"); return;
+    }
+    setLoadingInv(true); setMsgInv("");
+    const data = await API.post("/api/admin/inventario", formInv, token);
+    if (data.ok) {
+      setMsgInv("✓ Cuenta agregada al inventario correctamente");
+      setFormInv({ producto_id:"", producto_nombre:"", cuenta_usuario:"", cuenta_password:"", perfil:"", notas:"" }); cargarDatos();
+    } else {
+      setMsgInv("Error: " + (data.mensaje || "Intenta de nuevo"));
+    }
+    setLoadingInv(false);
+  };
+
+  const tabs = [
+    { key:"usuarios", label:"👥 Usuarios" },
+    { key:"recargar", label:"💰 Recargar saldo" },
+    { key:"inventario", label:"📦 Inventario" },
+  ];
+
+  return (
+    <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"inherit" }}>
+      <div style={{ background:"linear-gradient(135deg,#1a0035,#0d0020)", borderBottom:`1px solid #3a0060`, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <button onClick={onBack} style={{ background:"transparent", border:"none", color:"#c4b5fd", cursor:"pointer", fontSize:13, display:"flex", alignItems:"center", gap:5 }}>← Tienda</button>
+        <span style={{ fontWeight:800, fontSize:15, color:"#FFD700" }}>👑 Panel Admin</span>
+        <button onClick={onLogout} style={{ background:"transparent", border:"1px solid #3a0060", borderRadius:8, padding:"6px 12px", color:"#c4b5fd", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Salir</button>
+      </div>
+
+      <div style={{ display:"flex", background:"#0d0020", borderBottom:"1px solid #2a0050", padding:"0 16px", overflowX:"auto" }}>
+        {tabs.map(tb=>(
+          <button key={tb.key} onClick={()=>setTab(tb.key)} style={{ background:"transparent", border:"none", borderBottom:tab===tb.key?"2px solid #FFD700":"2px solid transparent", color:tab===tb.key?"#FFD700":"#c4b5fd", padding:"12px 16px", fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>
+            {tb.label}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ maxWidth:900, margin:"0 auto", padding:"20px 16px" }}>
+
+        {/* USUARIOS */}
+        {tab==="usuarios" && (
+          <div>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Clientes registrados ({usuarios.length})</div>
+            {usuarios.map(u=>(
+              <div key={u.id} style={{ background:t.surface, borderRadius:12, padding:"14px 16px", border:`1px solid ${t.border}`, marginBottom:10, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
+                <div>
+                  <div style={{ fontWeight:700, fontSize:13.5, display:"flex", alignItems:"center", gap:8 }}>
+                    {u.nombre}
+                    {u.rol==="admin"&&<span style={{ background:"#FFD70022", color:"#FFD700", borderRadius:20, padding:"2px 8px", fontSize:10, fontWeight:700 }}>Admin</span>}
+                  </div>
+                  <div style={{ color:t.muted, fontSize:12, marginTop:2 }}>{u.correo} · {u.telefono||"Sin tel."}</div>
+                  <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>Miembro desde {new Date(u.creado_en).toLocaleDateString("es-CO")}</div>
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
+                  <div style={{ fontWeight:900, fontSize:18, color:"#7c3aed" }}>{formatSaldo(u.saldo)}</div>
+                  <button onClick={()=>{ setUserSeleccionado(u); setTab("recargar"); }} style={{ background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:8, padding:"6px 14px", color:"#fff", fontSize:11.5, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>+ Recargar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* RECARGAR SALDO */}
+        {tab==="recargar" && (
+          <div style={{ maxWidth:500 }}>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:18 }}>Recargar saldo a un cliente</div>
+            <div style={{ marginBottom:14 }}>
+              <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>SELECCIONAR CLIENTE</label>
+              <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, overflow:"hidden", maxHeight:200, overflowY:"auto" }}>
+                {usuarios.filter(u=>u.rol==="cliente").map(u=>(
+                  <div key={u.id} onClick={()=>setUserSeleccionado(u)} style={{ padding:"11px 14px", cursor:"pointer", background:userSeleccionado?.id===u.id?"#7c3aed22":t.surface, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:13 }}>{u.nombre}</div>
+                      <div style={{ color:t.muted, fontSize:11 }}>{u.correo}</div>
+                    </div>
+                    <div style={{ fontWeight:800, color:"#7c3aed" }}>{formatSaldo(u.saldo)}</div>
+                  </div>
+                ))}
+              </div>
+              {userSeleccionado && <div style={{ marginTop:8, padding:"8px 12px", background:"#7c3aed22", borderRadius:8, color:"#a78bfa", fontSize:12, fontWeight:600 }}>✓ Seleccionado: {userSeleccionado.nombre}</div>}
+            </div>
+            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>MONTO A RECARGAR (COP)</label>
+            <input type="number" value={montoRecarga} onChange={e=>setMontoRecarga(e.target.value)} placeholder="Ej: 45000" style={{ width:"100%", padding:"12px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:15, fontFamily:"inherit", outline:"none", marginBottom:12, boxSizing:"border-box" }} />
+            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>DESCRIPCIÓN <span style={{fontWeight:400}}>(opcional)</span></label>
+            <input value={descRecarga} onChange={e=>setDescRecarga(e.target.value)} placeholder="Ej: Pago recibido por Nequi" style={{ width:"100%", padding:"12px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:16, boxSizing:"border-box" }} />
+            {msgRecarga && <div style={{ padding:"10px 14px", background:msgRecarga.startsWith("✓")?"#22c55e22":"#ef444422", borderRadius:10, color:msgRecarga.startsWith("✓")?"#22c55e":"#f87171", fontSize:13, marginBottom:14 }}>{msgRecarga}</div>}
+            <button onClick={recargarSaldo} disabled={loadingRecarga} style={{ width:"100%", padding:14, background:loadingRecarga?"#4a2a8a":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14.5, cursor:loadingRecarga?"not-allowed":"pointer", fontFamily:"inherit" }}>
+              {loadingRecarga?"Procesando...":"💰 Confirmar recarga"}
+            </button>
+          </div>
+        )}
+
+        {/* INVENTARIO */}
+        {tab==="inventario" && (
+          <div>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Stock por producto</div>
+            {inventario.length > 0 && (
+              <div style={{ marginBottom:20 }}>
+                {inventario.map(it=>(
+                  <div key={it.producto_id} style={{ background:t.surface, borderRadius:12, padding:"12px 16px", border:`1px solid ${Number(it.disponibles)===0?"#ef444444":t.border}`, marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:13 }}>{it.producto_nombre}</div>
+                      <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>ID: {it.producto_id}</div>
+                    </div>
+                    <div style={{ display:"flex", gap:14, alignItems:"center" }}>
+                      <div style={{ textAlign:"center" }}>
+                        <div style={{ fontWeight:900, fontSize:18, color:Number(it.disponibles)===0?"#ef4444":"#22c55e" }}>{it.disponibles}</div>
+                        <div style={{ fontSize:9.5, color:t.muted, fontWeight:600 }}>DISPONIBLES</div>
+                      </div>
+                      <div style={{ textAlign:"center" }}>
+                        <div style={{ fontWeight:900, fontSize:18, color:t.muted }}>{it.asignadas}</div>
+                        <div style={{ fontSize:9.5, color:t.muted, fontWeight:600 }}>ASIGNADAS</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ background:t.surface, borderRadius:16, padding:"20px", border:`1px solid ${t.border}` }}>
+              <div style={{ fontWeight:800, fontSize:14, marginBottom:16 }}>➕ Agregar cuenta al inventario</div>
+              {[
+                ["PRODUCTO ID *","producto_id","netflix1 (igual al id en el catálogo)"],
+                ["NOMBRE DEL PRODUCTO *","producto_nombre","Netflix 1 Mes"],
+                ["USUARIO DE LA CUENTA *","cuenta_usuario","correo@netflix.com"],
+                ["CONTRASEÑA *","cuenta_password","••••••••"],
+                ["PERFIL (opcional)","perfil","Perfil 2"],
+                ["NOTAS (opcional)","notas","Instrucciones especiales para el cliente"],
+              ].map(([label,key,ph])=>(
+                <div key={key} style={{ marginBottom:12 }}>
+                  <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>{label}</label>
+                  <input
+                    value={formInv[key]}
+                    onChange={e=>setFormInv(f=>({...f,[key]:e.target.value}))}
+                    placeholder={ph}
+                    type={key==="cuenta_password"?"password":"text"}
+                    style={{ width:"100%", padding:"10px 13px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:10, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }}
+                  />
+                </div>
+              ))}
+              {msgInv && <div style={{ padding:"10px 14px", background:msgInv.startsWith("✓")?"#22c55e22":"#ef444422", borderRadius:10, color:msgInv.startsWith("✓")?"#22c55e":"#f87171", fontSize:13, marginBottom:12 }}>{msgInv}</div>}
+              <button onClick={agregarInventario} disabled={loadingInv} style={{ width:"100%", padding:13, background:loadingInv?"#1a3a0a":"linear-gradient(135deg,#16a34a,#15803d)", border:"none", borderRadius:11, color:"#fff", fontWeight:800, fontSize:14, cursor:loadingInv?"not-allowed":"pointer", fontFamily:"inherit" }}>
+                {loadingInv?"Guardando...":"📦 Agregar al inventario"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [configReady, setConfigReady] = useState(false);
   useEffect(() => { getConfig(() => setConfigReady(true)); }, []);
+
+  // Estado de autenticacion
+  const [authUser, setAuthUser] = useState(() => {
+    try { const u = localStorage.getItem("dm_user"); return u ? JSON.parse(u) : null; } catch(e) { return null; }
+  });
+  const [authToken, setAuthToken] = useState(() => {
+    try { return localStorage.getItem("dm_token") || null; } catch(e) { return null; }
+  });
+
+  const handleLogin = (user, token) => {
+    setAuthUser(user); setAuthToken(token);
+    localStorage.setItem("dm_user", JSON.stringify(user));
+    localStorage.setItem("dm_token", token);
+    setScreen(user.rol === "admin" ? "admin-panel" : "mi-cuenta");
+  };
+
+  const handleLogout = () => {
+    setAuthUser(null); setAuthToken(null);
+    localStorage.removeItem("dm_user"); localStorage.removeItem("dm_token");
+    setScreen("home");
+  };
+
   const [screen, setScreen] = useState(()=>{ try{ const s=localStorage.getItem("dm_screen"); return ["home","favoritos","pantallas","combos","meses","seguidores"].includes(s)?s:"home"; }catch(e){ return "home"; } });
   const [activeTab, setActiveTab] = useState(()=>{ try{ return localStorage.getItem("dm_tab")||"favoritos"; }catch(e){ return "favoritos"; } });
   const [dark, setDark] = useState(()=>{ try{ const d=localStorage.getItem("dm_dark"); return d===null?true:d==="true"; }catch(e){ return true; } });
@@ -2435,10 +2985,11 @@ export default function App() {
     if (key==="wa") { window.open(`https://wa.me/${WA_NUMBER}`,"_blank"); return; }
     if (key==="web-offer") { setScreen("home"); setShowWebOffer(true); return; }
     if (key==="club") { setScreen("home"); setShowClub(true); return; }
+    if (key==="mi-cuenta") { setScreen(authUser ? "mi-cuenta" : "login"); return; }
     setScreen(key);
   };
 
-  const detailModal = detail && <Detail item={detail} onBack={()=>setDetail(null)} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} />;
+  const detailModal = detail && <Detail item={detail} onBack={()=>setDetail(null)} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} authUser={authUser} authToken={authToken} onGoLogin={()=>setScreen("login")} onGoAccount={()=>setScreen("mi-cuenta")} />;
 
   if (!configReady) {
     const t0 = getTheme(dark);
@@ -2450,6 +3001,15 @@ export default function App() {
     );
   }
 
+  if (screen==="login") return <AuthScreen onBack={()=>setScreen("home")} onLogin={handleLogin} dark={dark} />;
+  if (screen==="mi-cuenta") return authUser
+    ? authUser.rol==="admin"
+      ? <PanelAdmin token={authToken} onLogout={handleLogout} onBack={()=>setScreen("home")} dark={dark} />
+      : <DashboardCliente user={authUser} token={authToken} onLogout={handleLogout} onBack={()=>setScreen("home")} dark={dark} />
+    : <AuthScreen onBack={()=>setScreen("home")} onLogin={handleLogin} dark={dark} />;
+  if (screen==="admin-panel") return authUser?.rol==="admin"
+    ? <PanelAdmin token={authToken} onLogout={handleLogout} onBack={()=>setScreen("home")} dark={dark} />
+    : <AuthScreen onBack={()=>setScreen("home")} onLogin={handleLogin} dark={dark} />;
   if (screen==="search") return <>
     <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={(item)=>{ setDetail(item); }} cart={cart} />
     {detailModal}
@@ -2605,7 +3165,7 @@ export default function App() {
       {showClub && <ClubModal dark={dark} onClose={()=>setShowClub(false)} />}
       {showWebOffer && <WebOfferChat dark={dark} onClose={()=>setShowWebOffer(false)} />}
 
-      <SideMenu open={menuOpen} onClose={()=>setMenuOpen(false)} onNav={navigate} cartCount={cart.length} dark={dark} onToggleTheme={()=>setDark(d=>!d)} />
+      <SideMenu open={menuOpen} onClose={()=>setMenuOpen(false)} onNav={navigate} cartCount={cart.length} dark={dark} onToggleTheme={()=>setDark(d=>!d)} authUser={authUser} />
 
       {/* HEADER - fila superior con acciones */}
       <div style={{ padding:"10px 16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:10, position:"sticky", top:0, background:t.surface, zIndex:100, boxShadow:dark?"0 4px 16px rgba(0,0,0,0.35)":"0 4px 16px rgba(0,0,0,0.06)" }}>
@@ -2622,6 +3182,15 @@ export default function App() {
           <button onClick={()=>setScreen("soporte")} aria-label="Reportar error" title="Reportar error" className="hdr-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, padding:"8px 14px", cursor:"pointer", fontSize:12, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap" }}>
             Reportar Error
           </button>
+          {authUser ? (
+            <button onClick={()=>setScreen("mi-cuenta")} className="hdr-btn" style={{ background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:9, padding:"7px 12px", cursor:"pointer", fontSize:11, fontWeight:700, color:"#fff", fontFamily:"inherit", whiteSpace:"nowrap", maxWidth:90, overflow:"hidden", textOverflow:"ellipsis" }} title={authUser.nombre}>
+              {authUser.rol==="admin"?"👑 Admin":`💜 ${authUser.nombre.split(" ")[0]}`}
+            </button>
+          ) : (
+            <button onClick={()=>setScreen("login")} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:9, padding:"7px 12px", cursor:"pointer", fontSize:11, fontWeight:700, color:t.text, fontFamily:"inherit", whiteSpace:"nowrap" }}>
+              🔓 Entrar
+            </button>
+          )}
           <button onClick={()=>setDark(d=>!d)} className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>{dark?"☀️":"🌙"}</button>
           <button onClick={()=>setScreen("cart")} className="hdr-btn" style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:10, padding:"8px 12px", cursor:"pointer", color:t.text, fontSize:18, animation:cartAnim?"cartBounce 0.4s ease":"none" }}>
             🛒{cart.length>0 && <div style={{ position:"absolute", top:-6, right:-6, background:"#E50914", color:"#fff", borderRadius:"50%", width:18, height:18, fontSize:9, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center", animation:"fadeUp 0.3s ease" }}>{cart.length}</div>}
@@ -2645,6 +3214,16 @@ export default function App() {
 
 
       {/* ACCESOS RÁPIDOS */}
+      {/* Indicador de saldo si el usuario está logueado */}
+      {authUser && (
+        <div onClick={()=>setScreen("mi-cuenta")} style={{ margin:"10px 16px 0", padding:"12px 16px", background:"linear-gradient(135deg,#1e0040,#0d0028)", border:"1px solid #3a0060", borderRadius:14, cursor:"pointer", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ color:"#c4b5fd", fontSize:11, fontWeight:600 }}>Hola, {authUser.nombre.split(" ")[0]} 👋</div>
+            <div style={{ color:"#fff", fontWeight:900, fontSize:18, marginTop:2 }}>{formatSaldo(authUser.saldo)} disponibles</div>
+          </div>
+          <div style={{ color:"#a78bfa", fontSize:12, fontWeight:700 }}>Mi cuenta →</div>
+        </div>
+      )}
       <div style={{ padding:"12px 16px 0", display:"flex", gap:8 }}>
         <button onClick={()=>setScreen("validar")} className="quick-access glow-purple" style={{ flex:1, background:"linear-gradient(135deg,#2a1a4a,#1e1235)", border:"1px solid #7c3aed55", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>🔐</span>
