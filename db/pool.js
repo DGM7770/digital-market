@@ -8,11 +8,9 @@ if (!process.env.DATABASE_URL) {
 // su red privada y NO requiere SSL. La External Database URL sí lo requiere
 // porque sale a internet. DB_SSL permite forzar el comportamiento si hace falta.
 function resolveSSL() {
-  if (process.env.DB_SSL === 'true') return { rejectUnauthorized: false };
   if (process.env.DB_SSL === 'false') return false;
-  // Auto-detección: las URLs externas de Render incluyen ".render.com" en el host
-  const url = process.env.DATABASE_URL || '';
-  return url.includes('.render.com') ? { rejectUnauthorized: false } : false;
+  // Supabase y la mayoría de bases de datos en la nube requieren SSL
+  return { rejectUnauthorized: false };
 }
 
 const pool = process.env.DATABASE_URL

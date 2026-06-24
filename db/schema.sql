@@ -1,10 +1,8 @@
 -- ════════════════════════════════════════════════════════════════════════════
 -- DIGITAL MARKET - Esquema de base de datos
 -- Sistema de usuarios, saldo, compras y movimientos
+-- Supabase ya incluye gen_random_uuid() nativamente, sin necesitar pgcrypto
 -- ════════════════════════════════════════════════════════════════════════════
-
--- Extensión para generar UUIDs
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ─── USUARIOS (clientes y administradores) ────────────────────────────────────
 CREATE TABLE IF NOT EXISTS usuarios (
