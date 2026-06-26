@@ -2343,7 +2343,7 @@ function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[] }) {
   const [cat, setCat] = useState("Todas");
   const [maxPrice, setMaxPrice] = useState(100000);
   const [sortBy, setSortBy] = useState("relevancia");
-  const [view, setView] = useState("grid");
+  const [view, setView] = useState("list");
 
   const results = ALL_ITEMS.filter(item=>{
     const name = (item.name||"").toLowerCase();
@@ -2489,6 +2489,8 @@ function AuthScreen({ onBack, onLogin, dark }) {
   const [telefono, setTelefono] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recuperando, setRecuperando] = useState(false);
+  const [msgRecuperar, setMsgRecuperar] = useState("");
 
   const handleSubmit = async () => {
     setError(""); setLoading(true);
@@ -2512,6 +2514,32 @@ function AuthScreen({ onBack, onLogin, dark }) {
     }
   };
 
+  if (recuperando) {
+    return (
+      <div style={{ minHeight:"100vh", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"inherit" }}>
+        <div style={{ width:"100%", maxWidth:400 }}>
+          <button onClick={()=>setRecuperando(false)} style={{ background:"transparent", border:"none", color:t.muted, cursor:"pointer", fontSize:13, marginBottom:24, display:"flex", alignItems:"center", gap:6 }}>← Volver al login</button>
+          <div style={{ background:t.surface, borderRadius:20, padding:28, border:`1px solid ${t.border}`, boxShadow:"0 8px 32px rgba(0,0,0,0.1)" }}>
+            <div style={{ fontSize:32, marginBottom:12, textAlign:"center" }}>🔑</div>
+            <h2 style={{ fontWeight:800, fontSize:20, marginBottom:8, textAlign:"center" }}>Recuperar contraseña</h2>
+            <p style={{ color:t.muted, fontSize:13, marginBottom:20, textAlign:"center" }}>Escribe tu correo registrado y el administrador te enviará una nueva contraseña por WhatsApp.</p>
+            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CORREO ELECTRÓNICO</label>
+            <input type="email" value={correo} onChange={e=>setCorreo(e.target.value)} placeholder="tu@correo.com" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:16, boxSizing:"border-box" }} />
+            {msgRecuperar && <div style={{ padding:"10px 14px", background:msgRecuperar.startsWith("✓")?"#22c55e18":"#ef444418", border:`1px solid ${msgRecuperar.startsWith("✓")?"#22c55e44":"#ef444444"}`, borderRadius:10, color:msgRecuperar.startsWith("✓")?"#22c55e":"#f87171", fontSize:13, marginBottom:14 }}>{msgRecuperar}</div>}
+            <button onClick={()=>{
+              if (!correo) { setMsgRecuperar("Escribe tu correo primero"); return; }
+              const msg = `Hola, necesito recuperar la contraseña de mi cuenta: ${correo}`;
+              window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
+              setMsgRecuperar("✓ Te redirigimos a WhatsApp. El administrador te ayudará en breve.");
+            }} style={{ width:"100%", padding:14, background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>
+              💬 Solicitar por WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight:"100vh", background:t.bg, display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"inherit" }}>
       <div style={{ width:"100%", maxWidth:400 }}>
@@ -2521,8 +2549,7 @@ function AuthScreen({ onBack, onLogin, dark }) {
           <div className="brand-animated" style={{ fontWeight:900, fontSize:26 }}>Digital Market</div>
           <div style={{ color:t.muted, fontSize:13, marginTop:4 }}>Tu cuenta personal de compras</div>
         </div>
-        <div style={{ background:t.surface, borderRadius:20, padding:28, border:`1px solid ${t.border}`, boxShadow:"0 8px 32px rgba(0,0,0,0.2)" }}>
-          {/* Tabs Login / Registro */}
+        <div style={{ background:t.surface, borderRadius:20, padding:28, border:`1px solid ${t.border}`, boxShadow:"0 8px 32px rgba(0,0,0,0.1)" }}>
           <div style={{ display:"flex", background:t.card, borderRadius:12, padding:4, marginBottom:24, gap:4 }}>
             {["login","registro"].map(k=>(
               <button key={k} onClick={()=>{ setTab(k); setError(""); }} style={{ flex:1, padding:"9px 0", borderRadius:9, border:"none", background:tab===k?"#7c3aed":"transparent", color:tab===k?"#fff":t.muted, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s ease" }}>
@@ -2539,7 +2566,12 @@ function AuthScreen({ onBack, onLogin, dark }) {
           <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CORREO ELECTRÓNICO</label>
           <input type="email" value={correo} onChange={e=>setCorreo(e.target.value)} placeholder="tu@correo.com" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} />
           <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CONTRASEÑA {tab==="registro"&&<span style={{fontWeight:400}}>(mínimo 8 caracteres)</span>}</label>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:tab==="login"?8:14, boxSizing:"border-box" }} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
+          {tab==="login" && (
+            <button onClick={()=>setRecuperando(true)} style={{ background:"transparent", border:"none", color:"#7c3aed", fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:14, padding:0, textDecoration:"underline" }}>
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
           {tab==="registro" && (
             <>
               <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>TELÉFONO <span style={{fontWeight:400}}>(opcional)</span></label>
@@ -2556,6 +2588,7 @@ function AuthScreen({ onBack, onLogin, dark }) {
   );
 }
 
+
 // ════════════════════════════════════════════════════════════════════════════
 // DASHBOARD DEL CLIENTE
 // ════════════════════════════════════════════════════════════════════════════
@@ -2565,7 +2598,6 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
   const [compras, setCompras] = useState([]);
   const [movimientos, setMovimientos] = useState([]);
   const [userData, setUserData] = useState(user);
-  const [loading, setLoading] = useState(false);
   const [compraAbierta, setCompraAbierta] = useState(null);
 
   useEffect(() => {
@@ -2573,6 +2605,9 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
     API.get("/api/me/compras", token).then(d => { if(d.ok) setCompras(d.compras); });
     API.get("/api/me/movimientos", token).then(d => { if(d.ok) setMovimientos(d.movimientos); });
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const comprasActivas = compras.filter(c => c.estado === "completada" && c.cuenta_usuario);
+  const comprasEnProceso = compras.filter(c => c.estado === "sin_stock");
 
   const tabs = [
     { key:"inicio", label:"🏠 Inicio" },
@@ -2582,15 +2617,13 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
 
   return (
     <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"inherit" }}>
-      {/* Header */}
       <div style={{ background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <button onClick={onBack} style={{ background:"transparent", border:"none", color:t.muted, cursor:"pointer", fontSize:13, display:"flex", alignItems:"center", gap:5 }}>← Tienda</button>
         <span style={{ fontWeight:800, fontSize:15 }}>Mi Cuenta</span>
         <button onClick={onLogout} style={{ background:"transparent", border:`1px solid ${t.border}`, borderRadius:8, padding:"6px 12px", color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Salir</button>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:"flex", background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"0 18px" }}>
+      <div style={{ display:"flex", background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"0 18px", overflowX:"auto" }}>
         {tabs.map(tb=>(
           <button key={tb.key} onClick={()=>setTab(tb.key)} style={{ background:"transparent", border:"none", borderBottom:tab===tb.key?"2px solid #7c3aed":"2px solid transparent", color:tab===tb.key?"#7c3aed":t.muted, padding:"12px 14px", fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>
             {tb.label}
@@ -2609,27 +2642,73 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
               <div style={{ fontSize:12, fontWeight:700, letterSpacing:1.5, textTransform:"uppercase", opacity:0.8, marginBottom:6 }}>Saldo disponible</div>
               <div style={{ fontSize:38, fontWeight:900, marginBottom:4 }}>{formatSaldo(userData?.saldo)}</div>
               <div style={{ fontSize:12, opacity:0.7 }}>Para comprar productos en Digital Market</div>
+              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("Hola, quiero recargar saldo en mi cuenta Digital Market")}`,"_blank")} style={{ marginTop:14, padding:"8px 16px", background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.3)", borderRadius:9, color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>
+                + Solicitar recarga por WhatsApp
+              </button>
             </div>
-            {/* Info del usuario */}
+
+            {/* Alertas activas */}
+            {comprasEnProceso.length > 0 && (
+              <div style={{ background:"#f59e0b18", border:"1px solid #f59e0b44", borderRadius:14, padding:"14px 16px" }}>
+                <div style={{ fontWeight:700, fontSize:13, color:"#f59e0b", marginBottom:6 }}>⏳ {comprasEnProceso.length} compra(s) en proceso</div>
+                <div style={{ color:t.muted, fontSize:12 }}>El administrador está preparando tus accesos. Puedes escribir por WhatsApp para consultar.</div>
+                <button onClick={()=>setTab("compras")} style={{ marginTop:8, background:"transparent", border:"none", color:"#f59e0b", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", padding:0, textDecoration:"underline" }}>Ver compras →</button>
+              </div>
+            )}
+
+            {/* Resumen en tarjetas */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+              {[
+                ["✅","Activas",comprasActivas.length,"#22c55e"],
+                ["⏳","En proceso",comprasEnProceso.length,"#f59e0b"],
+                ["💰","Recargas",movimientos.filter(m=>m.tipo==="recarga").length,"#7c3aed"],
+              ].map(([icon,label,val,color])=>(
+                <div key={label} style={{ background:t.surface, borderRadius:14, padding:"14px 10px", border:`1px solid ${t.border}`, textAlign:"center" }}>
+                  <div style={{ fontSize:20, marginBottom:4 }}>{icon}</div>
+                  <div style={{ fontSize:20, fontWeight:900, color }}>{val}</div>
+                  <div style={{ fontSize:10, color:t.muted, fontWeight:600 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Perfil */}
             <div style={{ background:t.surface, borderRadius:16, padding:"18px 20px", border:`1px solid ${t.border}` }}>
               <div style={{ fontWeight:800, fontSize:15, marginBottom:14 }}>👤 Mi perfil</div>
-              {[["Nombre",userData?.nombre],["Correo",userData?.correo],["Teléfono",userData?.telefono||"No registrado"],["Miembro desde",userData?.creado_en?new Date(userData.creado_en).toLocaleDateString("es-CO"):"-"]].map(([k,v])=>(
+              {[
+                ["Nombre",userData?.nombre],
+                ["Correo",userData?.correo],
+                ["Teléfono",userData?.telefono||"No registrado"],
+                ["Miembro desde",userData?.creado_en?new Date(userData.creado_en).toLocaleDateString("es-CO"):"-"],
+                ["Total gastado",formatSaldo(compras.reduce((s,c)=>s+Number(c.precio||0),0))],
+              ].map(([k,v])=>(
                 <div key={k} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"9px 0", borderBottom:`1px solid ${t.border}` }}>
                   <span style={{ color:t.muted, fontSize:12.5 }}>{k}</span>
                   <span style={{ fontWeight:600, fontSize:13, textAlign:"right", maxWidth:"60%" }}>{v}</span>
                 </div>
               ))}
             </div>
-            {/* Resumen */}
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              {[["🛍️","Compras",compras.length],["💰","Recargas",movimientos.filter(m=>m.tipo==="recarga").length]].map(([icon,label,val])=>(
-                <div key={label} style={{ background:t.surface, borderRadius:14, padding:"16px 18px", border:`1px solid ${t.border}`, textAlign:"center" }}>
-                  <div style={{ fontSize:24, marginBottom:4 }}>{icon}</div>
-                  <div style={{ fontSize:22, fontWeight:900, color:"#7c3aed" }}>{val}</div>
-                  <div style={{ fontSize:11, color:t.muted, fontWeight:600 }}>{label}</div>
+
+            {/* Compras activas recientes */}
+            {comprasActivas.length > 0 && (
+              <div style={{ background:t.surface, borderRadius:16, padding:"18px 20px", border:`1px solid ${t.border}` }}>
+                <div style={{ fontWeight:800, fontSize:15, marginBottom:12, display:"flex", justifyContent:"space-between" }}>
+                  ✅ Servicios activos
+                  <button onClick={()=>setTab("compras")} style={{ background:"transparent", border:"none", color:"#7c3aed", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>Ver todos →</button>
                 </div>
-              ))}
-            </div>
+                {comprasActivas.slice(0,3).map(c=>(
+                  <div key={c.id} style={{ padding:"10px 0", borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                    <div>
+                      <div style={{ fontWeight:700, fontSize:13 }}>{c.producto_nombre}</div>
+                      <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>
+                        {c.cuenta_usuario && `👤 ${c.cuenta_usuario}`}
+                        {c.perfil && ` · 📺 ${c.perfil}`}
+                      </div>
+                    </div>
+                    <div style={{ color:"#22c55e", fontSize:11, fontWeight:700 }}>Activo</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -2912,9 +2991,22 @@ export default function App() {
   const [configReady, setConfigReady] = useState(false);
   useEffect(() => { getConfig(() => setConfigReady(true)); }, []);
 
-  // Estado de autenticacion
+  // Estado de autenticacion con verificacion de expiracion del token
   const [authUser, setAuthUser] = useState(() => {
-    try { const u = localStorage.getItem("dm_user"); return u ? JSON.parse(u) : null; } catch(e) { return null; }
+    try {
+      const token = localStorage.getItem("dm_token");
+      const u = localStorage.getItem("dm_user");
+      if (!token || !u) return null;
+      // Verificar si el token JWT ha expirado parseando el payload
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.exp && Date.now() / 1000 > payload.exp) {
+        // Token expirado: limpiar sesion automaticamente
+        localStorage.removeItem("dm_token");
+        localStorage.removeItem("dm_user");
+        return null;
+      }
+      return JSON.parse(u);
+    } catch(e) { return null; }
   });
   const [authToken, setAuthToken] = useState(() => {
     try { return localStorage.getItem("dm_token") || null; } catch(e) { return null; }
@@ -2924,14 +3016,75 @@ export default function App() {
     setAuthUser(user); setAuthToken(token);
     localStorage.setItem("dm_user", JSON.stringify(user));
     localStorage.setItem("dm_token", token);
+    localStorage.setItem("dm_last_activity", Date.now().toString());
     setScreen(user.rol === "admin" ? "admin-panel" : "mi-cuenta");
   };
 
   const handleLogout = () => {
     setAuthUser(null); setAuthToken(null);
-    localStorage.removeItem("dm_user"); localStorage.removeItem("dm_token");
+    localStorage.removeItem("dm_user");
+    localStorage.removeItem("dm_token");
+    localStorage.removeItem("dm_last_activity");
     setScreen("home");
   };
+
+  // Sistema de sesion por actividad: expira a los 30 minutos sin uso
+  useEffect(() => {
+    if (!authToken) return;
+
+    const INACTIVIDAD_MAX = 30 * 60 * 1000; // 30 minutos en ms
+    const RENOVAR_CADA = 10 * 60 * 1000;    // renovar token cada 10 min si hay actividad
+
+    // Actualizar timestamp de ultima actividad en cada interaccion del usuario
+    const registrarActividad = () => {
+      localStorage.setItem("dm_last_activity", Date.now().toString());
+    };
+    window.addEventListener("click", registrarActividad);
+    window.addEventListener("keydown", registrarActividad);
+    window.addEventListener("touchstart", registrarActividad);
+    window.addEventListener("scroll", registrarActividad);
+
+    // Verificar cada minuto si la sesion sigue activa
+    const intervalo = setInterval(async () => {
+      const lastActivity = parseInt(localStorage.getItem("dm_last_activity") || "0");
+      const inactivo = Date.now() - lastActivity;
+
+      if (inactivo >= INACTIVIDAD_MAX) {
+        // 30 minutos sin actividad: cerrar sesion
+        handleLogout();
+        alert("Tu sesión expiró por inactividad. Por seguridad, inicia sesión de nuevo.");
+        return;
+      }
+
+      // Si lleva mas de 10 minutos desde la ultima renovacion, renovar el token
+      if (inactivo < RENOVAR_CADA) {
+        try {
+          const token = localStorage.getItem("dm_token");
+          if (!token) return;
+          const data = await API.post("/api/auth/refresh", {}, token);
+          if (data.ok) {
+            localStorage.setItem("dm_token", data.token);
+            localStorage.setItem("dm_user", JSON.stringify(data.user));
+            setAuthToken(data.token);
+            setAuthUser(data.user);
+          } else {
+            // Token invalido, cerrar sesion
+            handleLogout();
+          }
+        } catch (e) {
+          console.error("Error renovando sesion:", e);
+        }
+      }
+    }, 60 * 1000); // verificar cada minuto
+
+    return () => {
+      clearInterval(intervalo);
+      window.removeEventListener("click", registrarActividad);
+      window.removeEventListener("keydown", registrarActividad);
+      window.removeEventListener("touchstart", registrarActividad);
+      window.removeEventListener("scroll", registrarActividad);
+    };
+  }, [authToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [screen, setScreen] = useState(()=>{ try{ const s=localStorage.getItem("dm_screen"); return ["home","favoritos","pantallas","combos","meses","seguidores"].includes(s)?s:"home"; }catch(e){ return "home"; } });
   const [activeTab, setActiveTab] = useState(()=>{ try{ return localStorage.getItem("dm_tab")||"favoritos"; }catch(e){ return "favoritos"; } });
@@ -3225,31 +3378,31 @@ export default function App() {
         </div>
       )}
       <div style={{ padding:"12px 16px 0", display:"flex", gap:8 }}>
-        <button onClick={()=>setScreen("validar")} className="quick-access glow-purple" style={{ flex:1, background:"linear-gradient(135deg,#2a1a4a,#1e1235)", border:"1px solid #7c3aed55", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+        <button onClick={()=>setScreen("validar")} className="quick-access glow-purple" style={{ flex:1, background:dark?"linear-gradient(135deg,#2a1a4a,#1e1235)":"#f5f3ff", border:`1px solid ${dark?"#7c3aed55":"#c4b5fd"}`, borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>🔐</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>Validar Código</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:dark?"#fff":"#5b21b6", fontWeight:700, fontSize:12 }}>Validar Código</div></div>
         </button>
-        <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}`,"_blank")} className="quick-access glow-green" style={{ flex:1, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+        <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}`,"_blank")} className="quick-access glow-green" style={{ flex:1, background:dark?"#0d1f0d":"#f0fdf4", border:`1px solid ${dark?"#1a3a1a":"#86efac"}`, borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:18 }}>💬</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#fff", fontWeight:700, fontSize:12 }}>WhatsApp</div><div style={{ color:"#25d366", fontSize:10 }}>Soporte directo</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:dark?"#fff":"#15803d", fontWeight:700, fontSize:12 }}>WhatsApp</div><div style={{ color:"#25d366", fontSize:10 }}>Soporte directo</div></div>
         </button>
       </div>
 
       <div style={{ padding:"10px 16px 0", display:"flex", gap:8 }}>
-        <button onClick={()=>setScreen("activar-tv")} className="quick-access glow-blue" style={{ flex:1, background:"linear-gradient(135deg,#0a1a2a,#0d2538)", border:"1px solid #3b82f655", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+        <button onClick={()=>setScreen("activar-tv")} className="quick-access glow-blue" style={{ flex:1, background:dark?"linear-gradient(135deg,#0a1a2a,#0d2538)":"#eff6ff", border:`1px solid ${dark?"#3b82f655":"#bfdbfe"}`, borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:20 }}>📺</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#60a5fa", fontWeight:700, fontSize:12 }}>Activar pantallas</div><div style={{ color:"#93c5fd", fontSize:10 }}>Con código, rápido</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:dark?"#60a5fa":"#1d4ed8", fontWeight:700, fontSize:12 }}>Activar pantallas</div><div style={{ color:dark?"#93c5fd":"#3b82f6", fontSize:10 }}>Con código, rápido</div></div>
         </button>
-        <button onClick={()=>setScreen("soporte")} className="quick-access glow-blue" style={{ flex:1, background:"linear-gradient(135deg,#0a1a2a,#0d2538)", border:"1px solid #3b82f655", borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
+        <button onClick={()=>setScreen("soporte")} className="quick-access glow-blue" style={{ flex:1, background:dark?"linear-gradient(135deg,#0a1a2a,#0d2538)":"#eff6ff", border:`1px solid ${dark?"#3b82f655":"#bfdbfe"}`, borderRadius:12, padding:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, fontFamily:"inherit" }}>
           <span style={{ fontSize:20 }}>🆘</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#60a5fa", fontWeight:700, fontSize:12 }}>Soporte</div><div style={{ color:"#93c5fd", fontSize:10 }}>Ayuda y errores comunes</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:dark?"#60a5fa":"#1d4ed8", fontWeight:700, fontSize:12 }}>Soporte</div><div style={{ color:dark?"#93c5fd":"#3b82f6", fontSize:10 }}>Ayuda y errores comunes</div></div>
         </button>
       </div>
 
       <div style={{ padding:"10px 16px 0" }}>
-        <button onClick={()=>setShowClub(true)} className="quick-access" style={{ width:"100%", background:"linear-gradient(135deg,#1a1000,#2a1800)", border:"1px solid #3a2800", borderRadius:12, padding:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:9, fontFamily:"inherit" }}>
+        <button onClick={()=>setShowClub(true)} className="quick-access" style={{ width:"100%", background:dark?"linear-gradient(135deg,#1a1000,#2a1800)":"linear-gradient(135deg,#fffbeb,#fef3c7)", border:`1px solid ${dark?"#3a2800":"#fbbf24"}`, borderRadius:12, padding:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:9, fontFamily:"inherit" }}>
           <span style={{ fontSize:20 }}>👑</span>
-          <div style={{ textAlign:"left" }}><div style={{ color:"#FFD700", fontWeight:700, fontSize:13 }}>Club Digital Market</div><div style={{ color:"#c9a227", fontSize:10.5 }}>$10.000/mes · Beneficios exclusivos</div></div>
+          <div style={{ textAlign:"left" }}><div style={{ color:dark?"#FFD700":"#92400e", fontWeight:700, fontSize:13 }}>Club Digital Market</div><div style={{ color:dark?"#c9a227":"#b45309", fontSize:10.5 }}>$10.000/mes · Beneficios exclusivos</div></div>
         </button>
       </div>
 

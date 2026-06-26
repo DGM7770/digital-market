@@ -22,6 +22,20 @@ const limiterAuth = rateLimit({
   message: { ok: false, mensaje: 'Demasiados intentos. Intenta en 15 minutos.' },
 });
 
+// RENOVAR TOKEN (para sesiones activas)
+router.post('/auth/refresh', requireAuth, async (req, res) => {
+  try {
+    const result = await query('SELECT id, nombre, correo, rol, saldo FROM usuarios WHERE id = $1 AND activo = true', [req.user.id]);
+    if (result.rows.length === 0) return res.status(401).json({ ok: false, mensaje: 'Sesión inválida' });
+    const user = result.rows[0];
+    const token = signToken({ id: user.id, correo: user.correo, rol: user.rol });
+    res.json({ ok: true, token, user });
+  } catch (e) {
+    console.error('[refresh] Error:', e.message);
+    res.status(500).json({ ok: false, mensaje: 'Error al renovar sesión' });
+  }
+});
+
 // REGISTRO
 router.post('/auth/registro',
   limiterAuth,

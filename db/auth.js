@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const SALT_ROUNDS = 12;
 const JWT_SECRET = process.env.JWT_SECRET; // OBLIGATORIO en producción, sin valor por defecto
-const JWT_EXPIRES = '7d';
+const JWT_EXPIRES = '30m';
 
 if (!JWT_SECRET) {
   console.warn('[AUTH] JWT_SECRET no configurado. El login no funcionará hasta que se configure.');
