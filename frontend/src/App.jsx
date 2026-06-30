@@ -389,6 +389,13 @@ const getCSS = (dark) => `
   @media (min-width:480px) { .activacion-grid { grid-template-columns:repeat(3,1fr); } }
   @media (min-width:768px) { .activacion-grid { grid-template-columns:repeat(4,1fr); gap:14px; } }
   @media (min-width:1100px) { .activacion-grid { grid-template-columns:repeat(5,1fr); } }
+  .activacion-grid-v2 { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+  .activacion-card-v2:hover { transform:translateY(-2px); }
+  .activacion-card-v2:active { transform:scale(0.96); }
+  @media (min-width:420px) { .activacion-grid-v2 { grid-template-columns:repeat(4,1fr); } }
+  @media (min-width:640px) { .activacion-grid-v2 { grid-template-columns:repeat(5,1fr); gap:10px; } }
+  @media (min-width:900px) { .activacion-grid-v2 { grid-template-columns:repeat(7,1fr); } }
+  @media (min-width:1100px) { .activacion-grid-v2 { grid-template-columns:repeat(8,1fr); } }
   .platform-btn { transition:transform 0.2s ease, box-shadow 0.2s ease; }
   .platform-btn:hover { transform:translateY(-4px); }
   .platform-btn:active { transform:scale(0.97); }
@@ -1943,58 +1950,45 @@ function ActivarSmartTV({ onBack, dark }) {
         <div style={{ padding:"16px", borderBottom:`1px solid ${t.border}`, display:"flex", alignItems:"center", gap:12, background:t.surface, position:"sticky", top:0, zIndex:10 }}>
           <BackButton onClick={onBack} dark={dark} label="" />
           <div style={{ width:42, height:42, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>📺</div>
-          <div><div style={{ fontWeight:800, fontSize:18 }}>Activa tu Smart TV con Código</div><div style={{ color:t.muted, fontSize:11.5 }}>Activa tus pantallas más rápido</div></div>
+          <div><div style={{ fontWeight:800, fontSize:18 }}>Activar pantallas</div><div style={{ color:t.muted, fontSize:11.5 }}>Activa tus pantallas más rápido</div></div>
         </div>
 
         <div style={{ padding:20 }}>
-          <div style={{ background:"linear-gradient(135deg,#0d1f35,#0a1628)", border:"1px solid #1e3a5f", borderRadius:16, padding:20, marginBottom:22 }}>
-            <p style={{ color:"#60a5fa", fontSize:13, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:10 }}>💡 ¿Cómo funciona?</p>
-            <p style={{ color:t.text, fontSize:14, lineHeight:1.7 }}>
-              Cuando abres una app de streaming en tu Smart TV por primera vez (o se cerró sesión), la pantalla muestra un <strong>código de varios dígitos</strong>. Selecciona aquí abajo la plataforma que estás activando, te llevamos directo a la página oficial donde debes ingresar ese código, y listo — tu TV queda activada en segundos.
-            </p>
-            <p style={{ color:t.muted, fontSize:12.5, lineHeight:1.6, marginTop:10 }}>
-              Esta sección es útil tanto para clientes que activan su propia cuenta, como para vendedores que necesitan activar pantallas rápidamente sin buscar cada enlace por separado.
-            </p>
+          {/* GUÍA PASO A PASO - PRIMERO, arriba de todo */}
+          <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:"18px 20px", marginBottom:22 }}>
+            <p style={{ color:t.text, fontSize:14.5, fontWeight:800, marginBottom:14, display:"flex", alignItems:"center", gap:8 }}>📋 Cómo activar tu Smart TV — Paso a paso</p>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))", gap:14 }}>
+              {[
+                ["1","Abre la app en tu TV", "Busca el ícono de la plataforma en el menú de tu Smart TV y ábrela."],
+                ["2","Anota el código", "Tu TV mostrará un código temporal. Ten a mano tu celular."],
+                ["3","Toca el botón abajo", "Te lleva directo a la página oficial de activación."],
+                ["4","Ingresa el código", "Escríbelo exacto. En segundos tu pantalla se activa."],
+              ].map(([n,title,desc],i)=>(
+                <div key={i} style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                  <div style={{ width:26, height:26, borderRadius:9, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:12.5, flexShrink:0 }}>{n}</div>
+                  <div>
+                    <div style={{ color:t.text, fontWeight:700, fontSize:12.5, marginBottom:2 }}>{title}</div>
+                    <div style={{ color:t.muted, fontSize:11.5, lineHeight:1.5 }}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop:14, padding:"10px 14px", background:dark?"rgba(245,158,11,0.08)":"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)", borderRadius:10 }}>
+              <p style={{ color:"#f59e0b", fontSize:11.5, lineHeight:1.5 }}>⚠️ El código expira en pocos minutos. Si se vence, vuelve a abrir la app en tu TV para generar uno nuevo.</p>
+            </div>
           </div>
 
-          <p style={{ color:t.muted, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:14 }}>Selecciona la plataforma</p>
-          <div className="activacion-grid" style={{ marginBottom:26 }}>
+          {/* PLATAFORMAS - botones sin logos, organizados, sin scroll */}
+          <p style={{ color:t.muted, fontSize:12, fontWeight:700, textTransform:"uppercase", letterSpacing:0.5, marginBottom:14 }}>Selecciona la plataforma a activar</p>
+          <div className="activacion-grid-v2">
             {ACTIVACIONES.map(app=>(
-              <button key={app.id} onClick={()=>window.open(app.url,"_blank")} className="activacion-card" style={{ background:`linear-gradient(160deg, ${t.card}, ${app.color}0d)`, border:`1.5px solid ${app.color}40`, borderRadius:16, padding:"20px 14px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:11, transition:"all 0.2s ease", position:"relative", overflow:"hidden" }}>
-                <div style={{ position:"absolute", top:-20, right:-20, width:70, height:70, borderRadius:"50%", background:`${app.color}14` }} />
-                {app.img ? (
-                  <div style={{ width:62, height:62, borderRadius:16, overflow:"hidden", background:"#fff", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:`0 6px 16px ${app.color}33`, position:"relative", zIndex:1 }}>
-                    <Img src={app.img} alt={app.name} size={62} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain", padding:6 }} />
-                  </div>
-                ) : (
-                  <div style={{ width:62, height:62, borderRadius:16, background:`${app.color}22`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:28, boxShadow:`0 6px 16px ${app.color}33`, position:"relative", zIndex:1 }}>{app.icon}</div>
-                )}
-                <span style={{ color:t.text, fontWeight:800, fontSize:13.5, textAlign:"center", position:"relative", zIndex:1 }}>{app.name}</span>
-                <span style={{ color:app.color, fontSize:11, fontWeight:700, position:"relative", zIndex:1, display:"flex", alignItems:"center", gap:3 }}>Activar <span style={{ transition:"transform 0.2s ease" }}>→</span></span>
+              <button key={app.id} onClick={()=>window.open(app.url,"_blank")} className="activacion-card-v2" style={{ background:`linear-gradient(135deg, ${app.color}14, ${app.color}05)`, border:`1.5px solid ${app.color}45`, borderRadius:14, padding:"14px 10px", cursor:"pointer", fontFamily:"inherit", display:"flex", flexDirection:"column", alignItems:"center", gap:8, transition:"all 0.2s ease" }}>
+                <div style={{ width:38, height:38, borderRadius:11, background:`${app.color}25`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, color:app.color, fontWeight:800 }}>
+                  {app.icon || app.name.charAt(0)}
+                </div>
+                <span style={{ color:t.text, fontWeight:700, fontSize:11.5, textAlign:"center", lineHeight:1.2 }}>{app.name}</span>
               </button>
             ))}
-          </div>
-
-          {/* GUÍA PASO A PASO */}
-          <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:20 }}>
-            <p style={{ color:t.text, fontSize:14, fontWeight:800, marginBottom:16, display:"flex", alignItems:"center", gap:8 }}>📋 Cómo activar tu Smart TV paso a paso</p>
-            {[
-              ["1","Abre la app del servicio en tu Smart TV", "Busca el ícono de la plataforma (Netflix, Disney+, Prime, etc.) en el menú de aplicaciones de tu TV y ábrela."],
-              ["2","Anota el código que aparece en pantalla", "Tu TV mostrará un código de varios dígitos o letras. Este código es temporal, así que ten a mano tu celular para el siguiente paso."],
-              ["3","Toca el botón de la plataforma aquí arriba", "Te llevará directo a la página oficial de activación en tu navegador."],
-              ["4","Ingresa el código y confirma", "Escribe el código exacto que viste en tu TV. En segundos la pantalla se activará automáticamente."],
-            ].map(([n,title,desc],i)=>(
-              <div key={i} style={{ display:"flex", gap:14, marginBottom:i<3?16:0, alignItems:"flex-start" }}>
-                <div style={{ width:30, height:30, borderRadius:10, background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", fontWeight:800, fontSize:14, flexShrink:0 }}>{n}</div>
-                <div>
-                  <div style={{ color:t.text, fontWeight:700, fontSize:13.5, marginBottom:3 }}>{title}</div>
-                  <div style={{ color:t.muted, fontSize:12.5, lineHeight:1.6 }}>{desc}</div>
-                </div>
-              </div>
-            ))}
-            <div style={{ marginTop:18, padding:"12px 14px", background:dark?"rgba(245,158,11,0.08)":"rgba(245,158,11,0.1)", border:"1px solid rgba(245,158,11,0.3)", borderRadius:10 }}>
-              <p style={{ color:"#f59e0b", fontSize:12, lineHeight:1.6 }}>⚠️ <strong>Importante:</strong> el código expira en pocos minutos. Si se vence, simplemente vuelve a abrir la app en tu TV para generar uno nuevo.</p>
-            </div>
           </div>
         </div>
       </div>
@@ -2613,6 +2607,12 @@ function AuthScreen({ onBack, onLogin, dark }) {
   const [error, setError] = useState("");
   const [recuperando, setRecuperando] = useState(false);
   const [msgRecuperar, setMsgRecuperar] = useState("");
+  const [verPassword, setVerPassword] = useState(false);
+
+  const toggleVerPassword = () => {
+    setVerPassword(true);
+    setTimeout(()=>setVerPassword(false), 5000);
+  };
 
   const handleSubmit = async () => {
     setError(""); setLoading(true);
@@ -2688,7 +2688,12 @@ function AuthScreen({ onBack, onLogin, dark }) {
           <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CORREO ELECTRÓNICO</label>
           <input type="email" value={correo} onChange={e=>setCorreo(e.target.value)} placeholder="tu@correo.com" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:14, boxSizing:"border-box" }} />
           <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:5 }}>CONTRASEÑA {tab==="registro"&&<span style={{fontWeight:400}}>(mínimo 8 caracteres)</span>}</label>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:tab==="login"?8:14, boxSizing:"border-box" }} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
+          <div style={{ position:"relative", marginBottom:tab==="login"?8:14 }}>
+            <input type={verPassword?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" style={{ width:"100%", padding:"11px 44px 11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} onKeyDown={e=>e.key==="Enter"&&handleSubmit()} />
+            <button type="button" onClick={toggleVerPassword} aria-label="Mostrar contraseña" title="Mostrar por 5 segundos" style={{ position:"absolute", right:6, top:"50%", transform:"translateY(-50%)", background:"transparent", border:"none", cursor:"pointer", fontSize:17, padding:8, color:verPassword?"#7c3aed":t.muted }}>
+              {verPassword?"🙈":"👁️"}
+            </button>
+          </div>
           {tab==="login" && (
             <button onClick={()=>setRecuperando(true)} style={{ background:"transparent", border:"none", color:"#7c3aed", fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:14, padding:0, textDecoration:"underline" }}>
               ¿Olvidaste tu contraseña?
@@ -2742,7 +2747,7 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
       <div style={{ background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <button onClick={onBack} style={{ background:"transparent", border:"none", color:t.muted, cursor:"pointer", fontSize:13, display:"flex", alignItems:"center", gap:5 }}>← Tienda</button>
         <span style={{ fontWeight:800, fontSize:15 }}>Mi Cuenta</span>
-        <button onClick={onLogout} style={{ background:"transparent", border:`1px solid ${t.border}`, borderRadius:8, padding:"6px 12px", color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Salir</button>
+        <button onClick={onLogout} style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, padding:"8px 14px", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.3)" }}>🚪 Cerrar sesión</button>
       </div>
 
       <div style={{ display:"flex", background:t.surface, borderBottom:`1px solid ${t.border}`, padding:"0 18px", overflowX:"auto" }}>
@@ -3063,7 +3068,7 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
       <div style={{ background:"linear-gradient(135deg,#1a0035,#0d0020)", borderBottom:"1px solid #3a0060", padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <button onClick={onBack} style={{ background:"transparent", border:"none", color:"#c4b5fd", cursor:"pointer", fontSize:13 }}>← Tienda</button>
         <span style={{ fontWeight:800, fontSize:15, color:"#FFD700" }}>👑 Panel Admin</span>
-        <button onClick={onLogout} style={{ background:"transparent", border:"1px solid #3a0060", borderRadius:8, padding:"6px 12px", color:"#c4b5fd", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Salir</button>
+        <button onClick={onLogout} style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, padding:"8px 14px", color:"#fff", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.3)" }}>🚪 Cerrar sesión</button>
       </div>
 
       <div style={{ display:"flex", background:"#0d0020", borderBottom:"1px solid #2a0050", padding:"0 16px", overflowX:"auto" }}>
