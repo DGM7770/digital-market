@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const { query, pool } = require('./pool');
 const { hashPassword, verifyPassword, signToken, requireAuth, requireAdmin } = require('./auth');
+const { generarMensaje, PERFILES_POR_PLATAFORMA, SIN_PERFIL } = require('./formatos');
 
 const router = express.Router();
 
@@ -127,7 +128,7 @@ router.get('/me/compras', requireAuth, async (req, res) => {
   try {
     const result = await query(
       `SELECT c.id, c.producto_id, c.producto_nombre, c.precio, c.estado, c.creado_en,
-              i.cuenta_usuario, i.cuenta_password, i.perfil, i.notas
+              i.cuenta_usuario, i.cuenta_password, i.perfil, i.notas, i.pin, i.servidor
        FROM compras c
        LEFT JOIN inventario_cuentas i ON i.id = c.inventario_id
        WHERE c.usuario_id = $1 ORDER BY c.creado_en DESC LIMIT 100`,
@@ -165,7 +166,7 @@ router.post('/comprar',
       }
 
       const invResult = await client.query(
-        `SELECT id, cuenta_usuario, cuenta_password, perfil, notas FROM inventario_cuentas
+        `SELECT id, cuenta_usuario, cuenta_password, perfil, notas, pin, servidor FROM inventario_cuentas
          WHERE producto_id = $1 AND estado = 'disponible' LIMIT 1 FOR UPDATE`,
         [producto_id]
       );
@@ -201,6 +202,11 @@ router.post('/comprar',
         [req.user.id, -precio, nuevoSaldo, `Compra: ${producto_nombre}`]
       );
 
+        // Generar mensaje formateado para mostrar al cliente
+        const mensajeFormateado = cuentaAsignada
+          ? generarMensaje(producto_id, { ...cuentaAsignada, producto_nombre })
+          : null;
+
       await client.query('COMMIT');
 
       res.json({
@@ -212,10 +218,13 @@ router.post('/comprar',
           precio,
           estado: estadoCompra,
           creado_en: compraResult.rows[0].creado_en,
+          mensaje_formateado: mensajeFormateado,
           cuenta: cuentaAsignada ? {
             usuario: cuentaAsignada.cuenta_usuario,
             password: cuentaAsignada.cuenta_password,
             perfil: cuentaAsignada.perfil,
+            pin: cuentaAsignada.pin,
+            servidor: cuentaAsignada.servidor,
             notas: cuentaAsignada.notas,
           } : null,
         },
@@ -282,27 +291,35 @@ router.post('/admin/recargar',
   }
 );
 
-// PANEL ADMIN: agregar cuentas al inventario
+// PANEL ADMIN: agregar cuentas al inventario (individual o masiva)
 router.post('/admin/inventario',
   requireAdmin,
   [
     body('producto_id').isString().trim().isLength({ min: 1, max: 100 }),
     body('producto_nombre').isString().trim().isLength({ min: 1, max: 200 }),
-    body('cuenta_usuario').isString().trim().isLength({ min: 1, max: 200 }),
-    body('cuenta_password').isString().trim().isLength({ min: 1, max: 200 }),
-    body('perfil').optional().isString().trim().isLength({ max: 100 }),
-    body('notas').optional().isString().trim().isLength({ max: 1000 }),
+    body('cuentas').isArray({ min: 1, max: 100 }),
+    body('cuentas.*.cuenta_usuario').isString().trim().isLength({ min: 1, max: 200 }),
+    body('cuentas.*.cuenta_password').isString().trim().isLength({ min: 1, max: 200 }),
+    body('cuentas.*.perfil').optional().isString().trim().isLength({ max: 100 }),
+    body('cuentas.*.pin').optional().isString().trim().isLength({ max: 50 }),
+    body('cuentas.*.servidor').optional().isString().trim().isLength({ max: 500 }),
+    body('cuentas.*.notas').optional().isString().trim().isLength({ max: 1000 }),
   ],
   validar,
   async (req, res) => {
     try {
-      const { producto_id, producto_nombre, cuenta_usuario, cuenta_password, perfil, notas } = req.body;
-      const result = await query(
-        `INSERT INTO inventario_cuentas (producto_id, producto_nombre, cuenta_usuario, cuenta_password, perfil, notas)
-         VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-        [producto_id, producto_nombre, cuenta_usuario, cuenta_password, perfil || null, notas || null]
-      );
-      res.json({ ok: true, id: result.rows[0].id });
+      const { producto_id, producto_nombre, cuentas } = req.body;
+      let insertadas = 0;
+      for (const c of cuentas) {
+        await query(
+          `INSERT INTO inventario_cuentas (producto_id, producto_nombre, cuenta_usuario, cuenta_password, perfil, pin, servidor, notas)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+          [producto_id, producto_nombre, c.cuenta_usuario, c.cuenta_password,
+           c.perfil||null, c.pin||null, c.servidor||null, c.notas||null]
+        );
+        insertadas++;
+      }
+      res.json({ ok: true, insertadas });
     } catch (e) {
       console.error('[admin/inventario POST] Error:', e.message);
       res.status(500).json({ ok: false, mensaje: 'Error al agregar al inventario' });

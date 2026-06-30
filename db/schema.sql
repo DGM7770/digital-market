@@ -75,3 +75,7 @@ CREATE TABLE IF NOT EXISTS sesiones (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sesiones_usuario ON sesiones(usuario_id);
+
+-- MIGRACION: campos adicionales para inventario
+ALTER TABLE inventario_cuentas ADD COLUMN IF NOT EXISTS pin VARCHAR(50);
+ALTER TABLE inventario_cuentas ADD COLUMN IF NOT EXISTS servidor VARCHAR(500);

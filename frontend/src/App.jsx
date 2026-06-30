@@ -80,9 +80,9 @@ const IMG = {
 
 // ─── DATOS ────────────────────────────────────────────────────────────────────
 const PANTALLAS = [
-  { id:"net1-p", name:"Netflix 1 Mes", price:16000, img:"/images/netflix1mes.png", color:"#E50914", desc:"1 pantalla · HD", features:["Series y películas","Calidad HD","Soporte incluido"] },
-  { id:"sp1-p", name:"Spotify 1 Mes", price:12000, img:IMG.spotify, color:"#1DB954", desc:"Premium sin anuncios", features:["Sin anuncios","Descarga offline","Calidad máxima"] },
-  { id:"yt1-p", name:"YouTube 1 Mes", price:16000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
+  { id:"net1", name:"Netflix 1 Mes", price:16000, img:"/images/netflix1mes.png", color:"#E50914", desc:"1 pantalla · HD", features:["Series y películas","Calidad HD","Soporte incluido"] },
+  { id:"sp1", name:"Spotify 1 Mes", price:12000, img:IMG.spotify, color:"#1DB954", desc:"Premium sin anuncios", features:["Sin anuncios","Descarga offline","Calidad máxima"] },
+  { id:"yt1", name:"YouTube 1 Mes", price:16000, img:IMG.youtube, color:"#FF0000", desc:"Sin anuncios · Music", features:["Sin anuncios","YouTube Music","Descarga videos"] },
   { id:"hbo", name:"HBO Max", price:11000, img:IMG.hbo, color:"#8B5CF6", desc:"Series exclusivas · HD", features:["Series exclusivas HBO","Estrenos de cine","Calidad HD"] },
   { id:"prime", name:"Prime Video", price:11000, img:IMG.prime, color:"#00A8E1", desc:"Originales Amazon · HD", features:["Originales Amazon","Calidad HD","Soporte incluido"] },
   { id:"dis1", name:"Disney+ Estándar", price:11000, img:IMG.disneyStd, color:"#0063e5", desc:"Marvel, Star Wars, Pixar", features:["Marvel, Star Wars, Pixar","Calidad HD","Sin ESPN"] },
@@ -1498,25 +1498,33 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
                   {compraResult.ok ? (
                     <div>
                       <div style={{ color:"#22c55e", fontWeight:800, fontSize:13, marginBottom:6 }}>✓ Compra exitosa</div>
-                      <div style={{ color:t.muted, fontSize:11.5, marginBottom:8 }}>Saldo restante: {formatSaldo(compraResult.saldo)}</div>
-                      {compraResult.compra?.cuenta ? (
-                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                          <div style={{ fontWeight:700, fontSize:12, color:t.text, marginBottom:2 }}>🔐 Tus accesos:</div>
-                          {[["👤 Usuario", compraResult.compra.cuenta.usuario],["🔑 Contraseña", compraResult.compra.cuenta.password],compraResult.compra.cuenta.perfil&&["📺 Perfil", compraResult.compra.cuenta.perfil]].filter(Boolean).map(([k,v])=>(
-                            <div key={k} style={{ background:t.card, borderRadius:8, padding:"8px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                              <span style={{ color:t.muted, fontSize:11 }}>{k}</span>
-                              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                                <span style={{ fontWeight:700, fontSize:12, fontFamily:"monospace" }}>{v}</span>
-                                <button onClick={()=>navigator.clipboard?.writeText(v)} style={{ background:"#7c3aed22", border:"none", borderRadius:5, padding:"2px 7px", color:"#7c3aed", fontSize:9.5, cursor:"pointer", fontWeight:700 }}>Copiar</button>
-                              </div>
+                      <div style={{ color:t.muted, fontSize:11.5, marginBottom:10 }}>Saldo restante: {formatSaldo(compraResult.saldo)}</div>
+                      {compraResult.compra?.mensaje_formateado ? (
+                        <div>
+                          {/* Mensaje formateado con el formato oficial */}
+                          <div style={{ background:dark?"#0d1a0d":"#f0fff4", border:"1px solid #22c55e44", borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
+                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                              <span style={{ fontWeight:700, fontSize:12, color:"#22c55e" }}>📋 Tus accesos</span>
+                              <button onClick={()=>navigator.clipboard?.writeText(compraResult.compra.mensaje_formateado)} style={{ background:"#22c55e22", border:"1px solid #22c55e44", borderRadius:6, padding:"3px 10px", color:"#22c55e", fontSize:10, fontWeight:700, cursor:"pointer" }}>📋 Copiar todo</button>
                             </div>
-                          ))}
-                          {compraResult.compra.cuenta.notas && <div style={{ color:t.muted, fontSize:11, marginTop:4 }}>📝 {compraResult.compra.cuenta.notas}</div>}
+                            <pre style={{ fontFamily:"monospace", fontSize:12.5, color:dark?"#e2e8f0":"#1a202c", whiteSpace:"pre-wrap", wordBreak:"break-word", lineHeight:1.7, margin:0 }}>
+                              {compraResult.compra.mensaje_formateado}
+                            </pre>
+                          </div>
+                          <button onClick={()=>{
+                            const msg = compraResult.compra.mensaje_formateado;
+                            window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
+                          }} style={{ width:"100%", padding:"9px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:6 }}>
+                            💬 Compartir por WhatsApp
+                          </button>
                         </div>
                       ) : (
-                        <div style={{ color:"#f59e0b", fontSize:11.5 }}>⏳ Tus accesos serán asignados en breve. Ve a "Mi cuenta" para verlos.</div>
+                        <div style={{ background:"#f59e0b18", border:"1px solid #f59e0b44", borderRadius:10, padding:"12px 14px" }}>
+                          <div style={{ color:"#f59e0b", fontWeight:700, fontSize:13, marginBottom:4 }}>⏳ En proceso</div>
+                          <div style={{ color:t.muted, fontSize:12 }}>El administrador está preparando tus accesos y te los enviará pronto.</div>
+                        </div>
                       )}
-                      <button onClick={onGoAccount} style={{ width:"100%", marginTop:10, padding:"8px 0", background:"#7c3aed22", border:"none", borderRadius:9, color:"#a78bfa", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Ver en Mi cuenta →</button>
+                      <button onClick={onGoAccount} style={{ width:"100%", marginTop:8, padding:"8px 0", background:"#7c3aed22", border:"none", borderRadius:9, color:"#a78bfa", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Ver en Mi cuenta →</button>
                     </div>
                   ) : (
                     <div>
@@ -2037,7 +2045,7 @@ function Soporte({ onBack, dark }) {
 }
 
 // ─── SEGUIDORES ───────────────────────────────────────────────────────────────
-function Seguidores({ onBack, onAddCart, onRemoveOne, dark, inline=false, cart=[], onDetail }) {
+function Seguidores({ onBack, onAddCart, onRemoveOne, dark, inline=false, cart=[], onDetail, authUser, authToken, onComprarSaldo }) {
   const t = getTheme(dark);
   const [sortBy, setSortBy] = useState("relevancia");
   const [view, setView] = useState("grid");
@@ -2059,7 +2067,7 @@ function Seguidores({ onBack, onAddCart, onRemoveOne, dark, inline=false, cart=[
           ))}
         </div>
         <FiltroBar dark={dark} sortBy={sortBy} setSortBy={setSortBy} view={view} setView={setView} count={packs.length} />
-        <ProductGrid items={sortItems(packs, sortBy)} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne||(()=>{})} onDetail={onDetail||(()=>{})} cart={cart} view={view} />
+        <ProductGrid items={sortItems(packs, sortBy)} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne||(()=>{})} onDetail={onDetail||(()=>{})} cart={cart} view={view} authUser={authUser} authToken={authToken} onComprarSaldo={onComprarSaldo} />
       </div>
   );
   if (inline) return content;
@@ -2247,9 +2255,102 @@ function sortItems(items, sortBy) {
   return arr;
 }
 
-function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view, compact=false }) {
+// ════════════════════════════════════════════════════════════════════════════
+// MODAL DE CONFIRMACION OBLIGATORIA ANTES DE COMPRAR
+// ════════════════════════════════════════════════════════════════════════════
+function ConfirmarCompraModal({ item, dark, onCancel, onConfirm }) {
+  const t = getTheme(dark);
+  const [texto, setTexto] = useState("");
+  const FRASE = "confirmo";
+  const valido = texto.trim().toLowerCase() === FRASE;
+
+  return (
+    <div onClick={onCancel} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:1200, display:"flex", alignItems:"center", justifyContent:"center", padding:18, animation:"overlayIn 0.2s ease" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:18, padding:24, maxWidth:380, width:"100%", border:`1px solid ${t.border}` }}>
+        <div style={{ textAlign:"center", marginBottom:16 }}>
+          <div style={{ fontSize:38, marginBottom:8 }}>⚠️</div>
+          <div style={{ fontWeight:800, fontSize:16, marginBottom:6 }}>Confirma tu compra</div>
+          <div style={{ color:t.muted, fontSize:13 }}>Estás a punto de comprar:</div>
+        </div>
+        <div style={{ background:t.card, borderRadius:12, padding:"12px 16px", marginBottom:16, border:`1px solid ${t.border}` }}>
+          <div style={{ fontWeight:700, fontSize:14 }}>{item.name}</div>
+          <div style={{ color:item.color||"#7c3aed", fontWeight:900, fontSize:20, marginTop:4 }}>{formatPrice(item.price)}</div>
+        </div>
+        <div style={{ background:"#f59e0b15", border:"1px solid #f59e0b33", borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:12, color:"#d97706" }}>
+          Esta acción descontará el monto de tu saldo de forma inmediata y no se puede deshacer. Escribe <strong>"confirmo"</strong> para continuar.
+        </div>
+        <input
+          value={texto}
+          onChange={e=>setTexto(e.target.value)}
+          placeholder='Escribe "confirmo"'
+          style={{ width:"100%", padding:"12px 14px", background:t.card, border:`1.5px solid ${valido?"#22c55e":t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:16, boxSizing:"border-box" }}
+          autoFocus
+        />
+        <div style={{ display:"flex", gap:10 }}>
+          <button onClick={onCancel} style={{ flex:1, padding:12, background:"transparent", border:`1px solid ${t.border}`, borderRadius:11, color:t.muted, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Cancelar</button>
+          <button onClick={onConfirm} disabled={!valido} style={{ flex:1, padding:12, background:valido?"linear-gradient(135deg,#7c3aed,#6d28d9)":"#374151", border:"none", borderRadius:11, color:"#fff", fontWeight:800, fontSize:13, cursor:valido?"pointer":"not-allowed", fontFamily:"inherit" }}>Confirmar compra</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODAL DE RESULTADO DE COMPRA (exito o error)
+// ════════════════════════════════════════════════════════════════════════════
+function ResultadoCompraModal({ resultado, dark, onClose, onGoAccount }) {
+  const t = getTheme(dark);
+  const { data } = resultado;
+
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.82)", zIndex:1200, display:"flex", alignItems:"center", justifyContent:"center", padding:18, animation:"overlayIn 0.2s ease" }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:18, padding:22, maxWidth:420, width:"100%", maxHeight:"85vh", overflowY:"auto", border:`1px solid ${t.border}` }}>
+        {data.ok ? (
+          <div>
+            <div style={{ textAlign:"center", marginBottom:14 }}>
+              <div style={{ fontSize:38, marginBottom:6 }}>✅</div>
+              <div style={{ fontWeight:800, fontSize:16 }}>Compra exitosa</div>
+              <div style={{ color:t.muted, fontSize:12, marginTop:4 }}>Saldo restante: {formatSaldo(data.saldo)}</div>
+            </div>
+            {data.compra?.mensaje_formateado ? (
+              <div>
+                <div style={{ background:dark?"#0d1a0d":"#f0fff4", border:"1px solid #22c55e44", borderRadius:10, padding:"14px 16px", marginBottom:12 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                    <span style={{ fontWeight:700, fontSize:12, color:"#22c55e" }}>📋 Tus accesos</span>
+                    <button onClick={()=>navigator.clipboard?.writeText(data.compra.mensaje_formateado)} style={{ background:"#22c55e22", border:"1px solid #22c55e44", borderRadius:6, padding:"3px 10px", color:"#22c55e", fontSize:10, fontWeight:700, cursor:"pointer" }}>📋 Copiar</button>
+                  </div>
+                  <pre style={{ fontFamily:"monospace", fontSize:12.5, color:dark?"#e2e8f0":"#1a202c", whiteSpace:"pre-wrap", wordBreak:"break-word", lineHeight:1.7, margin:0 }}>{data.compra.mensaje_formateado}</pre>
+                </div>
+                <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(data.compra.mensaje_formateado)}`,"_blank")} style={{ width:"100%", padding:"9px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:8 }}>💬 Compartir por WhatsApp</button>
+              </div>
+            ) : (
+              <div style={{ background:"#f59e0b18", border:"1px solid #f59e0b44", borderRadius:10, padding:"12px 14px", marginBottom:8 }}>
+                <div style={{ color:"#f59e0b", fontWeight:700, fontSize:13, marginBottom:4 }}>⏳ En proceso</div>
+                <div style={{ color:t.muted, fontSize:12 }}>El administrador está preparando tus accesos. Te avisaremos por WhatsApp cuando estén listos.</div>
+              </div>
+            )}
+            <button onClick={onGoAccount} style={{ width:"100%", padding:"9px 0", background:"#7c3aed22", border:"none", borderRadius:9, color:"#a78bfa", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:6 }}>Ver en Mi cuenta →</button>
+            <button onClick={onClose} style={{ width:"100%", padding:"8px 0", background:"transparent", border:"none", color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Cerrar</button>
+          </div>
+        ) : (
+          <div style={{ textAlign:"center" }}>
+            <div style={{ fontSize:38, marginBottom:8 }}>❌</div>
+            <div style={{ fontWeight:800, fontSize:15, color:"#ef4444", marginBottom:8 }}>{data.mensaje}</div>
+            {data.mensaje?.includes("Saldo insuficiente") && (
+              <div style={{ color:t.muted, fontSize:12, marginBottom:14 }}>Tu saldo actual: {formatSaldo(data.saldo)}</div>
+            )}
+            <button onClick={onClose} style={{ width:"100%", padding:"10px 0", background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:11, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>Entendido</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view, compact=false, authUser, authToken, onComprarSaldo }) {
   const t = getTheme(dark);
   const [addedMap, setAddedMap] = useState({});
+  const [comprandoMap, setComprandoMap] = useState({});
 
   const countFor = (id) => cart.filter(c=>c.id===id).length;
 
@@ -2266,28 +2367,43 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
     onRemoveOne(item);
   };
 
+  const handleComprarSaldo = async (e, item) => {
+    e.stopPropagation();
+    if (!authUser) { onComprarSaldo(item); return; }
+    setComprandoMap(m=>({...m,[item.id]:true}));
+    await onComprarSaldo(item);
+    setComprandoMap(m=>({...m,[item.id]:false}));
+  };
+
   if (view==="list") {
     return (
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         {items.map((item,i)=>{
           const cnt = countFor(item.id);
           return (
-            <div key={item.id} className="card-hover" onClick={()=>onDetail(item)} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:14, overflow:"hidden", cursor:"pointer", display:"flex", position:"relative", animationDelay:`${(i%10)*0.03}s` }}>
-              <div style={{ width:100, height:100, flexShrink:0, overflow:"hidden", background:dark?"#0d141f":"#e8ecf2", display:"flex", alignItems:"center", justifyContent:"center" }}><Img src={item.img} alt={item.name} size={100} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain" }} /></div>
-              <div style={{ flex:1, padding:"10px 14px", display:"flex", flexDirection:"column", justifyContent:"center", minWidth:0 }}>
-                <div style={{ fontWeight:700, fontSize:14, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
-                <div style={{ color:t.muted, fontSize:11.5, marginBottom:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
-                <div style={{ color:item.color, fontWeight:800, fontSize:16 }}>{formatPrice(item.price)}</div>
+            <div key={item.id} className="card-hover" onClick={()=>onDetail(item)} style={{ background:t.card, border:`1px solid ${item.badge?item.color+"44":t.border}`, borderRadius:14, overflow:"hidden", cursor:"pointer", position:"relative", animationDelay:`${(i%10)*0.03}s` }}>
+              <div style={{ display:"flex" }}>
+                <div style={{ width:100, height:100, flexShrink:0, overflow:"hidden", background:dark?"#0d141f":"#e8ecf2", display:"flex", alignItems:"center", justifyContent:"center" }}><Img src={item.img} alt={item.name} size={100} style={{ borderRadius:0, width:"100%", height:"100%" }} imgStyle={{ objectFit:"contain" }} /></div>
+                <div style={{ flex:1, padding:"10px 14px", display:"flex", flexDirection:"column", justifyContent:"center", minWidth:0 }}>
+                  <div style={{ fontWeight:700, fontSize:14, marginBottom:2, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
+                  <div style={{ color:t.muted, fontSize:11.5, marginBottom:4, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.desc}</div>
+                  <div style={{ color:item.color, fontWeight:800, fontSize:16 }}>{formatPrice(item.price)}</div>
+                </div>
+                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6, padding:"0 14px" }}>
+                  {cnt>0 && (
+                    <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                      <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" title="Quitar 1 del carrito" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:"50%", width:26, height:26, color:"#fff", fontWeight:900, fontSize:15, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, boxShadow:"0 2px 6px rgba(239,68,68,0.4)" }}>−</button>
+                      <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>
+                    </div>
+                  )}
+                  <button onClick={(e)=>handleAdd(e,item)} style={{ background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:8, padding:"7px 12px", color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>{addedMap[item.id]?"✓":"🛒 Agregar"}</button>
+                </div>
               </div>
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6, padding:"0 14px" }}>
-                {cnt>0 && (
-                  <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <button onClick={(e)=>handleRemove(e,item)} aria-label="Quitar 1" title="Quitar 1 del carrito" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:"50%", width:26, height:26, color:"#fff", fontWeight:900, fontSize:15, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1, padding:0, boxShadow:"0 2px 6px rgba(239,68,68,0.4)" }}>−</button>
-                    <div style={{ background:"#7c3aed", color:"#fff", borderRadius:20, padding:"2px 9px", fontSize:11, fontWeight:800 }}>🛒 {cnt}</div>
-                  </div>
-                )}
-                <button onClick={(e)=>handleAdd(e,item)} style={{ background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:8, padding:"7px 12px", color:"#fff", fontWeight:700, fontSize:11, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap" }}>{addedMap[item.id]?"✓":"🛒 Agregar"}</button>
-              </div>
+              {authUser && (
+                <button onClick={(e)=>handleComprarSaldo(e,item)} disabled={comprandoMap[item.id]} style={{ width:"100%", padding:"8px 0", background:comprandoMap[item.id]?"#374151":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderTop:`1px solid ${t.border}`, color:"#fff", fontWeight:700, fontSize:11.5, cursor:comprandoMap[item.id]?"not-allowed":"pointer", fontFamily:"inherit" }}>
+                  {comprandoMap[item.id]?"Procesando...":"💜 Comprar con saldo"}
+                </button>
+              )}
             </div>
           );
         })}
@@ -2327,7 +2443,13 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
               {/* Botones abajo - colores fijos y consistentes en todos los productos */}
               <div style={{ display:"flex", flexDirection:"column", gap:compact?4:6 }}>
                 <button onClick={(e)=>handleAdd(e,item)} className={addedMap[item.id]?"":"glow-green"} style={{ width:"100%", padding:compact?"6px 0":"9px 0", background:addedMap[item.id]?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:compact?7:9, color:"#fff", fontWeight:700, fontSize:compact?9.5:11.5, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{addedMap[item.id]?"✓ Agregado":compact?"🛒 Agregar":"🛒 Agregar al carrito"}</button>
-                <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:compact?"6px 0":"9px 0", background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:compact?7:9, color:"#1a1200", fontWeight:700, fontSize:compact?9.5:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+                {authUser ? (
+                  <button onClick={(e)=>handleComprarSaldo(e,item)} disabled={comprandoMap[item.id]} style={{ width:"100%", padding:compact?"6px 0":"9px 0", background:comprandoMap[item.id]?"#374151":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:compact?7:9, color:"#fff", fontWeight:700, fontSize:compact?9.5:11.5, cursor:comprandoMap[item.id]?"not-allowed":"pointer", fontFamily:"inherit" }}>
+                    {comprandoMap[item.id]?"Procesando...":compact?"💜 Con saldo":"💜 Comprar con saldo"}
+                  </button>
+                ) : (
+                  <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:compact?"6px 0":"9px 0", background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:compact?7:9, color:"#1a1200", fontWeight:700, fontSize:compact?9.5:11.5, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
+                )}
               </div>
             </div>
           </div>
@@ -2337,7 +2459,7 @@ function ProductGrid({ items, dark, onAddCart, onRemoveOne, onDetail, cart, view
   );
 }
 
-function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[] }) {
+function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[], authUser, authToken, onComprarSaldo }) {
   const t = getTheme(dark);
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState("Todas");
@@ -2443,7 +2565,7 @@ function Buscador({ dark, onBack, onAddCart, onRemoveOne, onDetail, cart=[] }) {
               <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(`Hola! Estoy buscando "${query}" y no lo encontré en la página`)}`,"_blank")} style={{ marginTop:16, padding:"12px 24px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>💬 Preguntar por WhatsApp</button>
             </div>
           ) : (
-            <ProductGrid items={unique} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne} onDetail={onDetail} cart={cart} view={view} compact={view==="grid"} />
+            <ProductGrid items={unique} dark={dark} onAddCart={onAddCart} onRemoveOne={onRemoveOne} onDetail={onDetail} cart={cart} view={view} compact={view==="grid"} authUser={authUser} authToken={authToken} onComprarSaldo={onComprarSaldo} />
           )}
         </div>
       </div>
@@ -2739,23 +2861,35 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
                   {compraAbierta===c.id && (
                     <div style={{ padding:"14px 16px", background:t.card, borderTop:`1px solid ${t.border}` }}>
                       {c.cuenta_usuario ? (
-                        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                          <div style={{ fontWeight:700, fontSize:13, marginBottom:4 }}>🔐 Tus accesos</div>
-                          {[["👤 Usuario",c.cuenta_usuario],["🔑 Contraseña",c.cuenta_password],c.perfil&&["📺 Perfil",c.perfil],c.notas&&["📝 Notas",c.notas]].filter(Boolean).map(([k,v])=>(
-                            <div key={k} style={{ background:t.surface, borderRadius:10, padding:"10px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", border:`1px solid ${t.border}` }}>
-                              <span style={{ color:t.muted, fontSize:12 }}>{k}</span>
-                              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                                <span style={{ fontWeight:700, fontSize:13, fontFamily:"monospace" }}>{v}</span>
-                                <button onClick={()=>navigator.clipboard?.writeText(v)} style={{ background:"#7c3aed22", border:"none", borderRadius:6, padding:"3px 8px", color:"#7c3aed", fontSize:10, cursor:"pointer", fontWeight:700 }}>Copiar</button>
-                              </div>
-                            </div>
-                          ))}
+                        <div>
+                          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                            <span style={{ fontWeight:700, fontSize:13, color:t.text }}>🔐 Tus accesos</span>
+                            <button onClick={()=>{
+                              const txt = `${c.producto_nombre}\n\nUsuario: ${c.cuenta_usuario}\nContraseña: ${c.cuenta_password}${c.perfil?'\nPerfil: '+c.perfil:''}${c.pin?'\nPIN: '+c.pin:''}${c.notas?'\n\n'+c.notas:''}`;
+                              navigator.clipboard?.writeText(txt);
+                            }} style={{ background:"#22c55e22", border:"1px solid #22c55e44", borderRadius:7, padding:"4px 10px", color:"#22c55e", fontSize:10.5, fontWeight:700, cursor:"pointer" }}>📋 Copiar todo</button>
+                          </div>
+                          <div style={{ background:dark?"#0d1a0d":"#f0fff4", border:"1px solid #22c55e33", borderRadius:10, padding:"12px 14px", marginBottom:10 }}>
+                            <pre style={{ fontFamily:"monospace", fontSize:13, color:dark?"#e2e8f0":"#1a202c", whiteSpace:"pre-wrap", wordBreak:"break-word", lineHeight:1.8, margin:0 }}>{
+`👤 Usuario: ${c.cuenta_usuario}
+🔑 Contraseña: ${c.cuenta_password}${c.perfil?`\n📺 Perfil: ${c.perfil}`:''}${c.pin?`\n🔒 PIN: ${c.pin}`:''}${c.servidor?`\n🖥️ Servidor: ${c.servidor}`:''}${c.notas?`\n\n📝 ${c.notas}`:''}`
+                            }</pre>
+                          </div>
+                          <button onClick={()=>{
+                            const msg = `${c.producto_nombre}\n\nUsuario: ${c.cuenta_usuario}\nContraseña: ${c.cuenta_password}${c.perfil?'\nPerfil: '+c.perfil:''}${c.pin?'\nPIN: '+c.pin:''}`;
+                            window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
+                          }} style={{ width:"100%", padding:"8px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>
+                            💬 Compartir por WhatsApp
+                          </button>
                         </div>
                       ) : (
                         <div style={{ textAlign:"center", padding:"10px 0", color:t.muted }}>
                           <div style={{ fontSize:24, marginBottom:6 }}>⏳</div>
                           <div style={{ fontWeight:700, fontSize:13, marginBottom:4 }}>Accesos en preparación</div>
-                          <div style={{ fontSize:12 }}>El administrador asignará tus accesos en breve. Puedes escribirnos por WhatsApp.</div>
+                          <div style={{ fontSize:12 }}>El administrador asignará tus accesos en breve.</div>
+                          <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Hola, compré '+c.producto_nombre+' y estoy esperando mis accesos.')}`,"_blank")} style={{ marginTop:10, padding:"8px 16px", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>
+                            💬 Consultar por WhatsApp
+                          </button>
                         </div>
                       )}
                     </div>
@@ -2802,24 +2936,60 @@ function DashboardCliente({ user, token, onLogout, onBack, dark }) {
 // ════════════════════════════════════════════════════════════════════════════
 function PanelAdmin({ token, onLogout, onBack, dark }) {
   const t = getTheme(dark);
-  const [tab, setTab] = useState("usuarios");
+  const [tab, setTab] = useState("dashboard");
   const [usuarios, setUsuarios] = useState([]);
   const [inventario, setInventario] = useState([]);
+  const [ventas, setVentas] = useState([]);
   const [userSeleccionado, setUserSeleccionado] = useState(null);
   const [montoRecarga, setMontoRecarga] = useState("");
   const [descRecarga, setDescRecarga] = useState("");
   const [msgRecarga, setMsgRecarga] = useState("");
   const [loadingRecarga, setLoadingRecarga] = useState(false);
-  const [formInv, setFormInv] = useState({ producto_id:"", producto_nombre:"", cuenta_usuario:"", cuenta_password:"", perfil:"", notas:"" });
   const [msgInv, setMsgInv] = useState("");
   const [loadingInv, setLoadingInv] = useState(false);
+
+  // Productos predefinidos para el dropdown
+  const PRODUCTOS_LISTA = [
+    {id:"net1",nombre:"Netflix 1 Mes",perfiles:5,usaPin:true},
+    {id:"net2p",nombre:"Netflix 2 Pantallas",perfiles:5,usaPin:true},
+    {id:"net2m",nombre:"Netflix 2 Meses",perfiles:5,usaPin:true},
+    {id:"net3m",nombre:"Netflix 3 Meses",perfiles:5,usaPin:true},
+    {id:"dis1",nombre:"Disney+ Estándar",perfiles:7,usaPin:true},
+    {id:"dis2",nombre:"Disney+ Premium",perfiles:7,usaPin:true},
+    {id:"hbo",nombre:"HBO Max",perfiles:5,usaPin:true},
+    {id:"prime",nombre:"Prime Video",perfiles:6,usaPin:true},
+    {id:"paramount",nombre:"Paramount+",perfiles:6,usaPin:true},
+    {id:"crunchy",nombre:"Crunchyroll",perfiles:5,usaPin:false},
+    {id:"vix",nombre:"ViX+",perfiles:5,usaPin:false},
+    {id:"apple",nombre:"Apple TV+",perfiles:6,usaPin:false},
+    {id:"directv",nombre:"DirecTV GO",perfiles:4,usaPin:true},
+    {id:"win",nombre:"WIN+",perfiles:5,usaPin:true},
+    {id:"plex",nombre:"Plex",perfiles:0,usaPin:false},
+    {id:"jelly",nombre:"Jellyfin",perfiles:0,usaPin:false,usaServidor:true},
+    {id:"iptv",nombre:"IPTV Premium",perfiles:0,usaPin:false},
+    {id:"iptvfull",nombre:"IPTV 3 Pantallas",perfiles:0,usaPin:false},
+    {id:"sp1",nombre:"Spotify 1 Mes",perfiles:0,usaPin:false},
+    {id:"sp2",nombre:"Spotify 2 Meses",perfiles:0,usaPin:false},
+    {id:"sp3",nombre:"Spotify 3 Meses",perfiles:0,usaPin:false},
+    {id:"sp4",nombre:"Spotify 4 Meses",perfiles:0,usaPin:false},
+    {id:"sp6",nombre:"Spotify 6 Meses",perfiles:0,usaPin:false},
+    {id:"yt1",nombre:"YouTube 1 Mes",perfiles:0,usaPin:false},
+    {id:"yt2",nombre:"YouTube 2 Meses",perfiles:0,usaPin:false},
+    {id:"yt3",nombre:"YouTube 3 Meses",perfiles:0,usaPin:false},
+    {id:"canva",nombre:"Canva Pro",perfiles:0,usaPin:false},
+    {id:"office",nombre:"Office 365",perfiles:0,usaPin:false},
+    {id:"ps",nombre:"Game Pass Ultimate",perfiles:0,usaPin:false},
+  ];
+
+  const [prodSeleccionado, setProdSeleccionado] = useState(PRODUCTOS_LISTA[0]);
+  const [cuentasMasivas, setCuentasMasivas] = useState([{usuario:"",password:"",perfil:"1",pin:""}]);
 
   const cargarDatos = () => {
     API.get("/api/admin/usuarios", token).then(d => { if(d.ok) setUsuarios(d.usuarios); });
     API.get("/api/admin/inventario", token).then(d => { if(d.ok) setInventario(d.resumen); });
   };
 
-  useEffect(() => { cargarDatos(); }, [token]);
+  useEffect(() => { cargarDatos(); }, [token]); // eslint-disable-line
 
   const recargarSaldo = async () => {
     if (!userSeleccionado || !montoRecarga || isNaN(montoRecarga) || Number(montoRecarga) < 1) {
@@ -2828,7 +2998,7 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
     setLoadingRecarga(true); setMsgRecarga("");
     const data = await API.post("/api/admin/recargar", { usuario_id: userSeleccionado.id, monto: Number(montoRecarga), descripcion: descRecarga || undefined }, token);
     if (data.ok) {
-      setMsgRecarga(`✓ Saldo recargado. Nuevo saldo: ${formatSaldo(data.saldo)}`);
+      setMsgRecarga("✓ Saldo recargado. Nuevo saldo: " + formatSaldo(data.saldo));
       setMontoRecarga(""); setDescRecarga(""); setUserSeleccionado(null); cargarDatos();
     } else {
       setMsgRecarga("Error: " + (data.mensaje || "Intenta de nuevo"));
@@ -2837,30 +3007,61 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
   };
 
   const agregarInventario = async () => {
-    if (!formInv.producto_id || !formInv.producto_nombre || !formInv.cuenta_usuario || !formInv.cuenta_password) {
-      setMsgInv("Completa los campos obligatorios (*)"); return;
+    const cuentasValidas = cuentasMasivas.filter(c => c.usuario && c.password);
+    if (!prodSeleccionado || cuentasValidas.length === 0) {
+      setMsgInv("Completa al menos un usuario y contraseña"); return;
     }
     setLoadingInv(true); setMsgInv("");
-    const data = await API.post("/api/admin/inventario", formInv, token);
+    const cuentas = cuentasValidas.map(c => ({
+      cuenta_usuario: c.usuario,
+      cuenta_password: c.password,
+      perfil: c.perfil || null,
+      pin: c.pin || null,
+      servidor: c.servidor || null,
+      notas: c.notas || null,
+    }));
+    const data = await API.post("/api/admin/inventario", {
+      producto_id: prodSeleccionado.id,
+      producto_nombre: prodSeleccionado.nombre,
+      cuentas,
+    }, token);
     if (data.ok) {
-      setMsgInv("✓ Cuenta agregada al inventario correctamente");
-      setFormInv({ producto_id:"", producto_nombre:"", cuenta_usuario:"", cuenta_password:"", perfil:"", notas:"" }); cargarDatos();
+      setMsgInv("✓ " + data.insertadas + " cuenta(s) agregada(s) correctamente");
+      setCuentasMasivas([{usuario:"",password:"",perfil:"1",pin:""}]);
+      cargarDatos();
     } else {
       setMsgInv("Error: " + (data.mensaje || "Intenta de nuevo"));
     }
     setLoadingInv(false);
   };
 
+  const agregarFila = () => setCuentasMasivas(prev => [...prev, {usuario:"",password:"",perfil:String(prev.length+1),pin:""}]);
+  const quitarFila = (i) => setCuentasMasivas(prev => prev.filter((_,idx)=>idx!==i));
+  const actualizarFila = (i, campo, val) => setCuentasMasivas(prev => prev.map((c,idx)=>idx===i?{...c,[campo]:val}:c));
+
+  const getStockColor = (n) => {
+    n = Number(n);
+    if (n === 0) return { bg:"#fef2f2", border:"#fca5a5", text:"#dc2626", label:"AGOTADO" };
+    if (n <= 2) return { bg:"#fff7ed", border:"#fdba74", text:"#ea580c", label:"BAJO" };
+    if (n <= 4) return { bg:"#fefce8", border:"#fde047", text:"#ca8a04", label:"MEDIO" };
+    return { bg:"#f0fdf4", border:"#86efac", text:"#16a34a", label:"OK" };
+  };
+
   const tabs = [
-    { key:"usuarios", label:"👥 Usuarios" },
-    { key:"recargar", label:"💰 Recargar saldo" },
-    { key:"inventario", label:"📦 Inventario" },
+    {key:"dashboard",label:"📊 Dashboard"},
+    {key:"usuarios",label:"👥 Usuarios"},
+    {key:"recargar",label:"💰 Recargar"},
+    {key:"inventario",label:"📦 Inventario"},
   ];
+
+  const totalVentasHoy = usuarios.reduce((s,u)=>s+Number(u.saldo||0),0);
+  const stockCritico = inventario.filter(i=>Number(i.disponibles)===0);
+  const stockBajo = inventario.filter(i=>Number(i.disponibles)>0&&Number(i.disponibles)<=2);
 
   return (
     <div style={{ minHeight:"100vh", background:t.bg, fontFamily:"inherit" }}>
-      <div style={{ background:"linear-gradient(135deg,#1a0035,#0d0020)", borderBottom:`1px solid #3a0060`, padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-        <button onClick={onBack} style={{ background:"transparent", border:"none", color:"#c4b5fd", cursor:"pointer", fontSize:13, display:"flex", alignItems:"center", gap:5 }}>← Tienda</button>
+      <div style={{ background:"linear-gradient(135deg,#1a0035,#0d0020)", borderBottom:"1px solid #3a0060", padding:"14px 18px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <button onClick={onBack} style={{ background:"transparent", border:"none", color:"#c4b5fd", cursor:"pointer", fontSize:13 }}>← Tienda</button>
         <span style={{ fontWeight:800, fontSize:15, color:"#FFD700" }}>👑 Panel Admin</span>
         <button onClick={onLogout} style={{ background:"transparent", border:"1px solid #3a0060", borderRadius:8, padding:"6px 12px", color:"#c4b5fd", fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Salir</button>
       </div>
@@ -2873,21 +3074,76 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
         ))}
       </div>
 
-      <div style={{ maxWidth:900, margin:"0 auto", padding:"20px 16px" }}>
+      <div style={{ maxWidth:1000, margin:"0 auto", padding:"20px 16px" }}>
 
-        {/* USUARIOS */}
+        {/* ─── DASHBOARD ─── */}
+        {tab==="dashboard" && (
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {/* KPIs */}
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:12 }}>
+              {[
+                ["👥","Clientes",usuarios.filter(u=>u.rol==="cliente").length,"#7c3aed"],
+                ["🛍️","Ventas hoy","-","#0ea5e9"],
+                ["🔴","Sin stock",stockCritico.length,"#dc2626"],
+                ["🟠","Stock bajo",stockBajo.length,"#ea580c"],
+              ].map(([icon,label,val,color])=>(
+                <div key={label} style={{ background:t.surface, borderRadius:14, padding:"16px 14px", border:`1px solid ${t.border}`, textAlign:"center" }}>
+                  <div style={{ fontSize:26, marginBottom:6 }}>{icon}</div>
+                  <div style={{ fontSize:24, fontWeight:900, color }}>{val}</div>
+                  <div style={{ fontSize:11, color:t.muted, fontWeight:600, marginTop:4 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Alertas criticas */}
+            {stockCritico.length > 0 && (
+              <div style={{ background:"#fef2f2", border:"1px solid #fca5a5", borderRadius:14, padding:"14px 16px" }}>
+                <div style={{ fontWeight:800, color:"#dc2626", marginBottom:10, fontSize:14 }}>🔴 Productos AGOTADOS — cargar inventario urgente</div>
+                <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+                  {stockCritico.map(p=>(
+                    <div key={p.producto_id} style={{ background:"#dc262618", border:"1px solid #dc262644", borderRadius:8, padding:"4px 12px", fontSize:12, color:"#dc2626", fontWeight:700 }}>
+                      {p.producto_nombre}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Stock visual */}
+            <div style={{ background:t.surface, borderRadius:16, padding:"18px 20px", border:`1px solid ${t.border}` }}>
+              <div style={{ fontWeight:800, fontSize:15, marginBottom:14 }}>📦 Stock en tiempo real</div>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))", gap:10 }}>
+                {inventario.length === 0 && <div style={{ color:t.muted, fontSize:13 }}>Sin datos de inventario aún</div>}
+                {inventario.map(it=>{
+                  const sc = getStockColor(it.disponibles);
+                  return (
+                    <div key={it.producto_id} style={{ background:sc.bg, border:`1.5px solid ${sc.border}`, borderRadius:12, padding:"12px 14px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                      <div>
+                        <div style={{ fontWeight:700, fontSize:13, color:"#1a202c" }}>{it.producto_nombre}</div>
+                        <div style={{ fontSize:10, color:"#718096", marginTop:2 }}>{it.asignadas} vendidas</div>
+                      </div>
+                      <div style={{ textAlign:"center" }}>
+                        <div style={{ fontWeight:900, fontSize:22, color:sc.text }}>{it.disponibles}</div>
+                        <div style={{ fontSize:9, fontWeight:700, color:sc.text }}>{sc.label}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── USUARIOS ─── */}
         {tab==="usuarios" && (
           <div>
-            <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Clientes registrados ({usuarios.length})</div>
-            {usuarios.map(u=>(
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Clientes registrados ({usuarios.filter(u=>u.rol==="cliente").length})</div>
+            {usuarios.filter(u=>u.rol==="cliente").map(u=>(
               <div key={u.id} style={{ background:t.surface, borderRadius:12, padding:"14px 16px", border:`1px solid ${t.border}`, marginBottom:10, display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10 }}>
                 <div>
-                  <div style={{ fontWeight:700, fontSize:13.5, display:"flex", alignItems:"center", gap:8 }}>
-                    {u.nombre}
-                    {u.rol==="admin"&&<span style={{ background:"#FFD70022", color:"#FFD700", borderRadius:20, padding:"2px 8px", fontSize:10, fontWeight:700 }}>Admin</span>}
-                  </div>
+                  <div style={{ fontWeight:700, fontSize:13.5 }}>{u.nombre}</div>
                   <div style={{ color:t.muted, fontSize:12, marginTop:2 }}>{u.correo} · {u.telefono||"Sin tel."}</div>
-                  <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>Miembro desde {new Date(u.creado_en).toLocaleDateString("es-CO")}</div>
+                  <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>Desde {new Date(u.creado_en).toLocaleDateString("es-CO")}</div>
                 </div>
                 <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6 }}>
                   <div style={{ fontWeight:900, fontSize:18, color:"#7c3aed" }}>{formatSaldo(u.saldo)}</div>
@@ -2898,29 +3154,27 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
           </div>
         )}
 
-        {/* RECARGAR SALDO */}
+        {/* ─── RECARGAR ─── */}
         {tab==="recargar" && (
           <div style={{ maxWidth:500 }}>
-            <div style={{ fontWeight:800, fontSize:16, marginBottom:18 }}>Recargar saldo a un cliente</div>
-            <div style={{ marginBottom:14 }}>
-              <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>SELECCIONAR CLIENTE</label>
-              <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, overflow:"hidden", maxHeight:200, overflowY:"auto" }}>
-                {usuarios.filter(u=>u.rol==="cliente").map(u=>(
-                  <div key={u.id} onClick={()=>setUserSeleccionado(u)} style={{ padding:"11px 14px", cursor:"pointer", background:userSeleccionado?.id===u.id?"#7c3aed22":t.surface, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                    <div>
-                      <div style={{ fontWeight:700, fontSize:13 }}>{u.nombre}</div>
-                      <div style={{ color:t.muted, fontSize:11 }}>{u.correo}</div>
-                    </div>
-                    <div style={{ fontWeight:800, color:"#7c3aed" }}>{formatSaldo(u.saldo)}</div>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:18 }}>Recargar saldo a cliente</div>
+            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>SELECCIONAR CLIENTE</label>
+            <div style={{ background:t.surface, border:`1px solid ${t.border}`, borderRadius:12, overflow:"hidden", maxHeight:200, overflowY:"auto", marginBottom:12 }}>
+              {usuarios.filter(u=>u.rol==="cliente").map(u=>(
+                <div key={u.id} onClick={()=>setUserSeleccionado(u)} style={{ padding:"11px 14px", cursor:"pointer", background:userSeleccionado?.id===u.id?"#7c3aed22":t.surface, borderBottom:`1px solid ${t.border}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:13 }}>{u.nombre}</div>
+                    <div style={{ color:t.muted, fontSize:11 }}>{u.correo}</div>
                   </div>
-                ))}
-              </div>
-              {userSeleccionado && <div style={{ marginTop:8, padding:"8px 12px", background:"#7c3aed22", borderRadius:8, color:"#a78bfa", fontSize:12, fontWeight:600 }}>✓ Seleccionado: {userSeleccionado.nombre}</div>}
+                  <div style={{ fontWeight:800, color:"#7c3aed" }}>{formatSaldo(u.saldo)}</div>
+                </div>
+              ))}
             </div>
-            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>MONTO A RECARGAR (COP)</label>
+            {userSeleccionado && <div style={{ marginBottom:12, padding:"8px 12px", background:"#7c3aed22", borderRadius:8, color:"#a78bfa", fontSize:12, fontWeight:600 }}>✓ {userSeleccionado.nombre}</div>}
+            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>MONTO (COP)</label>
             <input type="number" value={montoRecarga} onChange={e=>setMontoRecarga(e.target.value)} placeholder="Ej: 45000" style={{ width:"100%", padding:"12px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:15, fontFamily:"inherit", outline:"none", marginBottom:12, boxSizing:"border-box" }} />
-            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>DESCRIPCIÓN <span style={{fontWeight:400}}>(opcional)</span></label>
-            <input value={descRecarga} onChange={e=>setDescRecarga(e.target.value)} placeholder="Ej: Pago recibido por Nequi" style={{ width:"100%", padding:"12px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:16, boxSizing:"border-box" }} />
+            <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>DESCRIPCIÓN</label>
+            <input value={descRecarga} onChange={e=>setDescRecarga(e.target.value)} placeholder="Ej: Pago Nequi" style={{ width:"100%", padding:"12px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:16, boxSizing:"border-box" }} />
             {msgRecarga && <div style={{ padding:"10px 14px", background:msgRecarga.startsWith("✓")?"#22c55e22":"#ef444422", borderRadius:10, color:msgRecarga.startsWith("✓")?"#22c55e":"#f87171", fontSize:13, marginBottom:14 }}>{msgRecarga}</div>}
             <button onClick={recargarSaldo} disabled={loadingRecarga} style={{ width:"100%", padding:14, background:loadingRecarga?"#4a2a8a":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14.5, cursor:loadingRecarga?"not-allowed":"pointer", fontFamily:"inherit" }}>
               {loadingRecarga?"Procesando...":"💰 Confirmar recarga"}
@@ -2928,56 +3182,90 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
           </div>
         )}
 
-        {/* INVENTARIO */}
+        {/* ─── INVENTARIO ─── */}
         {tab==="inventario" && (
           <div>
-            <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Stock por producto</div>
-            {inventario.length > 0 && (
-              <div style={{ marginBottom:20 }}>
-                {inventario.map(it=>(
-                  <div key={it.producto_id} style={{ background:t.surface, borderRadius:12, padding:"12px 16px", border:`1px solid ${Number(it.disponibles)===0?"#ef444444":t.border}`, marginBottom:8, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <div style={{ background:t.surface, borderRadius:16, padding:"20px", border:`1px solid ${t.border}`, marginBottom:20 }}>
+              <div style={{ fontWeight:800, fontSize:15, marginBottom:16 }}>➕ Cargar cuentas al inventario</div>
+
+              {/* Selector de producto */}
+              <label style={{ display:"block", color:t.muted, fontSize:11.5, fontWeight:600, marginBottom:6 }}>PRODUCTO *</label>
+              <select
+                value={prodSeleccionado.id}
+                onChange={e=>{
+                  const p = PRODUCTOS_LISTA.find(x=>x.id===e.target.value);
+                  setProdSeleccionado(p);
+                  setCuentasMasivas([{usuario:"",password:"",perfil:"1",pin:""}]);
+                }}
+                style={{ width:"100%", padding:"11px 14px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:11, color:t.text, fontSize:14, fontFamily:"inherit", outline:"none", marginBottom:16, boxSizing:"border-box" }}
+              >
+                {PRODUCTOS_LISTA.map(p=><option key={p.id} value={p.id}>{p.nombre} (ID: {p.id})</option>)}
+              </select>
+
+              {/* Info del producto seleccionado */}
+              <div style={{ background:"#7c3aed11", borderRadius:10, padding:"10px 14px", marginBottom:16, fontSize:12, color:t.muted }}>
+                {prodSeleccionado.perfiles > 0
+                  ? `Esta cuenta trae ${prodSeleccionado.perfiles} perfiles disponibles.${prodSeleccionado.usaPin?" Requiere PIN.":""}`
+                  : "Esta plataforma no usa perfiles individuales."}
+                {prodSeleccionado.usaServidor ? " Requiere URL de servidor." : ""}
+              </div>
+
+              {/* Filas de cuentas */}
+              <div style={{ fontWeight:700, fontSize:13, marginBottom:10, color:t.text }}>Cuentas a cargar ({cuentasMasivas.length})</div>
+              {cuentasMasivas.map((c,i)=>(
+                <div key={i} style={{ background:t.card, borderRadius:12, padding:"14px", border:`1px solid ${t.border}`, marginBottom:10 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                    <span style={{ fontWeight:700, fontSize:13, color:t.text }}>Cuenta #{i+1}</span>
+                    {cuentasMasivas.length > 1 && (
+                      <button onClick={()=>quitarFila(i)} style={{ background:"#ef444422", border:"1px solid #ef444444", borderRadius:7, padding:"3px 10px", color:"#ef4444", fontSize:11, fontWeight:700, cursor:"pointer" }}>✕ Quitar</button>
+                    )}
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                     <div>
-                      <div style={{ fontWeight:700, fontSize:13 }}>{it.producto_nombre}</div>
-                      <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>ID: {it.producto_id}</div>
+                      <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>USUARIO / CORREO *</label>
+                      <input value={c.usuario} onChange={e=>actualizarFila(i,"usuario",e.target.value)} placeholder="correo@ejemplo.com" style={{ width:"100%", padding:"9px 12px", background:t.surface, border:`1.5px solid ${t.border}`, borderRadius:9, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
                     </div>
-                    <div style={{ display:"flex", gap:14, alignItems:"center" }}>
-                      <div style={{ textAlign:"center" }}>
-                        <div style={{ fontWeight:900, fontSize:18, color:Number(it.disponibles)===0?"#ef4444":"#22c55e" }}>{it.disponibles}</div>
-                        <div style={{ fontSize:9.5, color:t.muted, fontWeight:600 }}>DISPONIBLES</div>
+                    <div>
+                      <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>CONTRASEÑA *</label>
+                      <input value={c.password} onChange={e=>actualizarFila(i,"password",e.target.value)} placeholder="Contraseña" style={{ width:"100%", padding:"9px 12px", background:t.surface, border:`1.5px solid ${t.border}`, borderRadius:9, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+                    </div>
+                    {prodSeleccionado.perfiles > 0 && (
+                      <div>
+                        <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>PERFIL</label>
+                        <select value={c.perfil} onChange={e=>actualizarFila(i,"perfil",e.target.value)} style={{ width:"100%", padding:"9px 12px", background:t.surface, border:`1.5px solid ${t.border}`, borderRadius:9, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }}>
+                          {Array.from({length:prodSeleccionado.perfiles},(_,n)=>(
+                            <option key={n+1} value={String(n+1)}>Perfil {n+1}</option>
+                          ))}
+                        </select>
                       </div>
-                      <div style={{ textAlign:"center" }}>
-                        <div style={{ fontWeight:900, fontSize:18, color:t.muted }}>{it.asignadas}</div>
-                        <div style={{ fontSize:9.5, color:t.muted, fontWeight:600 }}>ASIGNADAS</div>
+                    )}
+                    {prodSeleccionado.usaPin && (
+                      <div>
+                        <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>PIN</label>
+                        <input value={c.pin||""} onChange={e=>actualizarFila(i,"pin",e.target.value)} placeholder="Ej: 5777" style={{ width:"100%", padding:"9px 12px", background:t.surface, border:`1.5px solid ${t.border}`, borderRadius:9, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
                       </div>
+                    )}
+                    {prodSeleccionado.usaServidor && (
+                      <div style={{ gridColumn:"1/-1" }}>
+                        <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>URL DEL SERVIDOR</label>
+                        <input value={c.servidor||""} onChange={e=>actualizarFila(i,"servidor",e.target.value)} placeholder="https://cv.mcjelly.com/" style={{ width:"100%", padding:"9px 12px", background:t.surface, border:`1.5px solid ${t.border}`, borderRadius:9, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+                      </div>
+                    )}
+                    <div style={{ gridColumn:"1/-1" }}>
+                      <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>NOTAS (opcional)</label>
+                      <input value={c.notas||""} onChange={e=>actualizarFila(i,"notas",e.target.value)} placeholder="Instrucciones especiales..." style={{ width:"100%", padding:"9px 12px", background:t.surface, border:`1.5px solid ${t.border}`, borderRadius:9, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            <div style={{ background:t.surface, borderRadius:16, padding:"20px", border:`1px solid ${t.border}` }}>
-              <div style={{ fontWeight:800, fontSize:14, marginBottom:16 }}>➕ Agregar cuenta al inventario</div>
-              {[
-                ["PRODUCTO ID *","producto_id","netflix1 (igual al id en el catálogo)"],
-                ["NOMBRE DEL PRODUCTO *","producto_nombre","Netflix 1 Mes"],
-                ["USUARIO DE LA CUENTA *","cuenta_usuario","correo@netflix.com"],
-                ["CONTRASEÑA *","cuenta_password","••••••••"],
-                ["PERFIL (opcional)","perfil","Perfil 2"],
-                ["NOTAS (opcional)","notas","Instrucciones especiales para el cliente"],
-              ].map(([label,key,ph])=>(
-                <div key={key} style={{ marginBottom:12 }}>
-                  <label style={{ display:"block", color:t.muted, fontSize:10.5, fontWeight:600, marginBottom:4 }}>{label}</label>
-                  <input
-                    value={formInv[key]}
-                    onChange={e=>setFormInv(f=>({...f,[key]:e.target.value}))}
-                    placeholder={ph}
-                    type={key==="cuenta_password"?"password":"text"}
-                    style={{ width:"100%", padding:"10px 13px", background:t.card, border:`1.5px solid ${t.border}`, borderRadius:10, color:t.text, fontSize:13, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }}
-                  />
                 </div>
               ))}
-              {msgInv && <div style={{ padding:"10px 14px", background:msgInv.startsWith("✓")?"#22c55e22":"#ef444422", borderRadius:10, color:msgInv.startsWith("✓")?"#22c55e":"#f87171", fontSize:13, marginBottom:12 }}>{msgInv}</div>}
-              <button onClick={agregarInventario} disabled={loadingInv} style={{ width:"100%", padding:13, background:loadingInv?"#1a3a0a":"linear-gradient(135deg,#16a34a,#15803d)", border:"none", borderRadius:11, color:"#fff", fontWeight:800, fontSize:14, cursor:loadingInv?"not-allowed":"pointer", fontFamily:"inherit" }}>
-                {loadingInv?"Guardando...":"📦 Agregar al inventario"}
+
+              <div style={{ display:"flex", gap:10, marginBottom:16 }}>
+                <button onClick={agregarFila} style={{ padding:"10px 18px", background:"#7c3aed22", border:"1px solid #7c3aed44", borderRadius:10, color:"#7c3aed", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"inherit" }}>+ Agregar otra cuenta</button>
+              </div>
+
+              {msgInv && <div style={{ padding:"10px 14px", background:msgInv.startsWith("✓")?"#22c55e22":"#ef444422", borderRadius:10, color:msgInv.startsWith("✓")?"#22c55e":"#f87171", fontSize:13, marginBottom:14 }}>{msgInv}</div>}
+              <button onClick={agregarInventario} disabled={loadingInv} style={{ width:"100%", padding:14, background:loadingInv?"#14532d":"linear-gradient(135deg,#16a34a,#15803d)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:14, cursor:loadingInv?"not-allowed":"pointer", fontFamily:"inherit" }}>
+                {loadingInv?"Guardando...":"📦 Cargar " + cuentasMasivas.filter(c=>c.usuario&&c.password).length + " cuenta(s) al inventario"}
               </button>
             </div>
           </div>
@@ -2986,6 +3274,7 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
     </div>
   );
 }
+
 
 export default function App() {
   const [configReady, setConfigReady] = useState(false);
@@ -3011,6 +3300,35 @@ export default function App() {
   const [authToken, setAuthToken] = useState(() => {
     try { return localStorage.getItem("dm_token") || null; } catch(e) { return null; }
   });
+
+  // Modal de confirmacion obligatoria antes de cualquier compra con saldo
+  const [confirmandoCompra, setConfirmandoCompra] = useState(null); // item pendiente de confirmar
+  const [resultadoCompraGlobal, setResultadoCompraGlobal] = useState(null);
+
+  const ejecutarCompraConSaldo = async (item) => {
+    if (!authUser) { setScreen("login"); return; }
+    setConfirmandoCompra(item);
+  };
+
+  const confirmarYComprar = async () => {
+    const item = confirmandoCompra;
+    if (!item) return;
+    setConfirmandoCompra(null);
+    try {
+      const res = await fetch("/api/comprar", {
+        method:"POST",
+        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${authToken}` },
+        body: JSON.stringify({ producto_id: item.id, producto_nombre: item.name, precio: item.price }),
+      });
+      const data = await res.json();
+      setResultadoCompraGlobal({ item, data });
+      if (data.ok && data.user) {
+        setAuthUser(u=>({...u, saldo:data.saldo}));
+      }
+    } catch(e) {
+      setResultadoCompraGlobal({ item, data:{ ok:false, mensaje:"Error de conexión. Intenta de nuevo." } });
+    }
+  };
 
   const handleLogin = (user, token) => {
     setAuthUser(user); setAuthToken(token);
@@ -3164,7 +3482,7 @@ export default function App() {
     ? <PanelAdmin token={authToken} onLogout={handleLogout} onBack={()=>setScreen("home")} dark={dark} />
     : <AuthScreen onBack={()=>setScreen("home")} onLogin={handleLogin} dark={dark} />;
   if (screen==="search") return <>
-    <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={(item)=>{ setDetail(item); }} cart={cart} />
+    <Buscador dark={dark} onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={(item)=>{ setDetail(item); }} cart={cart} authUser={authUser} authToken={authToken} onComprarSaldo={ejecutarCompraConSaldo} />
     {detailModal}
   </>;
   if (screen==="validar") return <ValidarCodigo onBack={()=>setScreen("home")} dark={dark} />;
@@ -3203,7 +3521,7 @@ export default function App() {
         <div style={{ padding:"16px" }}>
           <p style={{ color:t.muted, fontSize:13, marginBottom:16 }}>Los combos más populares entre nuestros clientes ⭐</p>
           <FiltroBar dark={dark} sortBy={sortFavoritos} setSortBy={setSortFavoritos} view={viewFavoritos} setView={setViewFavoritos} count={FAV_COMBOS.length} />
-          <ProductGrid items={sortItems(FAV_COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortFavoritos)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewFavoritos} />
+          <ProductGrid items={sortItems(FAV_COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortFavoritos)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewFavoritos} authUser={authUser} authToken={authToken} onComprarSaldo={ejecutarCompraConSaldo} />
         </div>
       </div>
     </div>
@@ -3224,7 +3542,7 @@ export default function App() {
         </div>
         <div style={{ padding:16 }}>
           <FiltroBar dark={dark} sortBy={sortPantallas} setSortBy={setSortPantallas} view={viewPantallas} setView={setViewPantallas} count={PANTALLAS.length} />
-          <ProductGrid items={sortItems(PANTALLAS, sortPantallas)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewPantallas} />
+          <ProductGrid items={sortItems(PANTALLAS, sortPantallas)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewPantallas} authUser={authUser} authToken={authToken} onComprarSaldo={ejecutarCompraConSaldo} />
         </div>
       </div>
     </div>
@@ -3248,7 +3566,7 @@ export default function App() {
             <p style={{ color:"#cccc00", fontSize:12, lineHeight:1.6 }}>💡 <strong style={{ color:"#ffff88" }}>Combos = más plataformas por menos.</strong> Las activamos en minutos.</p>
           </div>
           <FiltroBar dark={dark} sortBy={sortCombos} setSortBy={setSortCombos} view={viewCombos} setView={setViewCombos} count={COMBOS.length} />
-          <ProductGrid items={sortItems(COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortCombos)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewCombos} />
+          <ProductGrid items={sortItems(COMBOS.map(c=>({...c,features:c.features||[c.desc,"Activación en minutos","Soporte incluido"]})), sortCombos)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewCombos} authUser={authUser} authToken={authToken} onComprarSaldo={ejecutarCompraConSaldo} />
         </div>
       </div>
     </div>
@@ -3269,7 +3587,7 @@ export default function App() {
         </div>
         <div style={{ padding:16 }}>
           <FiltroBar dark={dark} sortBy={sortMeses} setSortBy={setSortMeses} view={viewMeses} setView={setViewMeses} count={MESES.length} />
-          <ProductGrid items={sortItems(MESES, sortMeses)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewMeses} />
+          <ProductGrid items={sortItems(MESES, sortMeses)} dark={dark} onAddCart={addCart} onRemoveOne={removeOneById} onDetail={setDetail} cart={cart} view={viewMeses} authUser={authUser} authToken={authToken} onComprarSaldo={ejecutarCompraConSaldo} />
         </div>
       </div>
     </div>
@@ -3288,7 +3606,7 @@ export default function App() {
           <button onClick={()=>setScreen("search")} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🔍</button>
           <button onClick={()=>setScreen("cart")} style={{ position:"relative", background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:14 }}>🛒{cart.length>0 && <div style={{ position:"absolute", top:-5, right:-5, background:"#E50914", color:"#fff", borderRadius:"50%", width:16, height:16, fontSize:8, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>{cart.length}</div>}</button>
         </div>
-        <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cart={cart} onDetail={setDetail} />
+        <Seguidores onBack={()=>setScreen("home")} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cart={cart} onDetail={setDetail} authUser={authUser} authToken={authToken} onComprarSaldo={ejecutarCompraConSaldo} />
       </div>
     </div>
   );
@@ -3299,6 +3617,8 @@ export default function App() {
       {detailModal}
 
       {showVip && <VipModal onClose={()=>setShowVip(false)} onAdd={(it)=>{ addCart(it); setShowVip(false); }} dark={dark} />}
+      {confirmandoCompra && <ConfirmarCompraModal item={confirmandoCompra} dark={dark} onCancel={()=>setConfirmandoCompra(null)} onConfirm={confirmarYComprar} />}
+      {resultadoCompraGlobal && <ResultadoCompraModal resultado={resultadoCompraGlobal} dark={dark} onClose={()=>setResultadoCompraGlobal(null)} onGoAccount={()=>{ setResultadoCompraGlobal(null); setScreen("mi-cuenta"); }} />}
       {showWelcome && (
         <div onClick={()=>setShowWelcome(false)} style={{ position:"fixed", inset:0, zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", background:"radial-gradient(circle at 50% 40%, #1a0f2e 0%, #0a0512 70%, #000 100%)", animation:"overlayIn 0.5s ease", overflow:"hidden" }}>
           {/* Partículas decorativas de fondo */}
@@ -3309,7 +3629,7 @@ export default function App() {
           <div style={{ textAlign:"center", animation:"welcomeZoom 0.7s cubic-bezier(0.16,1,0.3,1)", padding:32, position:"relative" }}>
             <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(210px, 52vw)", height:"auto", objectFit:"contain", marginBottom:8, filter:"drop-shadow(0 0 40px rgba(168,85,247,0.6)) drop-shadow(0 0 80px rgba(255,107,53,0.3))", animation:"floatBob 3s ease-in-out infinite" }} />
             <div className="brand-animated" style={{ fontSize:"clamp(34px, 8vw, 48px)", fontWeight:900, marginBottom:10, letterSpacing:0.5 }}>Digital Market</div>
-            <p style={{ fontSize:17, marginBottom:8, fontWeight:700, color:"rgba(255,255,255,0.85)" }}>Todo lo digital, en un solo lugar 🚀</p>
+            
             <p style={{ color:"rgba(255,255,255,0.4)", fontSize:12.5, animation:"blink 2s ease infinite" }}>Toca para continuar</p>
           </div>
         </div>
@@ -3331,8 +3651,14 @@ export default function App() {
           <span className="menu-btn-text" style={{ color:"#fff", fontWeight:700, fontSize:13 }}>Menú</span>
         </button>
         <div style={{ flex:1 }} />
+        <div style={{ flex:1 }} />
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          <button onClick={()=>setScreen("soporte")} aria-label="Reportar error" title="Reportar error" className="hdr-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:9, padding:"8px 14px", cursor:"pointer", fontSize:12, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.4)", whiteSpace:"nowrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:4, background:dark?"#0d1f0d":"#f0fdf4", border:`1px solid ${dark?"#1a3a1a":"#86efac"}`, borderRadius:16, padding:"5px 9px" }}>
+            <div style={{ width:5, height:5, background:"#25d366", borderRadius:"50%", animation:"blink 1.6s ease infinite" }} />
+            <span style={{ color:dark?"#25d366":"#15803d", fontSize:9.5, fontWeight:700, whiteSpace:"nowrap" }} className="online-label">En línea</span>
+          </div>
+          <button onClick={()=>setScreen("search")} aria-label="Buscar" title="Buscar" className="hdr-btn" style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:8, padding:"7px 9px", cursor:"pointer", fontSize:13 }}>🔍</button>
+          <button onClick={()=>setScreen("soporte")} aria-label="Reportar error" title="Reportar error" className="hdr-btn" style={{ background:"linear-gradient(135deg,#ef4444,#dc2626)", border:"none", borderRadius:8, padding:"7px 10px", cursor:"pointer", fontSize:10.5, fontWeight:700, color:"#fff", fontFamily:"inherit", boxShadow:"0 2px 8px rgba(239,68,68,0.35)", whiteSpace:"nowrap" }}>
             Reportar Error
           </button>
           {authUser ? (
@@ -3354,14 +3680,10 @@ export default function App() {
       {/* LOGO Y NOMBRE CENTRADOS */}
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", padding:"16px 16px 16px", background:t.surface, borderBottom:`1px solid ${t.border}` }}>
         <img src={LOGO_URL} alt="Digital Market" style={{ width:"min(68px, 18vw)", height:"auto", objectFit:"contain", filter:"drop-shadow(0 4px 18px rgba(168,85,247,0.4))" }} onError={e=>{ e.target.style.display="none"; }} />
-        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(16px, 3.75vw, 24px)", letterSpacing:0.5, marginTop:4, textAlign:"center" }}>Digital Market</span>
-        <div style={{ display:"flex", alignItems:"center", gap:4, background:"#0d1f0d", border:"1px solid #1a3a1a", borderRadius:16, padding:"3px 9px", marginTop:8, marginBottom:12 }}>
-          <div style={{ width:5, height:5, background:"#25d366", borderRadius:"50%", animation:"blink 1.6s ease infinite" }} />
-          <span style={{ color:"#25d366", fontSize:9, fontWeight:700 }}>En línea</span>
-        </div>
-        <button onClick={()=>setScreen("search")} style={{ width:"100%", display:"flex", alignItems:"center", gap:10, background:t.card, border:`1.5px solid ${t.border}`, borderRadius:16, padding:"14px 18px", cursor:"pointer", fontFamily:"inherit" }}>
-          <span style={{ fontSize:19, opacity:0.5 }}>🔍</span>
-          <span style={{ color:t.muted, fontSize:14.5, textAlign:"left" }}>Buscar plataformas, combos, paquetes...</span>
+        <span className="brand-animated" style={{ fontWeight:900, fontSize:"clamp(16px, 3.75vw, 24px)", letterSpacing:0.5, marginTop:4, marginBottom:14, textAlign:"center" }}>Digital Market</span>
+        <button onClick={()=>setScreen("search")} className="search-bar-home" style={{ width:"100%", display:"flex", alignItems:"center", gap:10, background:t.card, border:"2px solid #7c3aed55", borderRadius:16, padding:"15px 18px", cursor:"pointer", fontFamily:"inherit", boxShadow:dark?"0 4px 16px rgba(124,58,237,0.15)":"0 4px 16px rgba(124,58,237,0.1)" }}>
+          <span style={{ fontSize:20 }}>🔍</span>
+          <span style={{ color:t.muted, fontSize:14.5, textAlign:"left", fontWeight:500 }}>Buscar plataformas, combos, paquetes...</span>
         </button>
       </div>
 
