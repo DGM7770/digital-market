@@ -1417,12 +1417,10 @@ function SideMenu({ open, onClose, onNav, cartCount, dark, onToggleTheme, authUs
 }
 
 // ─── DETAIL ───────────────────────────────────────────────────────────────────
-function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0, authUser, authToken, onGoLogin, onGoAccount }) {
+function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0, authUser, authToken, onGoLogin, onGoAccount, onComprarSaldo, resultadoExterno }) {
   const accent = item.color||"#7c3aed";
   const t = getTheme(dark);
   const [added, setAdded] = useState(false);
-  const [comprando, setComprando] = useState(false);
-  const [compraResult, setCompraResult] = useState(null); // null | {ok, mensaje, compra, saldo}
 
   const handleAdd = () => {
     onAddCart(item);
@@ -1436,23 +1434,45 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
   };
 
-  const handleComprarConSaldo = async () => {
-    if (!authUser || !authToken) { onGoLogin(); return; }
-    setComprando(true); setCompraResult(null);
-    try {
-      const res = await fetch("/api/comprar", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json", Authorization:`Bearer ${authToken}` },
-        body: JSON.stringify({ producto_id: item.id, producto_nombre: item.name, precio: item.price }),
-      });
-      const data = await res.json();
-      setCompraResult(data);
-    } catch(e) {
-      setCompraResult({ ok:false, mensaje:"Error de conexión. Intenta de nuevo." });
-    } finally {
-      setComprando(false);
-    }
-  };
+  // Si ya hay un resultado de compra exitosa para ESTE producto, mostrar SOLO el mensaje (vista limpia)
+  const compraExitosaDeEsteItem = resultadoExterno?.data?.ok && resultadoExterno?.item?.id === item.id;
+
+  if (compraExitosaDeEsteItem) {
+    const data = resultadoExterno.data;
+    return (
+      <div onClick={onBack} style={{ position:"fixed", inset:0, zIndex:400, background:"rgba(0,0,0,0.78)", display:"flex", alignItems:"center", justifyContent:"center", padding:18, animation:"overlayIn 0.2s ease" }}>
+        <div onClick={e=>e.stopPropagation()} style={{ background:t.surface, borderRadius:22, maxWidth:420, width:"100%", maxHeight:"90vh", overflowY:"auto", boxShadow:"0 20px 60px rgba(0,0,0,0.5)", padding:"22px 20px" }}>
+          <div style={{ textAlign:"center", marginBottom:16 }}>
+            <div style={{ fontSize:40, marginBottom:8 }}>✅</div>
+            <div style={{ fontWeight:800, fontSize:17 }}>Compra exitosa</div>
+            <div style={{ color:t.muted, fontSize:12, marginTop:4 }}>Saldo restante: {formatSaldo(data.saldo)}</div>
+          </div>
+          {data.compra?.mensaje_formateado ? (
+            <div>
+              <div style={{ background:dark?"#0d1a0d":"#f0fff4", border:"1px solid #22c55e44", borderRadius:10, padding:"14px 16px", marginBottom:12 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                  <span style={{ fontWeight:700, fontSize:12, color:"#22c55e" }}>📋 Tus accesos</span>
+                  <button onClick={()=>navigator.clipboard?.writeText(data.compra.mensaje_formateado)} style={{ background:"#22c55e22", border:"1px solid #22c55e44", borderRadius:6, padding:"3px 10px", color:"#22c55e", fontSize:10, fontWeight:700, cursor:"pointer" }}>📋 Copiar</button>
+                </div>
+                <pre style={{ fontFamily:"monospace", fontSize:12.5, color:dark?"#e2e8f0":"#1a202c", whiteSpace:"pre-wrap", wordBreak:"break-word", lineHeight:1.7, margin:0 }}>{data.compra.mensaje_formateado}</pre>
+              </div>
+              {item.activarUrl && (
+                <button onClick={()=>window.open(item.activarUrl,"_blank")} style={{ width:"100%", padding:"11px 0", background:"linear-gradient(135deg,#3b82f6,#1d4ed8)", border:"none", borderRadius:10, color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer", fontFamily:"inherit", marginBottom:8 }}>📺 Activar pantalla ahora</button>
+              )}
+              <button onClick={()=>window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(data.compra.mensaje_formateado)}`,"_blank")} style={{ width:"100%", padding:"10px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:10, color:"#fff", fontWeight:700, fontSize:12.5, cursor:"pointer", fontFamily:"inherit", marginBottom:8 }}>💬 Compartir por WhatsApp</button>
+            </div>
+          ) : (
+            <div style={{ background:"#f59e0b18", border:"1px solid #f59e0b44", borderRadius:10, padding:"14px 16px", marginBottom:8 }}>
+              <div style={{ color:"#f59e0b", fontWeight:700, fontSize:13, marginBottom:4 }}>⏳ En proceso</div>
+              <div style={{ color:t.muted, fontSize:12 }}>El administrador está preparando tus accesos. Te avisaremos por WhatsApp.</div>
+            </div>
+          )}
+          <button onClick={onGoAccount} style={{ width:"100%", padding:"9px 0", background:"#7c3aed22", border:"none", borderRadius:9, color:"#a78bfa", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:6 }}>Ver en Mi cuenta →</button>
+          <button onClick={onBack} style={{ width:"100%", padding:"8px 0", background:"transparent", border:"none", color:t.muted, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Cerrar</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div onClick={onBack} style={{ position:"fixed", inset:0, zIndex:400, background:"rgba(0,0,0,0.78)", display:"flex", alignItems:"center", justifyContent:"center", padding:18, animation:"overlayIn 0.2s ease" }}>
@@ -1498,58 +1518,12 @@ function Detail({ item, onBack, onAddCart, onRemoveOne, dark, cartCountForItem=0
 
             {/* Botones abajo con colores animados */}
             <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
-
-              {/* Resultado de compra con saldo */}
-              {compraResult && (
-                <div style={{ background:compraResult.ok?"#22c55e18":"#ef444418", border:`1px solid ${compraResult.ok?"#22c55e44":"#ef444444"}`, borderRadius:12, padding:"12px 14px", marginBottom:4 }}>
-                  {compraResult.ok ? (
-                    <div>
-                      <div style={{ color:"#22c55e", fontWeight:800, fontSize:13, marginBottom:6 }}>✓ Compra exitosa</div>
-                      <div style={{ color:t.muted, fontSize:11.5, marginBottom:10 }}>Saldo restante: {formatSaldo(compraResult.saldo)}</div>
-                      {compraResult.compra?.mensaje_formateado ? (
-                        <div>
-                          {/* Mensaje formateado con el formato oficial */}
-                          <div style={{ background:dark?"#0d1a0d":"#f0fff4", border:"1px solid #22c55e44", borderRadius:10, padding:"14px 16px", marginBottom:10 }}>
-                            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                              <span style={{ fontWeight:700, fontSize:12, color:"#22c55e" }}>📋 Tus accesos</span>
-                              <button onClick={()=>navigator.clipboard?.writeText(compraResult.compra.mensaje_formateado)} style={{ background:"#22c55e22", border:"1px solid #22c55e44", borderRadius:6, padding:"3px 10px", color:"#22c55e", fontSize:10, fontWeight:700, cursor:"pointer" }}>📋 Copiar todo</button>
-                            </div>
-                            <pre style={{ fontFamily:"monospace", fontSize:12.5, color:dark?"#e2e8f0":"#1a202c", whiteSpace:"pre-wrap", wordBreak:"break-word", lineHeight:1.7, margin:0 }}>
-                              {compraResult.compra.mensaje_formateado}
-                            </pre>
-                          </div>
-                          <button onClick={()=>{
-                            const msg = compraResult.compra.mensaje_formateado;
-                            window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`,"_blank");
-                          }} style={{ width:"100%", padding:"9px 0", background:"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:9, color:"#fff", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit", marginBottom:6 }}>
-                            💬 Compartir por WhatsApp
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={{ background:"#f59e0b18", border:"1px solid #f59e0b44", borderRadius:10, padding:"12px 14px" }}>
-                          <div style={{ color:"#f59e0b", fontWeight:700, fontSize:13, marginBottom:4 }}>⏳ En proceso</div>
-                          <div style={{ color:t.muted, fontSize:12 }}>El administrador está preparando tus accesos y te los enviará pronto.</div>
-                        </div>
-                      )}
-                      <button onClick={onGoAccount} style={{ width:"100%", marginTop:8, padding:"8px 0", background:"#7c3aed22", border:"none", borderRadius:9, color:"#a78bfa", fontWeight:700, fontSize:12, cursor:"pointer", fontFamily:"inherit" }}>Ver en Mi cuenta →</button>
-                    </div>
-                  ) : (
-                    <div>
-                      <div style={{ color:"#ef4444", fontWeight:700, fontSize:13, marginBottom:4 }}>✗ {compraResult.mensaje}</div>
-                      {compraResult.mensaje?.includes("Saldo insuficiente") && (
-                        <div style={{ color:t.muted, fontSize:11.5 }}>Tu saldo actual: {formatSaldo(compraResult.saldo)}. Contacta al administrador para recargar.</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
               <button onClick={handleAdd} className={added?"":"glow-green"} style={{ width:"100%", padding:12, background:added?"linear-gradient(135deg,#10b981,#059669)":"linear-gradient(135deg,#25d366,#128c7e)", border:"none", borderRadius:12, color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"background 0.3s ease" }}>{added?"✓ Agregado al carrito":"🛒 Agregar al carrito"}</button>
 
-              {/* Botón de compra con saldo (si está logueado) o con WhatsApp */}
+              {/* Botón de compra con saldo: abre la confirmación centralizada */}
               {authUser ? (
-                <button onClick={handleComprarConSaldo} disabled={comprando||!!compraResult?.ok} style={{ width:"100%", padding:13, background:comprando||compraResult?.ok?"#374151":"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:13.5, cursor:comprando||compraResult?.ok?"not-allowed":"pointer", fontFamily:"inherit" }}>
-                  {comprando?"Procesando...":compraResult?.ok?"✓ Comprado con saldo":"💜 Comprar con saldo"}
+                <button onClick={()=>onComprarSaldo(item)} style={{ width:"100%", padding:13, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", border:"none", borderRadius:12, color:"#fff", fontWeight:800, fontSize:13.5, cursor:"pointer", fontFamily:"inherit" }}>
+                  💜 Comprar con saldo
                 </button>
               ) : (
                 <button onClick={handleBuyNow} className="glow-orange" style={{ width:"100%", padding:13, background:"linear-gradient(135deg,#FF9900,#e88600)", border:"none", borderRadius:12, color:"#1a1200", fontWeight:800, fontSize:14, cursor:"pointer", fontFamily:"inherit" }}>⚡ Comprar ahora</button>
@@ -2992,6 +2966,7 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
   const cargarDatos = () => {
     API.get("/api/admin/usuarios", token).then(d => { if(d.ok) setUsuarios(d.usuarios); });
     API.get("/api/admin/inventario", token).then(d => { if(d.ok) setInventario(d.resumen); });
+    API.get("/api/admin/compras", token).then(d => { if(d.ok) setVentas(d.compras); });
   };
 
   useEffect(() => { cargarDatos(); }, [token]); // eslint-disable-line
@@ -3054,12 +3029,15 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
 
   const tabs = [
     {key:"dashboard",label:"📊 Dashboard"},
+    {key:"ventas",label:"🛍️ Ventas"},
     {key:"usuarios",label:"👥 Usuarios"},
     {key:"recargar",label:"💰 Recargar"},
     {key:"inventario",label:"📦 Inventario"},
   ];
 
-  const totalVentasHoy = usuarios.reduce((s,u)=>s+Number(u.saldo||0),0);
+  const hoyStr = new Date().toLocaleDateString("es-CO",{timeZone:"America/Bogota"});
+  const ventasHoy = ventas.filter(v=>new Date(v.creado_en).toLocaleDateString("es-CO",{timeZone:"America/Bogota"})===hoyStr);
+  const totalVentasHoy = ventasHoy.reduce((s,v)=>s+Number(v.precio||0),0);
   const stockCritico = inventario.filter(i=>Number(i.disponibles)===0);
   const stockBajo = inventario.filter(i=>Number(i.disponibles)>0&&Number(i.disponibles)<=2);
 
@@ -3088,7 +3066,7 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
             <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:12 }}>
               {[
                 ["👥","Clientes",usuarios.filter(u=>u.rol==="cliente").length,"#7c3aed"],
-                ["🛍️","Ventas hoy","-","#0ea5e9"],
+                ["🛍️","Ventas hoy",formatSaldo(totalVentasHoy),"#0ea5e9"],
                 ["🔴","Sin stock",stockCritico.length,"#dc2626"],
                 ["🟠","Stock bajo",stockBajo.length,"#ea580c"],
               ].map(([icon,label,val,color])=>(
@@ -3140,6 +3118,39 @@ function PanelAdmin({ token, onLogout, onBack, dark }) {
         )}
 
         {/* ─── USUARIOS ─── */}
+        {/* ─── VENTAS ─── */}
+        {tab==="ventas" && (
+          <div>
+            <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Historial de ventas ({ventas.length})</div>
+            {ventas.length === 0 && <div style={{ color:t.muted, fontSize:13 }}>Aún no hay ventas registradas.</div>}
+            {ventas.map(v=>(
+              <div key={v.id} style={{ background:t.surface, borderRadius:12, padding:"14px 16px", border:`1px solid ${v.estado==="completada"?"#22c55e33":v.estado==="sin_stock"?"#f59e0b33":t.border}`, marginBottom:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", flexWrap:"wrap", gap:8 }}>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:13.5 }}>{v.producto_nombre}</div>
+                    <div style={{ color:t.muted, fontSize:11.5, marginTop:3 }}>
+                      👤 {v.usuario_nombre} · {v.usuario_correo}
+                      {v.usuario_telefono && ` · 📱 ${v.usuario_telefono}`}
+                    </div>
+                    <div style={{ color:t.muted, fontSize:11, marginTop:2 }}>{new Date(v.creado_en).toLocaleString("es-CO",{timeZone:"America/Bogota"})}</div>
+                  </div>
+                  <div style={{ textAlign:"right" }}>
+                    <div style={{ fontWeight:900, fontSize:16, color:"#7c3aed" }}>{formatSaldo(v.precio)}</div>
+                    <div style={{ marginTop:4, display:"inline-block", background:v.estado==="completada"?"#22c55e22":v.estado==="sin_stock"?"#f59e0b22":"#ef444422", color:v.estado==="completada"?"#22c55e":v.estado==="sin_stock"?"#f59e0b":"#ef4444", borderRadius:20, padding:"3px 10px", fontSize:10, fontWeight:700 }}>
+                      {v.estado==="completada"?"✓ Entregada":v.estado==="sin_stock"?"⏳ Sin stock":"✗ Cancelada"}
+                    </div>
+                  </div>
+                </div>
+                {v.cuenta_usuario && (
+                  <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${t.border}`, fontSize:11.5, color:t.muted }}>
+                    Cuenta asignada: <strong style={{ color:t.text }}>{v.cuenta_usuario}</strong>{v.perfil && ` · Perfil ${v.perfil}`}{v.pin && ` · PIN ${v.pin}`}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {tab==="usuarios" && (
           <div>
             <div style={{ fontWeight:800, fontSize:16, marginBottom:14 }}>Clientes registrados ({usuarios.filter(u=>u.rol==="cliente").length})</div>
@@ -3465,7 +3476,7 @@ export default function App() {
     setScreen(key);
   };
 
-  const detailModal = detail && <Detail item={detail} onBack={()=>setDetail(null)} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} authUser={authUser} authToken={authToken} onGoLogin={()=>setScreen("login")} onGoAccount={()=>setScreen("mi-cuenta")} />;
+  const detailModal = detail && <Detail item={detail} onBack={()=>{ setDetail(null); setResultadoCompraGlobal(null); }} onAddCart={addCart} onRemoveOne={removeOneById} dark={dark} cartCountForItem={cart.filter(c=>c.id===detail.id).length} authUser={authUser} authToken={authToken} onGoLogin={()=>setScreen("login")} onGoAccount={()=>setScreen("mi-cuenta")} onComprarSaldo={ejecutarCompraConSaldo} resultadoExterno={resultadoCompraGlobal} />;
 
   if (!configReady) {
     const t0 = getTheme(dark);
@@ -3623,7 +3634,7 @@ export default function App() {
 
       {showVip && <VipModal onClose={()=>setShowVip(false)} onAdd={(it)=>{ addCart(it); setShowVip(false); }} dark={dark} />}
       {confirmandoCompra && <ConfirmarCompraModal item={confirmandoCompra} dark={dark} onCancel={()=>setConfirmandoCompra(null)} onConfirm={confirmarYComprar} />}
-      {resultadoCompraGlobal && <ResultadoCompraModal resultado={resultadoCompraGlobal} dark={dark} onClose={()=>setResultadoCompraGlobal(null)} onGoAccount={()=>{ setResultadoCompraGlobal(null); setScreen("mi-cuenta"); }} />}
+      {resultadoCompraGlobal && !detail && <ResultadoCompraModal resultado={resultadoCompraGlobal} dark={dark} onClose={()=>setResultadoCompraGlobal(null)} onGoAccount={()=>{ setResultadoCompraGlobal(null); setScreen("mi-cuenta"); }} />}
       {showWelcome && (
         <div onClick={()=>setShowWelcome(false)} style={{ position:"fixed", inset:0, zIndex:999, display:"flex", alignItems:"center", justifyContent:"center", background:"radial-gradient(circle at 50% 40%, #1a0f2e 0%, #0a0512 70%, #000 100%)", animation:"overlayIn 0.5s ease", overflow:"hidden" }}>
           {/* Partículas decorativas de fondo */}

@@ -343,4 +343,23 @@ router.get('/admin/inventario', requireAdmin, async (req, res) => {
   }
 });
 
+// PANEL ADMIN: listar todas las compras con datos del cliente que compro
+router.get('/admin/compras', requireAdmin, async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT c.id, c.producto_id, c.producto_nombre, c.precio, c.estado, c.creado_en,
+              u.id as usuario_id, u.nombre as usuario_nombre, u.correo as usuario_correo, u.telefono as usuario_telefono,
+              i.cuenta_usuario, i.cuenta_password, i.perfil, i.pin
+       FROM compras c
+       JOIN usuarios u ON u.id = c.usuario_id
+       LEFT JOIN inventario_cuentas i ON i.id = c.inventario_id
+       ORDER BY c.creado_en DESC LIMIT 200`
+    );
+    res.json({ ok: true, compras: result.rows });
+  } catch (e) {
+    console.error('[admin/compras] Error:', e.message);
+    res.status(500).json({ ok: false, mensaje: 'Error al obtener compras' });
+  }
+});
+
 module.exports = router;
